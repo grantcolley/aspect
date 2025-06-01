@@ -28,7 +28,7 @@ aspect/
 	* [Initialise the Monorepo](#initialise-the-monorepo)
 	* [Initialise the Shared Package](#initialise-the-shared-package)
 	* [Client Setup](#client-setup)	
-	* [server-setup](#initialise-the-monorepo)
+	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
 	
 # Scaffolding the `aspect` Monorepo
