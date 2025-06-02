@@ -203,7 +203,7 @@ export default defineConfig({
 });
 ```
 
-Install `shadcn/ui`:
+Install [`shadcn/ui`](https://ui.shadcn.com/):
 ```bash
 npx shadcn@latest init
 ```
