@@ -208,6 +208,11 @@ Install `shadcn/ui`:
 npx shadcn@latest init
 ```
 
+Install [tabler icons](https://tabler.io/icons).
+```bash
+npm install @tabler/icons-react
+```
+
 ### Server Setup
 In the `server` folder run:
 ```bash
