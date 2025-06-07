@@ -212,6 +212,16 @@ Install [tabler icons](https://tabler.io/icons).
 ```bash
 npm install @tabler/icons-react
 ```
+Set `iconLibrary` in `components.js` to `tabler`.
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+
+  // other options...
+  
+  "iconLibrary": "tabler"
+}
+```
 
 ### Server Setup
 In the `server` folder run:
