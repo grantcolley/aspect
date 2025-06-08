@@ -356,3 +356,108 @@ To fix this go to the top of `components\ui\sidebar.tsx`, and add `type` in fron
 import { cva, type VariantProps } from "class-variance-authority"
 ```
 
+Create `app-sidebar.tsx` in `client\src\components`.
+```TypeScript
+import * as React from "react";
+import { IconWorld } from "@tabler/icons-react";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <a href="#">
+                <IconWorld className="!size-5" />
+                <span className="text-base font-semibold">Aspect</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent></SidebarContent>
+      <SidebarFooter></SidebarFooter>
+    </Sidebar>
+  );
+}
+```
+
+Create `sidebar-header.tsx` in `client\src\components`.
+```TypeScript
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+
+export function SidebarHeader() {
+  return (
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-1" />
+        <Separator
+          orientation="vertical"
+          className="mx-2 data-[orientation=vertical]:h-4"
+        />
+        <h1 className="text-base font-medium">Home</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+            <a
+              href="https://github.com/grantcolley/aspect"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="dark:text-foreground"
+            >
+              GitHub
+            </a>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
+Change the App.tsx.
+```TypeScript
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarHeader } from "@/components/sidebar-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import "./App.css";
+
+function App() {
+  return (
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SidebarHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2"></div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
+
+export default App;
+```
+
