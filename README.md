@@ -30,7 +30,9 @@ aspect/
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
-	
+* [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
+
+ 
 # Scaffolding the `aspect` Monorepo
 ### Initialise the Monorepo
 Create a root folder `aspect`, and inside create three subfolders: `client`, `server` and `shared`.
@@ -299,4 +301,58 @@ Server: `http://localhost:3000/api/user`
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client.png?raw=true "Client")
 
+# Create Main Layout with Sidebar
+In `App.css` change the `max-width` and `padding`.
+```css
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0%;
+  text-align: center;
+}
+```
+
+In `main.tsx` wrap the `<App />` component with `<BrowserRouter>`.
+```TypeScript
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from "react-router-dom"; // 👈 add
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <BrowserRouter>  // 👈 add
+      <App />
+    </BrowserRouter> // 👈 add
+  </StrictMode>
+);
+```
+
+Install the `sidebar` components.
+```bash
+npx shadcn@latest add sidebar
+```
+
+> [!CAUTION]
+> Installing the shadcn/ui sidebar came with two unexpected issues that needed to be resolved.
+
+First, installing the sidebar (and related components) created a folder called `src\` directly under the root application level `aspect\` folder.
+The `components` and `hook` folders in `aspect\src\` had to be moved into the `aspect\client\src\` folder, and then delete `aspect\src\`, as follows:
+```
+aspect/
+├── src/   👈 delete src/
+│   ├── components/*   👈 move into client/src
+│   └── hooks/*        👈 move into client/src
+└── client/
+│   └── src/   👈 move folders `components` and `hooks` into client/src/ 
+```
+
+Second, there is a bug in `components\ui\sidebar.tsx` resulting in the following errror:
+
+`Uncaught SyntaxError: The requested module '/node_modules/.vite/deps/class-variance-authority.js?v=6f2cdce7' does not provide an export named 'VariantProps'`
+
+To fix this go to the top of `components\ui\sidebar.tsx`, and add `type` in front of the import for `VariantProps`, as follows:
+```TypeScript
+import { cva, type VariantProps } from "class-variance-authority"
+```
 
