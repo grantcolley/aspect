@@ -31,6 +31,7 @@ aspect/
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
 * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
+* [Support Dark/Light Theme](#support-darklight-theme)
 
  
 # Scaffolding the `aspect` Monorepo
@@ -460,4 +461,6 @@ function App() {
 
 export default App;
 ```
+
+# Support Dark/Light Theme
 
