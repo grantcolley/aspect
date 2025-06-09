@@ -303,6 +303,23 @@ Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client.png?raw=true "Client")
 
 # Create Main Layout with Sidebar
+First, change the browser tab's title and icon in `index.html`.
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/atlas.png" /> <!-- 👈 change icon -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aspect</title> <!-- 👈 change title -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
 In `App.css` change the `max-width` and `padding`.
 ```css
 #root {
