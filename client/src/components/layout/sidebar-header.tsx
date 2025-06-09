@@ -14,6 +14,7 @@ export function SidebarHeader() {
         />
         <h1 className="text-base font-medium">Home</h1>
         <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
               href="https://github.com/grantcolley/aspect"
