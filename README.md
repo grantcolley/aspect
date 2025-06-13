@@ -698,40 +698,88 @@ Client: `http://localhost:5173/`
 
 # Add Auth0 Authentication
 
-Create the Auth0 application for `Aspect.Client` and .
+> [!TIP]
+>
+> Follow the Auth0 instructios for setting up and configuring authentication.
+>
+> [Complete Guide to React User Authentication](https://auth0.com/blog/complete-guide-to-react-user-authentication/)
+> \
+> [Auth0 React QuickStart](https://auth0.com/docs/quickstart/spa/react)
 
-Follow the instructions in the [Auth0 React QuickStart](https://auth0.com/docs/quickstart/spa/react).
-
-![Alt text](/readme-images/auth0-client.png?raw=true "Auth0")
+Create the Auth0 application for `Aspect.Client` following the Auth0 instructions above.
 
 Install the Auth0 React SDK
 ```bash
 npm install @auth0/auth0-react
 ```
 
-Configure the `Auth0Provider` component in `main.tsx`.
+Create the `.env` file.
+```
+VITE_REACT_APP_AUTH0_DOMAIN=  // 👈 Auth0 domain
+VITE_REACT_APP_AUTH0_CLIENT_ID=  // 👈 Auth0 application clientId
+```
+
+Create `Auth0ProviderWithHistory.tsx`.
+```TypeScript
+import { useNavigate } from "react-router-dom";
+import { Auth0Provider } from "@auth0/auth0-react";
+
+import React from "react";
+
+const Auth0ProviderWithHistory: React.FC<React.PropsWithChildren<{}>> = ({
+  children,
+}) => {
+  const domain = process.env.REACT_APP_AUTH0_DOMAIN;
+  const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
+
+  if (!domain || !clientId) {
+    throw new Error(
+      "Missing Auth0 configuration: domain or clientId is not defined."
+    );
+  }
+
+  const navigate = useNavigate();
+
+  interface AppState {
+    returnTo?: string;
+  }
+
+  const onRedirectCallback = (appState?: AppState) => {
+    navigate(appState?.returnTo || window.location.pathname);
+  };
+
+  return (
+    <Auth0Provider
+      domain={domain}
+      clientId={clientId}
+      authorizationParams={{ redirect_uri: window.location.origin }}
+      onRedirectCallback={onRedirectCallback}
+    >
+      {children}
+    </Auth0Provider>
+  );
+};
+
+export default Auth0ProviderWithHistory;
+```
+
+Configure the `Auth0ProviderWithHistory` component in `main.tsx`.
 ```TypeScript
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { Auth0Provider } from "@auth0/auth0-react";
+import Auth0ProviderWithHistory from "@/components/layout/Auth0ProviderWithHistory";
 import "./index.css";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
-  <Auth0Provider
-    domain="" // 👈 Auth0 domain
-    clientId="" // 👈 Auth0 application clientId
-    authorizationParams={{
-      redirect_uri: window.location.origin,
-    }}
-  >
-    <StrictMode>
-      <BrowserRouter>
+  <StrictMode>
+    <BrowserRouter>
+      <Auth0ProviderWithHistory>  // 👈 inside <BrowserRouter><BrowserRouter />
         <App />
-      </BrowserRouter>
-    </StrictMode>
-  </Auth0Provider>
+      </Auth0ProviderWithHistory>
+    </BrowserRouter>
+  </StrictMode>
 );
 ```
 
