@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import Authentication from "./authentication";
 
 export function SidebarHeader() {
   return (
@@ -14,6 +15,7 @@ export function SidebarHeader() {
         />
         <h1 className="text-base font-medium">Home</h1>
         <div className="ml-auto flex items-center gap-2">
+          <Authentication />
           <ThemeToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
