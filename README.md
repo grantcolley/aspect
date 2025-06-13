@@ -300,7 +300,7 @@ Server: `http://localhost:3000/api/user`
 ![Alt text](/readme-images/server.png?raw=true "Server API")
 
 Client: `http://localhost:5173/`
-![Alt text](/readme-images/client.png?raw=true "Client")
+![Alt text](/readme-images/client-initial.png?raw=true "Client")
 
 # Create Main Layout with Sidebar
 First, change the browser tab's title and icon in `index.html`.
@@ -478,6 +478,9 @@ function App() {
 
 export default App;
 ```
+
+Client: `http://localhost:5173/`
+![Alt text](/readme-images/client-sidebar.png?raw=true "Client")
 
 # Support Dark/Light Theme
 Install `dropdown` and `tooltip` components.
@@ -688,3 +691,6 @@ export function SidebarHeader() {
   );
 }
 ```
+
+Client: `http://localhost:5173/`
+![Alt text](/readme-images/client-theme.png?raw=true "Client")
