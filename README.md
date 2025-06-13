@@ -32,7 +32,8 @@ aspect/
 	* [Run & Build](#run--build)
 * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
 * [Support Dark/Light Theme](#support-darklight-theme)
-
+* [Add Auth0 Authentication](#add-auth0-authentication)
+  
  
 # Scaffolding the `aspect` Monorepo
 ### Initialise the Monorepo
@@ -694,3 +695,195 @@ export function SidebarHeader() {
 
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
+
+# Add Auth0 Authentication
+
+Create the Auth0 application for `Aspect.Client` and .
+
+Follow the instructions in the [Auth0 React QuickStart](https://auth0.com/docs/quickstart/spa/react).
+
+![Alt text](/readme-images/auth0-client.png?raw=true "Auth0")
+
+Install the Auth0 React SDK
+```bash
+npm install @auth0/auth0-react
+```
+
+Configure the `Auth0Provider` component in `main.tsx`.
+```TypeScript
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { Auth0Provider } from "@auth0/auth0-react";
+import "./index.css";
+import App from "./App.tsx";
+
+createRoot(document.getElementById("root")!).render(
+  <Auth0Provider
+    domain="" // 👈 Auth0 domain
+    clientId="" // 👈 Auth0 application clientId
+    authorizationParams={{
+      redirect_uri: window.location.origin,
+    }}
+  >
+    <StrictMode>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </StrictMode>
+  </Auth0Provider>
+);
+```
+
+Create the `login.tsx` component.
+```TypeScript
+import { useAuth0 } from "@auth0/auth0-react";
+import { Button } from "@/components/ui/button";
+import { IconLogin2 } from "@tabler/icons-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const Login = () => {
+  const { loginWithRedirect } = useAuth0();
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => loginWithRedirect()}
+          >
+            <IconLogin2 />
+            <span className="sr-only">Login</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Login</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+export default Login;
+```
+
+Create the `logout.tsx` component.
+```TypeScript
+import { useAuth0 } from "@auth0/auth0-react";
+import { Button } from "@/components/ui/button";
+import { IconLogout } from "@tabler/icons-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const Logout = () => {
+  const { logout } = useAuth0();
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() =>
+              logout({ logoutParams: { returnTo: window.location.origin } })
+            }
+          >
+            <IconLogout />
+            <span className="sr-only">Logout</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Logout</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+export default Logout;
+```
+
+Create the `authentication.tsx` component.
+```TypeScript
+import { useAuth0 } from "@auth0/auth0-react";
+import Login from "./login";
+import Logout from "./logout";
+
+const Authentication = () => {
+  const { user, isAuthenticated } = useAuth0();
+
+  return (
+    <div>
+      {isAuthenticated ? (
+        <div className="ml-auto flex items-center gap-2">
+          <p className="text-muted-foreground">{user?.name}</p>
+          <Logout />
+        </div>
+      ) : (
+        <Login />
+      )}
+    </div>
+  );
+};
+
+export default Authentication;
+```
+
+Add the `authentication.tsx` component to the `sidebar-header.tsx`.
+```TypeScript
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import Authentication from "./authentication"; // 👈 import Authentication
+
+export function SidebarHeader() {
+  return (
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-1" />
+        <Separator
+          orientation="vertical"
+          className="mx-2 data-[orientation=vertical]:h-4"
+        />
+        <h1 className="text-base font-medium">Home</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <Authentication /> // 👈 add authentication
+          <ThemeToggle />
+          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+            <a
+              href="https://github.com/grantcolley/aspect"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="dark:text-foreground"
+            >
+              GitHub
+            </a>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
+Login button
+![Alt text](/readme-images/login-auth0.png?raw=true "Login")
+
+Athenticate
+![Alt text](/readme-images/authenticate-auth0.png?raw=true "Authenticate")
+
+Authenticated with logout button
+![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
+
+
+
+
