@@ -1,22 +1,16 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { Auth0Provider } from "@auth0/auth0-react";
+import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx";
 import "./index.css";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
-  <Auth0Provider
-    domain=""
-    clientId=""
-    authorizationParams={{
-      redirect_uri: window.location.origin,
-    }}
-  >
-    <StrictMode>
-      <BrowserRouter>
+  <StrictMode>
+    <BrowserRouter>
+      <Auth0ProviderWithNavigate>
         <App />
-      </BrowserRouter>
-    </StrictMode>
-  </Auth0Provider>
+      </Auth0ProviderWithNavigate>
+    </BrowserRouter>
+  </StrictMode>
 );
