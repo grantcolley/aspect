@@ -700,8 +700,10 @@ Client: `http://localhost:5173/`
 
 > [!TIP]
 >
-> Follow the Auth0 instructios for setting up and configuring authentication.
+> Follow the Auth0 instructions for setting up and configuring authentication.
 >
+> [React Authentication By Example: Using React Router 6](https://developer.auth0.com/resources/guides/spa/react/basic-authentication)
+> \
 > [Complete Guide to React User Authentication](https://auth0.com/blog/complete-guide-to-react-user-authentication/)
 > \
 > [Auth0 React QuickStart](https://auth0.com/docs/quickstart/spa/react)
@@ -713,29 +715,25 @@ Install the Auth0 React SDK
 npm install @auth0/auth0-react
 ```
 
-Create the `.env` file.
+Create the `.env.developmnent` file.
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=  // 👈 Auth0 domain
 VITE_REACT_APP_AUTH0_CLIENT_ID=  // 👈 Auth0 application clientId
 ```
 
-Create `Auth0ProviderWithHistory.tsx`.
+Create `auth0-provider-with-navigate.tsx`.
 ```TypeScript
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
 
-import React from "react";
-
-const Auth0ProviderWithHistory: React.FC<React.PropsWithChildren<{}>> = ({
+const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
-  const domain = process.env.REACT_APP_AUTH0_DOMAIN;
-  const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
+  const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
+  const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
 
-  if (!domain || !clientId) {
-    throw new Error(
-      "Missing Auth0 configuration: domain or clientId is not defined."
-    );
+  if (!(domain && clientId)) {
+    return null;
   }
 
   const navigate = useNavigate();
@@ -760,24 +758,24 @@ const Auth0ProviderWithHistory: React.FC<React.PropsWithChildren<{}>> = ({
   );
 };
 
-export default Auth0ProviderWithHistory;
+export default Auth0ProviderWithNavigate;
 ```
 
-Configure the `Auth0ProviderWithHistory` component in `main.tsx`.
+Configure the `auth0-provider-with-navigate.tsx` component in `main.tsx`.
 ```TypeScript
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import Auth0ProviderWithHistory from "@/components/layout/Auth0ProviderWithHistory";
+import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx";
 import "./index.css";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <Auth0ProviderWithHistory>  // 👈 inside <BrowserRouter><BrowserRouter />
+      <Auth0ProviderWithNavigate> // 👈 inside <BrowserRouter><BrowserRouter />
         <App />
-      </Auth0ProviderWithHistory>
+      </Auth0ProviderWithNavigate>
     </BrowserRouter>
   </StrictMode>
 );
