@@ -4,7 +4,6 @@
 ###### client: React + Vite + TypeScript + shadcn/ui + react-router + react-hook-form + zod
 ###### server: Node.js + Express + TypeScript + SQLite
 ###### shared: TypeScript-only package with shared types and utilities
-#####  
 
 The project structure looks like this:
 ```
