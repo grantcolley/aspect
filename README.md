@@ -29,9 +29,11 @@ aspect/
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
-* [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
-* [Support Dark/Light Theme](#support-darklight-theme)
-* [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+* [Client] 
+   * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
+   * [Support Dark/Light Theme](#support-darklight-theme)
+   * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+* [Server]
   
  
 # Scaffolding the `aspect` Monorepo
@@ -302,7 +304,8 @@ Server: `http://localhost:3000/api/user`
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-initial.png?raw=true "Client")
 
-# Create Main Layout with Sidebar
+# Client
+## Create Main Layout with Sidebar
 First, change the browser tab's title and icon in `index.html`.
 ```html
 <!DOCTYPE html>
@@ -482,7 +485,7 @@ export default App;
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-sidebar.png?raw=true "Client")
 
-# Support Dark/Light Theme
+## Support Dark/Light Theme
 Install `dropdown` and `tooltip` components.
 ```bash
 npx shadcn@latest add dropdown-menu
@@ -695,7 +698,7 @@ export function SidebarHeader() {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
 
-# Add Auth0 Authentication to the Client
+## Add Auth0 Authentication to the Client
 
 > [!TIP]
 >
@@ -929,6 +932,7 @@ Athenticate
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
+# Server
 
 
 
