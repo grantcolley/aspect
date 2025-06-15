@@ -5,7 +5,7 @@
 ###### server: Node.js + Express + TypeScript + SQLite
 ###### shared: TypeScript-only package with shared types and utilities
 
-The project structure looks like this:
+The project structure looks something like this:
 ```
 aspect/
 ├── package.json
