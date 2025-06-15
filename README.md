@@ -32,7 +32,7 @@ aspect/
 	* [Run & Build](#run--build)
 * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
 * [Support Dark/Light Theme](#support-darklight-theme)
-* [Add Auth0 Authentication](#add-auth0-authentication)
+* [Add Auth0 Authentication to Client](#add-auth0-authentication-to-client)
   
  
 # Scaffolding the `aspect` Monorepo
@@ -696,7 +696,7 @@ export function SidebarHeader() {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
 
-# Add Auth0 Authentication
+# Add Auth0 Authentication to Client
 
 > [!TIP]
 >
