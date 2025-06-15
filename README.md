@@ -700,7 +700,7 @@ Client: `http://localhost:5173/`
 
 > [!TIP]
 >
-> Follow the Auth0 instructions for setting up and configuring authentication.
+> Review the Auth0 instructions for setting up and configuring authentication.
 >
 > [React Authentication By Example: Using React Router 6](https://developer.auth0.com/resources/guides/spa/react/basic-authentication)
 > \
