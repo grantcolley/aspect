@@ -233,7 +233,7 @@ Set `iconLibrary` in `components.js` to `tabler`.
 In the `server` folder run:
 ```bash
 npm init -y
-npm install express sqlite3
+npm install express sqlite sqlite3
 npm install -D typescript ts-node-dev @types/express @types/node
 ```
 
