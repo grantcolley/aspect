@@ -115,11 +115,12 @@ Create `shared/tsconfig.json`.
 }
 ```
 
-Create subfolder `src`, and create a `shared/src/index.ts` file an example shared class `User`.
+Create subfolder `src/models`, and inside it create `shared/src/models/user.ts` for the example shared class `User`.
 ```TypeScript
 export interface User {
   id: number;
   name: string;
+  email: string;
 }
 ```
 
@@ -232,7 +233,7 @@ Set `iconLibrary` in `components.js` to `tabler`.
 In the `server` folder run:
 ```bash
 npm init -y
-npm install express sqlite3
+npm install express sqlite sqlite3
 npm install -D typescript ts-node-dev @types/express @types/node
 ```
 
