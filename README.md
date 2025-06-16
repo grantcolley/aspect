@@ -90,6 +90,11 @@ Inside the `shared` folder:
 npm init -y
 ```
 
+Install `zod` for model validation.
+```bash
+npm install zod
+```
+
 Configure the `shared/package.json`.
 ```json
 {
