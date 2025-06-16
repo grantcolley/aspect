@@ -235,6 +235,7 @@ In the `server` folder run:
 npm init -y
 npm install express sqlite sqlite3
 npm install -D typescript ts-node-dev @types/express @types/node
+npm install zod
 ```
 
 Configure the `server/package.json`.
