@@ -90,6 +90,11 @@ Inside the `shared` folder:
 npm init -y
 ```
 
+Install `zod` for model validation.
+```bash
+npm install zod
+```
+
 Configure the `shared/package.json`.
 ```json
 {
@@ -235,6 +240,7 @@ In the `server` folder run:
 npm init -y
 npm install express sqlite sqlite3
 npm install -D typescript ts-node-dev @types/express @types/node
+npm install zod
 ```
 
 Configure the `server/package.json`.
