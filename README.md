@@ -333,7 +333,7 @@ Client: `http://localhost:5173/`
 
 # The Shared Package
 ## Create Interfaces
-Create subfolder `src/interfaces`.
+Create subfolder `shared/src/interfaces`.
 
 Create the `Edibility` interface `shared/src/interfaces/edibility.ts`
 ```TypeScript
