@@ -39,11 +39,12 @@ aspect/
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
-* [Client](#client)
+* [The Shared Package](#the-shared-package) 
+* [The Client](#the-client)
    * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
    * [Support Dark/Light Theme](#support-darklight-theme)
    * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
-* [Server](#server)
+* [The Server](#the-server)
   
  
 # Scaffolding the `aspect` Monorepo
