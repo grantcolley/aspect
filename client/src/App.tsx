@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarHeader } from "@/components/layout/sidebar-header";
+import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import "./App.css";
@@ -17,7 +17,7 @@ function App() {
       >
         <AppSidebar variant="inset" />
         <SidebarInset>
-          <SidebarHeader />
+          <AppSidebarHeader />
           <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2"></div>
           </div>
