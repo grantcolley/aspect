@@ -485,7 +485,7 @@ export function SidebarHeader() {
 }
 ```
 
-Change the App.tsx.
+Change the `App.tsx`.
 ```TypeScript
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarHeader } from "@/components/sidebar-header";
