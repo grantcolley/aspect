@@ -39,7 +39,10 @@ aspect/
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
-* [The Shared Package](#the-shared-package) 
+* [The Shared Package](#the-shared-package)
+   * [Create Interfaces](#create-interfaces)
+   * [Create Models](#create-models)
+   * [Create Validation](#create-validation)
 * [The Client](#the-client)
    * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
    * [Support Dark/Light Theme](#support-darklight-theme)
@@ -328,7 +331,14 @@ Server: `http://localhost:3000/api/user`
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-initial.png?raw=true "Client")
 
-# Client
+# The Shared Package
+## Create Interfaces
+
+## Create Models
+
+## Create Validation
+
+# The Client
 ## Create Main Layout with Sidebar
 First, change the browser tab's title and icon in `index.html`.
 ```html
