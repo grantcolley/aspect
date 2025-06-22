@@ -130,12 +130,18 @@ Create `shared/tsconfig.json`.
 }
 ```
 
-Create subfolder `src/models`, and inside it create `shared/src/models/user.ts` for the example shared class `User`.
+Create subfolder `src/models`, and inside it create the shared `User` class `shared/src/models/user.ts`.
 ```TypeScript
-export interface User {
+export class User {
   id: number;
   name: string;
   email: string;
+
+  constructor(id: number, name: string, email: string) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+  }
 }
 ```
 
