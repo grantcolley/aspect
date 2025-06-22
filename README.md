@@ -337,6 +337,7 @@ Create subfolder `shared/src/interfaces`.
 
 Create the `Edibility` and `Visibility` interfaces 
 \
+\
 `shared/src/interfaces/edibility.ts`
 ```TypeScript
 export interface Editability {
@@ -352,6 +353,7 @@ export interface Visibility {
 
 ## Create Models
 Create the navigation models `Module`, `Category` and `Page` classes.
+\
 \
 `shared/src/models/page.ts`
 ```TypeScript
@@ -463,6 +465,7 @@ export class Module implements Editability, Visibility {
 ```
 Create the authorisation models `User`, `Role` and `Permission` classes.
 \
+\
 `shared/src/models/permission.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
@@ -534,6 +537,7 @@ export class User implements Editability {
 ## Create Validation
 Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
 \
+\
 `shared/src/validation/pageSchema.ts`
 ```TypeScript
 import { z } from "zod";
@@ -570,6 +574,7 @@ export type ModuleInput = z.infer<typeof moduleSchema>;
 ```
 
 Create the authorisation validation schema `userSchema`, `roleSchema` and `pemissionSchema`.
+\
 \
 `shared/src/validation/pemissionSchema.ts`
 ```TypeScript
