@@ -349,7 +349,7 @@ export interface Visibility {
 ```
 
 ## Create Models
-Create the navigation panel models `Module`, `Category` and `Page` classes.
+Create the navigation models `Module`, `Category` and `Page` classes.
 `shared/src/models/page.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
@@ -458,8 +458,144 @@ export class Module implements Editability, Visibility {
   }
 }
 ```
+Create the authorisation models `User`, `Role` and `Permission` classes.
+`shared/src/models/permission.ts`
+```TypeScript
+import { Editability } from "../interfaces/editability";
+
+export class Permission implements Editability {
+  id: number;
+  name: string;
+  isReadonlOnly: boolean;
+
+  constructor(id: number, name: string, isReadonlOnly: boolean) {
+    this.id = id;
+    this.name = name;
+    this.isReadonlOnly = isReadonlOnly;
+  }
+}
+```
+`shared/src/models/role.ts`
+```TypeScript
+import { Editability } from "../interfaces/editability";
+import { Permission } from "./permission";
+
+export class Role implements Editability {
+  id: number;
+  name: string;
+  isReadonlOnly: boolean;
+  permissions: Permission[];
+
+  constructor(
+    id: number,
+    name: string,
+    isReadonlOnly: boolean,
+    permissions: Permission[] = []
+  ) {
+    this.id = id;
+    this.name = name;
+    this.isReadonlOnly = isReadonlOnly;
+    this.permissions = permissions;
+  }
+}
+```
+`shared/src/models/user.ts`
+```TypeScript
+import { Editability } from "../interfaces/editability";
+import { Role } from "./role";
+
+export class User implements Editability {
+  id: number;
+  name: string;
+  email: string;
+  isReadonlOnly: boolean;
+  roles: Role[];
+
+  constructor(
+    id: number,
+    name: string,
+    email: string,
+    isReadonlOnly: boolean,
+    roles: Role[] = []
+  ) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+    this.isReadonlOnly = isReadonlOnly;
+    this.roles = roles;
+  }
+}
+```
 
 ## Create Validation
+Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
+`shared/src/validation/pageSchema.ts`
+```TypeScript
+import { z } from "zod";
+
+export const pageSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  icon: z.string().min(1, "Icon is required"),
+  url: z.string().min(1, "URL is required"),
+});
+
+export type PageInput = z.infer<typeof pageSchema>;
+```
+`shared/src/validation/categorySchema.ts`
+```TypeScript
+import { z } from "zod";
+
+export const categorySchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  icon: z.string().min(1, "Icon is required"),
+});
+
+export type CategoryInput = z.infer<typeof categorySchema>;
+```
+`shared/src/validation/moduleSchema.ts`
+```TypeScript
+import { z } from "zod";
+
+export const moduleSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  icon: z.string().min(1, "Icon is required"),
+});
+
+export type ModuleInput = z.infer<typeof moduleSchema>;
+```
+
+Create the authorisation validation schema `userSchema`, `roleSchema` and `pemissionSchema`.
+`shared/src/validation/pemissionSchema.ts`
+```TypeScript
+import { z } from "zod";
+
+export const permissionSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
+export type PermissionInput = z.infer<typeof permissionSchema>;
+```
+`shared/src/validation/roleSchema.ts`
+```TypeScript
+import { z } from "zod";
+
+export const roleSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
+export type RoleInput = z.infer<typeof roleSchema>;
+```
+`shared/src/validation/userSchema.ts`
+```TypeScript
+import { z } from "zod";
+
+export const userSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+});
+
+export type UserInput = z.infer<typeof userSchema>;
+```
 
 # The Client
 ## Create Main Layout with Sidebar
