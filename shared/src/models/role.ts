@@ -1,24 +1,21 @@
 import { Editability } from "../interfaces/editability";
-import { Role } from "./role";
+import { Permission } from "./permission";
 
-export class User implements Editability {
+export class Role implements Editability {
   id: number;
   name: string;
-  email: string;
   isReadonlOnly: boolean;
-  roles: Role[];
+  permissions: Permission[];
 
   constructor(
     id: number,
     name: string,
-    email: string,
     isReadonlOnly: boolean,
-    roles: Role[] = []
+    permissions: Permission[] = []
   ) {
     this.id = id;
     this.name = name;
-    this.email = email;
     this.isReadonlOnly = isReadonlOnly;
-    this.roles = roles;
+    this.permissions = permissions;
   }
 }
