@@ -349,6 +349,115 @@ export interface Visibility {
 ```
 
 ## Create Models
+Create the navigation panel models `Module`, `Category` and `Page` classes.
+`shared/src/models/page.ts`
+```TypeScript
+import { Editability } from "../interfaces/editability";
+import { Visibility } from "../interfaces/visibility";
+
+export class Page implements Editability, Visibility {
+  id: number;
+  categoryId: number;
+  name: string;
+  icon: string;
+  url: string;
+  isReadonlOnly: boolean;
+  isVisible: boolean;
+
+  constructor(
+    id: number,
+    categoryId: number,
+    name: string,
+    icon: string,
+    url: string,
+    isReadonlOnly: boolean,
+    isVisible: boolean
+  ) {
+    this.id = id;
+    this.categoryId = categoryId;
+    this.name = name;
+    this.icon = icon;
+    this.url = url;
+    this.isReadonlOnly = isReadonlOnly;
+    this.isVisible = isVisible;
+  }
+}
+```
+`shared/src/models/category.ts`
+```TypeScript
+import { Editability } from "../interfaces/editability";
+import { Visibility } from "../interfaces/visibility";
+import { Page } from "./page";
+
+export class Category implements Editability, Visibility {
+  id: number;
+  moduleId: number;
+  name: string;
+  icon: string;
+  isReadonlOnly: boolean;
+  isVisible: boolean;
+  pages: Page[];
+
+  constructor(
+    id: number,
+    moduleId: number,
+    name: string,
+    icon: string,
+    isReadonlOnly: boolean,
+    isVisible: boolean,
+    pages: Page[] = []
+  ) {
+    this.id = id;
+    this.moduleId = moduleId;
+    this.name = name;
+    this.icon = icon;
+    this.isReadonlOnly = isReadonlOnly;
+    this.isVisible = isVisible;
+    this.pages = pages;
+  }
+
+  addPage(pages: Page) {
+    pages.categoryId = this.id;
+    this.pages.push(pages);
+  }
+}
+```
+`shared/src/models/module.ts`
+```TypeScript
+import { Editability } from "../interfaces/editability";
+import { Visibility } from "../interfaces/visibility";
+import { Category } from "./category";
+
+export class Module implements Editability, Visibility {
+  id: number;
+  name: string;
+  icon: string;
+  isReadonlOnly: boolean;
+  isVisible: boolean;
+  categories: Category[];
+
+  constructor(
+    id: number,
+    name: string,
+    icon: string,
+    isReadonlOnly: boolean,
+    isVisible: boolean,
+    categories: Category[] = []
+  ) {
+    this.id = id;
+    this.name = name;
+    this.icon = icon;
+    this.isReadonlOnly = isReadonlOnly;
+    this.isVisible = isVisible;
+    this.categories = categories;
+  }
+
+  addCategory(category: Category) {
+    category.moduleId = this.id;
+    this.categories.push(category);
+  }
+}
+```
 
 ## Create Validation
 
