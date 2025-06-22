@@ -335,7 +335,8 @@ Client: `http://localhost:5173/`
 ## Create Interfaces
 Create subfolder `shared/src/interfaces`.
 
-Create the `Edibility` interface `shared/src/interfaces/edibility.ts`
+Create the `Edibility` and `Visibility` interfaces 
+`shared/src/interfaces/edibility.ts`
 ```TypeScript
 export interface Editability {
   isReadonlOnly: boolean;
