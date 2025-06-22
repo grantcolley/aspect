@@ -344,7 +344,7 @@ export interface Editability {
   isReadonlOnly: boolean;
 }
 ```
-Create the `Visibility` interface `shared/src/interfaces/visibility.ts`
+`shared/src/interfaces/visibility.ts`
 ```TypeScript
 export interface Visibility {
   isVisible: boolean;
