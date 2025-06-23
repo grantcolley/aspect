@@ -8,6 +8,9 @@ import {
   IconUserCircle,
   IconShieldLock,
   IconAppsFilled,
+  IconLayoutBoardSplit,
+  IconListDetails,
+  IconAlignBoxLeftStretch,
 } from "@tabler/icons-react";
 
 export const iconsMap: Record<string, React.FC<any>> = {
@@ -20,4 +23,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
   roles: IconUserCircle,
   permissions: IconShieldLock,
   applications: IconAppsFilled,
+  modules: IconLayoutBoardSplit,
+  categories: IconListDetails,
+  pages: IconAlignBoxLeftStretch,
 };
