@@ -686,7 +686,6 @@ Create `app-sidebar.tsx` in `client\src\components`.
 ```TypeScript
 import * as React from "react";
 import { IconWorld } from "@tabler/icons-react";
-
 import {
   Sidebar,
   SidebarContent,
