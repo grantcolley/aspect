@@ -1445,7 +1445,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavigationPanel modules={data}></NavigationPanel> // 👈 add NavigationPanel to SidebarContent
+        <NavigationPanel modules={data}></NavigationPanel> // 👈 add NavigationPanel, passing dummy data into it
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
     </Sidebar>
