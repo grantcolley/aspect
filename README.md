@@ -721,13 +721,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 ```
 
-Create `sidebar-header.tsx` in `client\src\components`.
+Create `app-sidebar-header.tsx` in `client\src\components`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export function SidebarHeader() {
+export function AppSidebarHeader() {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
@@ -758,7 +758,7 @@ export function SidebarHeader() {
 Change the `App.tsx`.
 ```TypeScript
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarHeader } from "@/components/sidebar-header";
+import { AppSidebarHeader } from "@/components/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import "./App.css";
 
@@ -774,7 +774,7 @@ function App() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SidebarHeader />
+        <AppSidebarHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2"></div>
         </div>
@@ -1189,7 +1189,7 @@ const Authentication = () => {
 export default Authentication;
 ```
 
-Add the `authentication.tsx` component to the `sidebar-header.tsx`.
+Add the `authentication.tsx` component to the `app-sidebar-header.tsx`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -1197,7 +1197,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import Authentication from "./authentication"; // 👈 import Authentication
 
-export function SidebarHeader() {
+export function AppSidebarHeader() {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
