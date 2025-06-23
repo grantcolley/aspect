@@ -47,6 +47,7 @@ aspect/
    * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
    * [Support Dark/Light Theme](#support-darklight-theme)
    * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+   * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [The Server](#the-server)
   
  
@@ -685,7 +686,6 @@ Create `app-sidebar.tsx` in `client\src\components`.
 ```TypeScript
 import * as React from "react";
 import { IconWorld } from "@tabler/icons-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -721,13 +721,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 ```
 
-Create `sidebar-header.tsx` in `client\src\components`.
+Create `app-sidebar-header.tsx` in `client\src\components`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export function SidebarHeader() {
+export function AppSidebarHeader() {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
@@ -758,7 +758,7 @@ export function SidebarHeader() {
 Change the `App.tsx`.
 ```TypeScript
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarHeader } from "@/components/sidebar-header";
+import { AppSidebarHeader } from "@/components/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import "./App.css";
 
@@ -774,7 +774,7 @@ function App() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SidebarHeader />
+        <AppSidebarHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2"></div>
         </div>
@@ -1189,7 +1189,7 @@ const Authentication = () => {
 export default Authentication;
 ```
 
-Add the `authentication.tsx` component to the `sidebar-header.tsx`.
+Add the `authentication.tsx` component to the `app-sidebar-header.tsx`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -1197,7 +1197,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import Authentication from "./authentication"; // 👈 import Authentication
 
-export function SidebarHeader() {
+export function AppSidebarHeader() {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
@@ -1235,6 +1235,223 @@ Athenticate
 
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
+
+# Adding Navigation to the Sidebar
+Install the `collapsible` component.
+```bash
+npx shadcn@latest add collapsible
+```
+
+Create an `icons` folder at `client\src\components\icons`.
+\
+\
+In the `client\src\components\icons` folder create `iconsMap.ts`.
+```TypeScript
+import {
+  IconHome,
+  IconUser,
+  IconSettings,
+  IconSearch,
+  IconShieldCog,
+  IconUsersGroup,
+  IconUserCircle,
+  IconShieldLock,
+  IconAppsFilled,
+} from "@tabler/icons-react";
+
+export const iconsMap: Record<string, React.FC<any>> = {
+  home: IconHome,
+  user: IconUser,
+  search: IconSearch,
+  settings: IconSettings,
+  authorisation: IconShieldCog,
+  users: IconUsersGroup,
+  roles: IconUserCircle,
+  permissions: IconShieldLock,
+  applications: IconAppsFilled,
+};
+```
+
+In the `client\src\components\icons` folder create `iconLoader.tsx`.
+```TypeScript
+import React from "react";
+import { IconPhotoExclamation } from "@tabler/icons-react";
+import { iconsMap } from "./iconsMap";
+
+type IconLoaderProps = {
+  name: keyof typeof iconsMap;
+};
+
+const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
+  const IconComponent = iconsMap[name];
+
+  if (!IconComponent) {
+    return <IconPhotoExclamation />;
+  }
+
+  return <IconComponent />;
+};
+
+export default IconLoader;
+```
+
+In the `client\src\components\layout` folder create `navigation-panel.tsx`.
+```TypeScript
+import { IconChevronRight } from "@tabler/icons-react";
+import IconLoader from "@/components/icons/IconLoader";
+import { Module } from "shared/src/models/module";
+import type { Visibility } from "shared/src/interfaces/visibility";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
+
+type Props = {
+  modules: Module[];
+};
+
+const isVisible = (visibility: Visibility) => {
+  return visibility.isVisible;
+};
+
+export function NavigationPanel({ modules }: Props) {
+  return (
+    <>
+      {modules.filter(isVisible).map((module) => (
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <IconLoader name={module.icon} />
+            <span>&nbsp;{module.name}</span>
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            {module.categories.filter(isVisible).map((category) => (
+              <Collapsible
+                key={category.id}
+                asChild
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={category.name}>
+                      <IconLoader name={category.icon} />
+                      <span>{category.name}</span>
+                      <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {category.pages?.filter(isVisible).map((page) => (
+                        <SidebarMenuSubItem key={page.name}>
+                          <SidebarMenuSubButton asChild>
+                            <a href={page.url}>
+                              <IconLoader name={page.icon} />
+                              <span>{page.name}</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
+  );
+}
+```
+
+Update `app-sidebar.tsx` to add `NavigationPanel` and pass dummy data into it.
+```TypeScript
+import * as React from "react";
+import { IconWorld } from "@tabler/icons-react";
+import { NavigationPanel } from "@/components/layout/navigation-panel"; // 👈 import the NavigationPanel
+import { Module } from "shared/src/models/module"; // 👈 import Module
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+
+const data = [  // 👈 create the dummy data
+  {
+    id: 1,
+    name: "Administration",
+    icon: "settings",
+    isVisible: true,
+    categories: [
+      {
+        name: "Authorisation",
+        icon: "authorisation",
+        isVisible: true,
+        pages: [
+          { name: "Users", icon: "users", url: "#", isVisible: true },
+          { name: "Roles", icon: "roles", url: "#", isVisible: true },
+          {
+            name: "Permissions",
+            icon: "permissions",
+            url: "#",
+            isVisible: true,
+          },
+        ],
+      },
+      {
+        name: "Applications",
+        icon: "applications",
+        isVisible: true,
+        pages: [
+          { name: "Modules", icon: "modules", url: "#", isVisible: true },
+          { name: "Categories", icon: "categories", url: "#", isVisible: true },
+          { name: "Pages", icon: "pages", url: "#", isVisible: true },
+        ],
+      },
+    ],
+  },
+] as Module[];
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <a href="#">
+                <IconWorld className="!size-5" />
+                <span className="text-base font-semibold">Aspect</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavigationPanel modules={data}></NavigationPanel> // 👈 add NavigationPanel, passing dummy data into it
+      </SidebarContent>
+      <SidebarFooter></SidebarFooter>
+    </Sidebar>
+  );
+}
+```
 
 # Server
 
