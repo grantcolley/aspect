@@ -47,6 +47,7 @@ aspect/
    * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
    * [Support Dark/Light Theme](#support-darklight-theme)
    * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+   * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [The Server](#the-server)
   
  
@@ -1235,6 +1236,144 @@ Athenticate
 
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
+
+# Adding Navigation to the Sidebar
+Install the `collapsible` component.
+```bash
+npx shadcn@latest add collapsible
+```
+
+Create an `icons` folder at `client\src\components\icons`.
+\
+\
+In the `client\src\components\icons` folder create `iconsMap.ts`.
+```TypeScript
+import {
+  IconHome,
+  IconUser,
+  IconSettings,
+  IconSearch,
+  IconShieldCog,
+  IconUsersGroup,
+  IconUserCircle,
+  IconShieldLock,
+  IconAppsFilled,
+} from "@tabler/icons-react";
+
+export const iconsMap: Record<string, React.FC<any>> = {
+  home: IconHome,
+  user: IconUser,
+  search: IconSearch,
+  settings: IconSettings,
+  authorisation: IconShieldCog,
+  users: IconUsersGroup,
+  roles: IconUserCircle,
+  permissions: IconShieldLock,
+  applications: IconAppsFilled,
+};
+```
+
+In the `client\src\components\icons` folder create `iconLoader.tsx`.
+```TypeScript
+import React from "react";
+import { IconPhotoExclamation } from "@tabler/icons-react";
+import { iconsMap } from "./iconsMap";
+
+type IconLoaderProps = {
+  name: keyof typeof iconsMap;
+};
+
+const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
+  const IconComponent = iconsMap[name];
+
+  if (!IconComponent) {
+    return <IconPhotoExclamation />;
+  }
+
+  return <IconComponent />;
+};
+
+export default IconLoader;
+```
+
+In the `client\src\components\layout` folder create `navigation-panel.tsx`.
+```TypeScript
+import { IconChevronRight } from "@tabler/icons-react";
+import IconLoader from "@/components/icons/IconLoader";
+import { Module } from "shared/src/models/module";
+import type { Visibility } from "shared/src/interfaces/visibility";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
+
+type Props = {
+  modules: Module[];
+};
+
+const isVisible = (visibility: Visibility) => {
+  return visibility.isVisible;
+};
+
+export function NavigationPanel({ modules }: Props) {
+  return (
+    <>
+      {modules.filter(isVisible).map((module) => (
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <IconLoader name={module.icon} />
+            <span>&nbsp;{module.name}</span>
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            {module.categories.filter(isVisible).map((category) => (
+              <Collapsible
+                key={category.id}
+                asChild
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={category.name}>
+                      <IconLoader name={category.icon} />
+                      <span>{category.name}</span>
+                      <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {category.pages?.filter(isVisible).map((page) => (
+                        <SidebarMenuSubItem key={page.name}>
+                          <SidebarMenuSubButton asChild>
+                            <a href={page.url}>
+                              <IconLoader name={page.icon} />
+                              <span>{page.name}</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
+  );
+}
+```
 
 # Server
 
