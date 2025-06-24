@@ -1455,7 +1455,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-navigation.png?raw=true "Client")
 
-# Server
+# The Server
 
 
 
