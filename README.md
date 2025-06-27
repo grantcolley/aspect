@@ -288,6 +288,7 @@ Create `server/tsconfig.json`.
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "module": "CommonJS",
     "declaration": true
   },
   "include": ["src"]
