@@ -4,6 +4,7 @@
   "description": "Aspect",
   "workspaces": [
     "client",
+    "db",
     "server",
     "shared"
   ],

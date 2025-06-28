@@ -1,0 +1,16 @@
+{
+  "name": "db",
+  "version": "1.0.0",
+  "main": "src/seed.ts",
+  "scripts": {
+    "seed": "ts-node src/seed.ts"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typescript": "^5.8.3"
+  }
+}
