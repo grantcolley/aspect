@@ -24,6 +24,9 @@ aspect/
 ├── client/
 │   ├── package.json
 │   └── ... (Vite + React code)
+├── db/
+│   ├── package.json
+│   └── ... (db seed code)
 ├── server/
 │   ├── package.json
 │   └── ... (Express API code)
@@ -35,6 +38,7 @@ aspect/
 ### Table of contents
 * [Scaffolding the `aspect` Monorepo](#scaffolding-the-aspect-monorepo)
 	* [Initialise the Monorepo](#initialise-the-monorepo)
+ 	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Initialise the Shared Package](#initialise-the-shared-package)
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
@@ -53,7 +57,7 @@ aspect/
  
 # Scaffolding the `aspect` Monorepo
 ### Initialise the Monorepo
-Create a root folder `aspect`, and inside create three subfolders: `client`, `server` and `shared`.
+Create a root folder `aspect`, and inside create three subfolders: `client`, `db`, `server` and `shared`.
 
 Inside the root `aspect` folder:
 ```bash
@@ -68,8 +72,9 @@ Configure the root `package.json`.
   "description": "Aspect",
   "workspaces": [
     "client",
+    "db",
     "server",
-    "shared"
+    "shared",
   ]
 }
 ```
@@ -97,6 +102,85 @@ node_modules
 dist
 .env
 *.sqlite
+```
+### Create the DB Seed package
+Inside the `db` folder, and a subfolder `src`:
+
+Create the `db/src/seed.ts`.
+```TypeScript
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+
+sqlite3.verbose();
+
+async function seed() {
+  const db = await open({
+    filename: "./database.sqlite",
+    driver: sqlite3.Database,
+  });
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL
+    );
+  `);
+
+  const users = [
+    { name: "Alice", email: "alice@email.com" },
+    { name: "Grant", email: "grant@email.com" },
+  ];
+
+  for (const user of users) {
+    await db.run(
+      "INSERT INTO users (name, email) VALUES (?, ?)",
+      user.name,
+      user.email
+    );
+    console.log(`Inserted: ${user.name}`);
+  }
+
+  await db.close();
+  console.log("Database seeding complete.");
+}
+
+seed().catch((err) => {
+  console.error("Seed error:", err);
+  process.exit(1);
+});
+```
+
+Configure the `db/package.json`.
+```json
+{
+  "name": "db",
+  "version": "1.0.0",
+  "main": "src/seed.ts",
+  "scripts": {
+    "seed": "ts-node src/seed.ts"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typescript": "^5.8.3"
+  }
+}
+```
+
+Create `db/tsconfig.json`.
+```json
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "dist"
+  },
+  "include": ["src"]
+}
 ```
 
 ### Initialise the Shared Package
