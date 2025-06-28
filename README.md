@@ -402,6 +402,9 @@ app.listen(port, () => {
 # Run shared build first if used by others
 npm run --workspace shared build
 
+# Create and seed the database
+npm run --workspace db seed
+
 # Start dev server
 npm run --workspace server dev
 
