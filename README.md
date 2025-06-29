@@ -208,6 +208,8 @@ export async function seedUsers(db: Database, users: User[]) {
 
 Create the `db/src/seed.ts`.
 ```TypeScript
+import dotenv from "dotenv";
+import path from "path";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
@@ -216,8 +218,12 @@ import { getUsers } from "./data/userData";
 sqlite3.verbose();
 
 async function seed() {
+  dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+
+  let fileName = "./" + process.env.DATABASE;
+
   const db = await open({
-    filename: "./aspect.sqlite",
+    filename: fileName,
     driver: sqlite3.Database,
   });
 
@@ -226,7 +232,7 @@ async function seed() {
   await seedUsers(db, users);
 
   await db.close();
-  console.log("Database seeding complete.");
+  console.log(`Database seeding complete: ${fileName}`);
 }
 
 seed().catch((err) => {
