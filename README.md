@@ -220,10 +220,10 @@ sqlite3.verbose();
 async function seed() {
   dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
 
-  let fileName = "./" + process.env.DATABASE;
+  let dbFile = "./" + process.env.DATABASE;
 
   const db = await open({
-    filename: fileName,
+    filename: dbFile,
     driver: sqlite3.Database,
   });
 
@@ -232,7 +232,7 @@ async function seed() {
   await seedUsers(db, users);
 
   await db.close();
-  console.log(`Database seeding complete: ${fileName}`);
+  console.log(`Database seeding complete: ${dbFile}`);
 }
 
 seed().catch((err) => {
