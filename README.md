@@ -36,8 +36,8 @@ aspect/
 ```
 
 ### Table of contents
-* [Scaffolding the `aspect` Monorepo](#scaffolding-the-aspect-monorepo)
-	* [Initialise the Monorepo](#initialise-the-monorepo)
+* [Scaffolding the Monorepo](#scaffolding-the-monorepo)
+	* [Initialise Workspaces](#initialise-workspaces)
  	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Initialise the Shared Package](#initialise-the-shared-package)
 	* [Client Setup](#client-setup)	
@@ -55,8 +55,8 @@ aspect/
 * [The Server](#the-server)
   
  
-# Scaffolding the `aspect` Monorepo
-### Initialise the Monorepo
+# Scaffolding the Monorepo
+### Initialise the Workspaces
 Create a root folder `aspect`, and inside create three subfolders: `client`, `db`, `server` and `shared`.
 
 Inside the root `aspect` folder:
