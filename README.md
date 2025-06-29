@@ -96,6 +96,11 @@ Create a root `tsconfig.base.json`.
 }
 ```
 
+Create a `env.development` file.
+```
+DATABASE=aspect.sqlite
+```
+
 Replace the content of `.gitignore` with:
 ```nginx
 node_modules
