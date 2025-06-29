@@ -38,8 +38,8 @@ aspect/
 ### Table of contents
 * [Scaffolding the Monorepo](#scaffolding-the-monorepo)
 	* [Setup the Workspaces](#setup-the-workspaces)
- 	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Initialise the Shared Package](#initialise-the-shared-package)
+ 	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
@@ -102,6 +102,57 @@ node_modules
 dist
 .env
 *.sqlite
+```
+
+### Initialise the Shared Package
+Inside the `shared` folder:
+```bash
+npm init -y
+```
+
+Install `zod` for model validation.
+```bash
+npm install zod
+```
+
+Configure the `shared/package.json`.
+```json
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+  }
+}
+```
+
+Create `shared/tsconfig.json`.
+```json
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true
+  },
+  "include": ["src"]
+}
+```
+
+Create subfolder `src/models`, and inside it create the shared `User` class `shared/src/models/user.ts`.
+```TypeScript
+export class User {
+  id: number;
+  name: string;
+  email: string;
+
+  constructor(id: number, name: string, email: string) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+  }
+}
 ```
 ### Create the DB Seed package
 Inside the `db` folder, and a subfolder `src`:
@@ -180,57 +231,6 @@ Create `db/tsconfig.json`.
     "outDir": "dist"
   },
   "include": ["src"]
-}
-```
-
-### Initialise the Shared Package
-Inside the `shared` folder:
-```bash
-npm init -y
-```
-
-Install `zod` for model validation.
-```bash
-npm install zod
-```
-
-Configure the `shared/package.json`.
-```json
-{
-  "name": "shared",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-  }
-}
-```
-
-Create `shared/tsconfig.json`.
-```json
-{
-  "extends": "../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "declaration": true
-  },
-  "include": ["src"]
-}
-```
-
-Create subfolder `src/models`, and inside it create the shared `User` class `shared/src/models/user.ts`.
-```TypeScript
-export class User {
-  id: number;
-  name: string;
-  email: string;
-
-  constructor(id: number, name: string, email: string) {
-    this.id = id;
-    this.name = name;
-    this.email = email;
-  }
 }
 ```
 
