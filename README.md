@@ -155,6 +155,11 @@ export class User {
 }
 ```
 ### Create the DB Seed package
+Install `dotenv`.
+```
+npm install dotenv
+```
+
 Inside the `db` folder create subfolders `/src/data`.
 
 Create the `db/src/data/userData.ts`.
