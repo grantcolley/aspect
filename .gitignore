@@ -3,3 +3,4 @@ dist
 .env.local
 .env.development
 *.sqlite
+sqlite3.exe
