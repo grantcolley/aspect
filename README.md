@@ -220,7 +220,7 @@ sqlite3.verbose();
 async function seed() {
   dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
 
-  let dbFile = "./" + process.env.DATABASE;
+  let dbFile = `./${process.env.DATABASE}`;
 
   const db = await open({
     filename: dbFile,
