@@ -595,7 +595,7 @@ export class Role implements Editability {
   }
 }
 ```
-`shared/src/models/user.ts`
+Update the `User` at `shared/src/models/user.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Role } from "./role";
