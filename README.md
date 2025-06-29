@@ -155,21 +155,26 @@ export class User {
 }
 ```
 ### Create the DB Seed package
-Inside the `db` folder, and a subfolder `src`:
+Inside the `db` folder create subfolders `/src/data`.
 
-Create the `db/src/seed.ts`.
+Create the `db/src/data/userData.ts`.
 ```TypeScript
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
+import { User } from "shared/src/models/user";
 
-sqlite3.verbose();
+export function getUsers() {
+  return [
+    new User(1, "Alice", "alice@email.com", false),
+    new User(2, "Grant", "grant@email.com", false),
+  ];
+}
+```
 
-async function seed() {
-  const db = await open({
-    filename: "./database.sqlite",
-    driver: sqlite3.Database,
-  });
+Create the `db/src/seedUsers.ts`.
+```TypeScript
+import { Database } from "sqlite";
+import { User } from "shared/src/models/user";
 
+export async function seedUsers(db: Database, users: User[]) {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -177,11 +182,6 @@ async function seed() {
       email TEXT UNIQUE NOT NULL
     );
   `);
-
-  const users = [
-    { name: "Alice", email: "alice@email.com" },
-    { name: "Grant", email: "grant@email.com" },
-  ];
 
   for (const user of users) {
     await db.run(
@@ -191,6 +191,29 @@ async function seed() {
     );
     console.log(`Inserted: ${user.name}`);
   }
+
+  console.log(`Insert Users Complete.`);
+}
+```
+
+Create the `db/src/seed.ts`.
+```TypeScript
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+import { seedUsers } from "./seedUsers";
+import { getUsers } from "./data/userData";
+
+sqlite3.verbose();
+
+async function seed() {
+  const db = await open({
+    filename: "./aspect.sqlite",
+    driver: sqlite3.Database,
+  });
+
+  let users = getUsers();
+
+  await seedUsers(db, users);
 
   await db.close();
   console.log("Database seeding complete.");
