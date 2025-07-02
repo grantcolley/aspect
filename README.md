@@ -690,6 +690,7 @@ export const pageSchema = z.object({
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   url: z.string().min(1, "URL is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type PageInput = z.infer<typeof pageSchema>;
@@ -701,6 +702,7 @@ import { z } from "zod";
 export const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
@@ -712,6 +714,7 @@ import { z } from "zod";
 export const moduleSchema = z.object({
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type ModuleInput = z.infer<typeof moduleSchema>;
@@ -1534,38 +1537,39 @@ import {
 } from "@/components/ui/sidebar";
 
 const data = [	// 👈 create the dummy data
+const data = [
   {
     moduleId: 1,
     name: "Administration",
     icon: "settings",
-    permission: "admin",
+    permission: "admin_ro|admin_rw",
     categories: [
       {
         categoryId: 1,
         name: "Authorisation",
         icon: "authorisation",
-        permission: "auth",
+        permission: "auth_ro|auth_rw",
         pages: [
           {
             pageId: 1,
             name: "Users",
             icon: "users",
             url: "#",
-            permission: "auth",
+            permission: "auth_ro|auth_rw",
           },
           {
             pageId: 2,
             name: "Roles",
             icon: "roles",
             url: "#",
-            permission: "auth",
+            permission: "auth_ro|auth_rw",
           },
           {
             pageId: 3,
             name: "Permissions",
             icon: "permissions",
             url: "#",
-            permission: "auth",
+            permission: "auth_ro|auth_rw",
           },
         ],
       },
@@ -1573,28 +1577,28 @@ const data = [	// 👈 create the dummy data
         categoryId: 2,
         name: "Applications",
         icon: "applications",
-        permission: "apps",
+        permission: "apps_ro|apps_rw",
         pages: [
           {
             pageId: 4,
             name: "Modules",
             icon: "modules",
             url: "#",
-            permission: "apps",
+            permission: "apps_ro|apps_rw",
           },
           {
             pageId: 5,
             name: "Categories",
             icon: "categories",
             url: "#",
-            permission: "apps",
+            permission: "apps_ro|apps_rw",
           },
           {
             pageId: 6,
             name: "Pages",
             icon: "pages",
             url: "#",
-            permission: "apps",
+            permission: "apps_ro|apps_rw",
           },
         ],
       },
