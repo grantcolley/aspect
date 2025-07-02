@@ -1,12 +1,12 @@
 import { Editability } from "../interfaces/editability";
 
 export class Permission implements Editability {
-  id: number;
+  permissionId: number;
   name: string;
   isReadonlOnly: boolean;
 
-  constructor(id: number, name: string, isReadonlOnly: boolean) {
-    this.id = id;
+  constructor(permissionId: number, name: string, isReadonlOnly: boolean) {
+    this.permissionId = permissionId;
     this.name = name;
     this.isReadonlOnly = isReadonlOnly;
   }
