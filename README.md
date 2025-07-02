@@ -495,15 +495,15 @@ Create the navigation models `Module`, `Category` and `Page` classes.
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
 
-export class Page implements Editability, Permissionable {
+export class Page implements Permissionable, Editability {
   pageId: number;
   categoryId: number;
   name: string;
   icon: string;
   url: string;
-  isReadonlOnly: boolean;
-  isVisible: boolean;
   permission: string;
+  isVisible: boolean;
+  isReadonlOnly: boolean;
 
   constructor(
     pageId: number,
@@ -511,18 +511,18 @@ export class Page implements Editability, Permissionable {
     name: string,
     icon: string,
     url: string,
-    isReadonlOnly: boolean,
+    permission: string,
     isVisible: boolean,
-    permission: string
+    isReadonlOnly: boolean
   ) {
     this.pageId = pageId;
     this.categoryId = categoryId;
     this.name = name;
     this.icon = icon;
     this.url = url;
-    this.isReadonlOnly = isReadonlOnly;
-    this.isVisible = isVisible;
     this.permission = permission;
+    this.isVisible = isVisible;
+    this.isReadonlOnly = isReadonlOnly;
   }
 }
 ```
@@ -532,14 +532,14 @@ import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
 import { Page } from "./page";
 
-export class Category implements Editability, Permissionable {
+export class Category implements Permissionable, Editability {
   categoryId: number;
   moduleId: number;
   name: string;
   icon: string;
-  isReadonlOnly: boolean;
-  isVisible: boolean;
   permission: string;
+  isVisible: boolean;
+  isReadonlOnly: boolean;
   pages: Page[];
 
   constructor(
@@ -547,18 +547,18 @@ export class Category implements Editability, Permissionable {
     moduleId: number,
     name: string,
     icon: string,
-    isReadonlOnly: boolean,
-    isVisible: boolean,
     permission: string,
+    isVisible: boolean,
+    isReadonlOnly: boolean,
     pages: Page[] = []
   ) {
     this.categoryId = categoryId;
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
-    this.isReadonlOnly = isReadonlOnly;
-    this.isVisible = isVisible;
     this.permission = permission;
+    this.isVisible = isVisible;
+    this.isReadonlOnly = isReadonlOnly;
     this.pages = pages;
   }
 
@@ -574,30 +574,30 @@ import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
 import { Category } from "./category";
 
-export class Module implements Editability, Permissionable {
+export class Module implements Permissionable, Editability {
   moduleId: number;
   name: string;
   icon: string;
-  isReadonlOnly: boolean;
-  isVisible: boolean;
   permission: string;
+  isVisible: boolean;
+  isReadonlOnly: boolean;
   categories: Category[];
 
   constructor(
     moduleId: number,
     name: string,
     icon: string,
-    isReadonlOnly: boolean,
-    isVisible: boolean,
     permission: string,
+    isVisible: boolean,
+    isReadonlOnly: boolean,
     categories: Category[] = []
   ) {
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
-    this.isReadonlOnly = isReadonlOnly;
-    this.isVisible = isVisible;
     this.permission = permission;
+    this.isVisible = isVisible;
+    this.isReadonlOnly = isReadonlOnly;
     this.categories = categories;
   }
 
@@ -613,15 +613,26 @@ Create the authorisation models `User`, `Role` and `Permission` classes.
 `shared/src/models/permission.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
+import { Permissionable } from "../interfaces/permissionable";
 
-export class Permission implements Editability {
+export class Permission implements Permissionable, Editability {
   permissionId: number;
   name: string;
+  permission: string;
+  isVisible: boolean;
   isReadonlOnly: boolean;
 
-  constructor(permissionId: number, name: string, isReadonlOnly: boolean) {
+  constructor(
+    permissionId: number,
+    name: string,
+    permission: string,
+    isVisible: boolean,
+    isReadonlOnly: boolean
+  ) {
     this.permissionId = permissionId;
     this.name = name;
+    this.permission = permission;
+    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
   }
 }
@@ -629,22 +640,29 @@ export class Permission implements Editability {
 `shared/src/models/role.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
+import { Permissionable } from "../interfaces/permissionable";
 import { Permission } from "./permission";
 
-export class Role implements Editability {
+export class Role implements Permissionable, Editability {
   roleId: number;
   name: string;
+  permission: string;
+  isVisible: boolean;
   isReadonlOnly: boolean;
   permissions: Permission[];
 
   constructor(
     roleId: number,
     name: string,
+    permission: string,
+    isVisible: boolean,
     isReadonlOnly: boolean,
     permissions: Permission[] = []
   ) {
     this.roleId = roleId;
     this.name = name;
+    this.permission = permission;
+    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.permissions = permissions;
   }
@@ -653,12 +671,15 @@ export class Role implements Editability {
 Update the `User` at `shared/src/models/user.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
+import { Permissionable } from "../interfaces/permissionable";
 import { Role } from "./role";
 
-export class User implements Editability {
+export class User implements Permissionable, Editability {
   userId: number;
   name: string;
   email: string;
+  permission: string;
+  isVisible: boolean;
   isReadonlOnly: boolean;
   roles: Role[];
 
@@ -666,12 +687,16 @@ export class User implements Editability {
     userId: number,
     name: string,
     email: string,
+    permission: string,
+    isVisible: boolean,
     isReadonlOnly: boolean,
     roles: Role[] = []
   ) {
     this.userId = userId;
     this.name = name;
     this.email = email;
+    this.permission = permission;
+    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.roles = roles;
   }
