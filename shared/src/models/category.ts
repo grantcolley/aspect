@@ -18,8 +18,8 @@ export class Category implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isVisible: boolean,
-    isReadonlOnly: boolean,
+    isVisible: boolean = false,
+    isReadonlOnly: boolean = false,
     pages: Page[] = []
   ) {
     this.categoryId = categoryId;

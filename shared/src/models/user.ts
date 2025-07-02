@@ -16,8 +16,8 @@ export class User implements Permissionable, Editability {
     name: string,
     email: string,
     permission: string,
-    isVisible: boolean,
-    isReadonlOnly: boolean,
+    isVisible: boolean = false,
+    isReadonlOnly: boolean = false,
     roles: Role[] = []
   ) {
     this.userId = userId;

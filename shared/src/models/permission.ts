@@ -12,8 +12,8 @@ export class Permission implements Permissionable, Editability {
     permissionId: number,
     name: string,
     permission: string,
-    isVisible: boolean,
-    isReadonlOnly: boolean
+    isVisible: boolean = false,
+    isReadonlOnly: boolean = false
   ) {
     this.permissionId = permissionId;
     this.name = name;

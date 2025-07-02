@@ -14,8 +14,8 @@ export class Role implements Permissionable, Editability {
     roleId: number,
     name: string,
     permission: string,
-    isVisible: boolean,
-    isReadonlOnly: boolean,
+    isVisible: boolean = false,
+    isReadonlOnly: boolean = false,
     permissions: Permission[] = []
   ) {
     this.roleId = roleId;

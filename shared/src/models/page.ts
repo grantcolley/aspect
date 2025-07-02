@@ -18,8 +18,8 @@ export class Page implements Permissionable, Editability {
     icon: string,
     url: string,
     permission: string,
-    isVisible: boolean,
-    isReadonlOnly: boolean
+    isVisible: boolean = false,
+    isReadonlOnly: boolean = false
   ) {
     this.pageId = pageId;
     this.categoryId = categoryId;

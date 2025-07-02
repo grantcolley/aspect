@@ -16,8 +16,8 @@ export class Module implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isVisible: boolean,
-    isReadonlOnly: boolean,
+    isVisible: boolean = false,
+    isReadonlOnly: boolean = false,
     categories: Category[] = []
   ) {
     this.moduleId = moduleId;
