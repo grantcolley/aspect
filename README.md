@@ -729,6 +729,7 @@ import { z } from "zod";
 
 export const permissionSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type PermissionInput = z.infer<typeof permissionSchema>;
@@ -739,6 +740,7 @@ import { z } from "zod";
 
 export const roleSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type RoleInput = z.infer<typeof roleSchema>;
@@ -750,6 +752,7 @@ import { z } from "zod";
 export const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type UserInput = z.infer<typeof userSchema>;
