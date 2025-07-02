@@ -214,6 +214,7 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
 import { getUsers } from "./data/userData";
+const fs = require("fs");
 
 sqlite3.verbose();
 
@@ -221,6 +222,11 @@ async function seed() {
   dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
 
   let dbFile = `./${process.env.DATABASE}`;
+
+  if (fs.existsSync(dbFile)) {
+    fs.unlinkSync(dbFile);
+    console.log(`Existing database deleted ${dbFile}`);
+  }
 
   const db = await open({
     filename: dbFile,
@@ -427,7 +433,7 @@ const app = express();
 const port = 3000;
 
 app.get("/api/user", (req, res) => {
-  const user: User = { id: 1, name: "Alice" };
+  const user: User = { userId: 1, name: "Alice" };
   res.json(user);
 });
 
@@ -1518,39 +1524,72 @@ import {
 } from "@/components/ui/sidebar";
 
 const data = [  // 👈 create the dummy data
-  {
-    id: 1,
-    name: "Administration",
-    icon: "settings",
-    isVisible: true,
-    categories: [
       {
-        name: "Authorisation",
-        icon: "authorisation",
+        moduleId: 1,
+        name: "Administration",
+        icon: "settings",
         isVisible: true,
-        pages: [
-          { name: "Users", icon: "users", url: "#", isVisible: true },
-          { name: "Roles", icon: "roles", url: "#", isVisible: true },
+        categories: [
           {
-            name: "Permissions",
-            icon: "permissions",
-            url: "#",
+            categoryId: 1,
+            name: "Authorisation",
+            icon: "authorisation",
             isVisible: true,
+            pages: [
+              {
+                pageId: 1,
+                name: "Users",
+                icon: "users",
+                url: "#",
+                isVisible: true,
+              },
+              {
+                pageId: 2,
+                name: "Roles",
+                icon: "roles",
+                url: "#",
+                isVisible: true,
+              },
+              {
+                pageId: 3,
+                name: "Permissions",
+                icon: "permissions",
+                url: "#",
+                isVisible: true,
+              },
+            ],
+          },
+          {
+            categoryId: 2,
+            name: "Applications",
+            icon: "applications",
+            isVisible: true,
+            pages: [
+              {
+                pageId: 4,
+                name: "Modules",
+                icon: "modules",
+                url: "#",
+                isVisible: true,
+              },
+              {
+                pageId: 5,
+                name: "Categories",
+                icon: "categories",
+                url: "#",
+                isVisible: true,
+              },
+              {
+                pageId: 6,
+                name: "Pages",
+                icon: "pages",
+                url: "#",
+                isVisible: true,
+              },
+            ],
           },
         ],
       },
-      {
-        name: "Applications",
-        icon: "applications",
-        isVisible: true,
-        pages: [
-          { name: "Modules", icon: "modules", url: "#", isVisible: true },
-          { name: "Categories", icon: "categories", url: "#", isVisible: true },
-          { name: "Pages", icon: "pages", url: "#", isVisible: true },
-        ],
-      },
-    ],
-  },
 ] as Module[];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
