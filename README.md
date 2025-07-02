@@ -148,12 +148,12 @@ Create `shared/tsconfig.json`.
 Create subfolder `src/models`, and inside it create the shared `User` class `shared/src/models/user.ts`.
 ```TypeScript
 export class User {
-  id: number;
+  userId: number;
   name: string;
   email: string;
 
-  constructor(id: number, name: string, email: string) {
-    this.id = id;
+  constructor(userId: number, name: string, email: string) {
+    this.userId = userId;
     this.name = name;
     this.email = email;
   }
@@ -187,7 +187,7 @@ import { User } from "shared/src/models/user";
 export async function seedUsers(db: Database, users: User[]) {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL
     );
@@ -489,7 +489,7 @@ import { Editability } from "../interfaces/editability";
 import { Visibility } from "../interfaces/visibility";
 
 export class Page implements Editability, Visibility {
-  id: number;
+  pageId: number;
   categoryId: number;
   name: string;
   icon: string;
@@ -498,7 +498,7 @@ export class Page implements Editability, Visibility {
   isVisible: boolean;
 
   constructor(
-    id: number,
+    pageId: number,
     categoryId: number,
     name: string,
     icon: string,
@@ -506,7 +506,7 @@ export class Page implements Editability, Visibility {
     isReadonlOnly: boolean,
     isVisible: boolean
   ) {
-    this.id = id;
+    this.pageId = pageId;
     this.categoryId = categoryId;
     this.name = name;
     this.icon = icon;
@@ -523,7 +523,7 @@ import { Visibility } from "../interfaces/visibility";
 import { Page } from "./page";
 
 export class Category implements Editability, Visibility {
-  id: number;
+  categoryId: number;
   moduleId: number;
   name: string;
   icon: string;
@@ -532,7 +532,7 @@ export class Category implements Editability, Visibility {
   pages: Page[];
 
   constructor(
-    id: number,
+    categoryId: number,
     moduleId: number,
     name: string,
     icon: string,
@@ -540,7 +540,7 @@ export class Category implements Editability, Visibility {
     isVisible: boolean,
     pages: Page[] = []
   ) {
-    this.id = id;
+    this.categoryId = categoryId;
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
@@ -550,7 +550,7 @@ export class Category implements Editability, Visibility {
   }
 
   addPage(pages: Page) {
-    pages.categoryId = this.id;
+    pages.categoryId = this.categoryId;
     this.pages.push(pages);
   }
 }
@@ -562,7 +562,7 @@ import { Visibility } from "../interfaces/visibility";
 import { Category } from "./category";
 
 export class Module implements Editability, Visibility {
-  id: number;
+  moduleId: number;
   name: string;
   icon: string;
   isReadonlOnly: boolean;
@@ -570,14 +570,14 @@ export class Module implements Editability, Visibility {
   categories: Category[];
 
   constructor(
-    id: number,
+    moduleId: number,
     name: string,
     icon: string,
     isReadonlOnly: boolean,
     isVisible: boolean,
     categories: Category[] = []
   ) {
-    this.id = id;
+    this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
     this.isReadonlOnly = isReadonlOnly;
@@ -586,7 +586,7 @@ export class Module implements Editability, Visibility {
   }
 
   addCategory(category: Category) {
-    category.moduleId = this.id;
+    category.moduleId = this.moduleId;
     this.categories.push(category);
   }
 }
@@ -599,12 +599,12 @@ Create the authorisation models `User`, `Role` and `Permission` classes.
 import { Editability } from "../interfaces/editability";
 
 export class Permission implements Editability {
-  id: number;
+  permissionId: number;
   name: string;
   isReadonlOnly: boolean;
 
-  constructor(id: number, name: string, isReadonlOnly: boolean) {
-    this.id = id;
+  constructor(permissionId: number, name: string, isReadonlOnly: boolean) {
+    this.permissionId = permissionId;
     this.name = name;
     this.isReadonlOnly = isReadonlOnly;
   }
@@ -616,18 +616,18 @@ import { Editability } from "../interfaces/editability";
 import { Permission } from "./permission";
 
 export class Role implements Editability {
-  id: number;
+  roleId: number;
   name: string;
   isReadonlOnly: boolean;
   permissions: Permission[];
 
   constructor(
-    id: number,
+    roleId: number,
     name: string,
     isReadonlOnly: boolean,
     permissions: Permission[] = []
   ) {
-    this.id = id;
+    this.roleId = roleId;
     this.name = name;
     this.isReadonlOnly = isReadonlOnly;
     this.permissions = permissions;
@@ -640,20 +640,20 @@ import { Editability } from "../interfaces/editability";
 import { Role } from "./role";
 
 export class User implements Editability {
-  id: number;
+  userId: number;
   name: string;
   email: string;
   isReadonlOnly: boolean;
   roles: Role[];
 
   constructor(
-    id: number,
+    userId: number,
     name: string,
     email: string,
     isReadonlOnly: boolean,
     roles: Role[] = []
   ) {
-    this.id = id;
+    this.userId = userId;
     this.name = name;
     this.email = email;
     this.isReadonlOnly = isReadonlOnly;
