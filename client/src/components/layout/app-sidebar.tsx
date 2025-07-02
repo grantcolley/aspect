@@ -14,19 +14,33 @@ import {
 
 const data = [
   {
-    id: 1,
+    moduleId: 1,
     name: "Administration",
     icon: "settings",
     isVisible: true,
     categories: [
       {
+        categoryId: 1,
         name: "Authorisation",
         icon: "authorisation",
         isVisible: true,
         pages: [
-          { name: "Users", icon: "users", url: "#", isVisible: true },
-          { name: "Roles", icon: "roles", url: "#", isVisible: true },
           {
+            pageId: 1,
+            name: "Users",
+            icon: "users",
+            url: "#",
+            isVisible: true,
+          },
+          {
+            pageId: 2,
+            name: "Roles",
+            icon: "roles",
+            url: "#",
+            isVisible: true,
+          },
+          {
+            pageId: 3,
             name: "Permissions",
             icon: "permissions",
             url: "#",
@@ -35,13 +49,32 @@ const data = [
         ],
       },
       {
+        categoryId: 2,
         name: "Applications",
         icon: "applications",
         isVisible: true,
         pages: [
-          { name: "Modules", icon: "modules", url: "#", isVisible: true },
-          { name: "Categories", icon: "categories", url: "#", isVisible: true },
-          { name: "Pages", icon: "pages", url: "#", isVisible: true },
+          {
+            pageId: 4,
+            name: "Modules",
+            icon: "modules",
+            url: "#",
+            isVisible: true,
+          },
+          {
+            pageId: 5,
+            name: "Categories",
+            icon: "categories",
+            url: "#",
+            isVisible: true,
+          },
+          {
+            pageId: 6,
+            name: "Pages",
+            icon: "pages",
+            url: "#",
+            isVisible: true,
+          },
         ],
       },
     ],
