@@ -30,7 +30,7 @@ export function NavigationPanel({ modules }: Props) {
   return (
     <>
       {modules.filter(isVisible).map((module) => (
-        <SidebarGroup>
+        <SidebarGroup key={module.moduleId}>
           <SidebarGroupLabel>
             <IconLoader name={module.icon} />
             <span>&nbsp;{module.name}</span>
@@ -38,7 +38,7 @@ export function NavigationPanel({ modules }: Props) {
           <SidebarMenu>
             {module.categories.filter(isVisible).map((category) => (
               <Collapsible
-                key={category.id}
+                key={category.categoryId}
                 asChild
                 className="group/collapsible"
               >
@@ -53,7 +53,7 @@ export function NavigationPanel({ modules }: Props) {
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {category.pages?.filter(isVisible).map((page) => (
-                        <SidebarMenuSubItem key={page.name}>
+                        <SidebarMenuSubItem key={page.pageId}>
                           <SidebarMenuSubButton asChild>
                             <a href={page.url}>
                               <IconLoader name={page.icon} />
