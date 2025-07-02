@@ -3,7 +3,7 @@ import { Visibility } from "../interfaces/visibility";
 import { Page } from "./page";
 
 export class Category implements Editability, Visibility {
-  id: number;
+  categoryId: number;
   moduleId: number;
   name: string;
   icon: string;
@@ -12,7 +12,7 @@ export class Category implements Editability, Visibility {
   pages: Page[];
 
   constructor(
-    id: number,
+    categoryId: number,
     moduleId: number,
     name: string,
     icon: string,
@@ -20,7 +20,7 @@ export class Category implements Editability, Visibility {
     isVisible: boolean,
     pages: Page[] = []
   ) {
-    this.id = id;
+    this.categoryId = categoryId;
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
@@ -30,7 +30,7 @@ export class Category implements Editability, Visibility {
   }
 
   addPage(pages: Page) {
-    pages.categoryId = this.id;
+    pages.categoryId = this.categoryId;
     this.pages.push(pages);
   }
 }
