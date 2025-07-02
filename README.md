@@ -222,6 +222,11 @@ async function seed() {
 
   let dbFile = `./${process.env.DATABASE}`;
 
+  if (fs.existsSync(dbFile)) {
+    fs.unlinkSync(dbFile);
+    console.log(`Existing database deleted ${dbFile}`);
+  }
+
   const db = await open({
     filename: dbFile,
     driver: sqlite3.Database,
