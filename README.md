@@ -495,15 +495,15 @@ Create the navigation models `Module`, `Category` and `Page` classes.
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
 
-export class Page implements Editability, Permissionable {
+export class Page implements Permissionable, Editability {
   pageId: number;
   categoryId: number;
   name: string;
   icon: string;
   url: string;
-  isReadonlOnly: boolean;
-  isVisible: boolean;
   permission: string;
+  isVisible: boolean;
+  isReadonlOnly: boolean;
 
   constructor(
     pageId: number,
@@ -511,18 +511,18 @@ export class Page implements Editability, Permissionable {
     name: string,
     icon: string,
     url: string,
-    isReadonlOnly: boolean,
+    permission: string,
     isVisible: boolean,
-    permission: string
+    isReadonlOnly: boolean
   ) {
     this.pageId = pageId;
     this.categoryId = categoryId;
     this.name = name;
     this.icon = icon;
     this.url = url;
-    this.isReadonlOnly = isReadonlOnly;
-    this.isVisible = isVisible;
     this.permission = permission;
+    this.isVisible = isVisible;
+    this.isReadonlOnly = isReadonlOnly;
   }
 }
 ```
@@ -532,14 +532,14 @@ import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
 import { Page } from "./page";
 
-export class Category implements Editability, Permissionable {
+export class Category implements Permissionable, Editability {
   categoryId: number;
   moduleId: number;
   name: string;
   icon: string;
-  isReadonlOnly: boolean;
-  isVisible: boolean;
   permission: string;
+  isVisible: boolean;
+  isReadonlOnly: boolean;
   pages: Page[];
 
   constructor(
@@ -547,18 +547,18 @@ export class Category implements Editability, Permissionable {
     moduleId: number,
     name: string,
     icon: string,
-    isReadonlOnly: boolean,
-    isVisible: boolean,
     permission: string,
+    isVisible: boolean,
+    isReadonlOnly: boolean,
     pages: Page[] = []
   ) {
     this.categoryId = categoryId;
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
-    this.isReadonlOnly = isReadonlOnly;
-    this.isVisible = isVisible;
     this.permission = permission;
+    this.isVisible = isVisible;
+    this.isReadonlOnly = isReadonlOnly;
     this.pages = pages;
   }
 
@@ -574,30 +574,30 @@ import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
 import { Category } from "./category";
 
-export class Module implements Editability, Permissionable {
+export class Module implements Permissionable, Editability {
   moduleId: number;
   name: string;
   icon: string;
-  isReadonlOnly: boolean;
-  isVisible: boolean;
   permission: string;
+  isVisible: boolean;
+  isReadonlOnly: boolean;
   categories: Category[];
 
   constructor(
     moduleId: number,
     name: string,
     icon: string,
-    isReadonlOnly: boolean,
-    isVisible: boolean,
     permission: string,
+    isVisible: boolean,
+    isReadonlOnly: boolean,
     categories: Category[] = []
   ) {
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
-    this.isReadonlOnly = isReadonlOnly;
-    this.isVisible = isVisible;
     this.permission = permission;
+    this.isVisible = isVisible;
+    this.isReadonlOnly = isReadonlOnly;
     this.categories = categories;
   }
 
@@ -613,15 +613,26 @@ Create the authorisation models `User`, `Role` and `Permission` classes.
 `shared/src/models/permission.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
+import { Permissionable } from "../interfaces/permissionable";
 
-export class Permission implements Editability {
+export class Permission implements Permissionable, Editability {
   permissionId: number;
   name: string;
+  permission: string;
+  isVisible: boolean;
   isReadonlOnly: boolean;
 
-  constructor(permissionId: number, name: string, isReadonlOnly: boolean) {
+  constructor(
+    permissionId: number,
+    name: string,
+    permission: string,
+    isVisible: boolean,
+    isReadonlOnly: boolean
+  ) {
     this.permissionId = permissionId;
     this.name = name;
+    this.permission = permission;
+    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
   }
 }
@@ -629,22 +640,29 @@ export class Permission implements Editability {
 `shared/src/models/role.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
+import { Permissionable } from "../interfaces/permissionable";
 import { Permission } from "./permission";
 
-export class Role implements Editability {
+export class Role implements Permissionable, Editability {
   roleId: number;
   name: string;
+  permission: string;
+  isVisible: boolean;
   isReadonlOnly: boolean;
   permissions: Permission[];
 
   constructor(
     roleId: number,
     name: string,
+    permission: string,
+    isVisible: boolean,
     isReadonlOnly: boolean,
     permissions: Permission[] = []
   ) {
     this.roleId = roleId;
     this.name = name;
+    this.permission = permission;
+    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.permissions = permissions;
   }
@@ -653,12 +671,15 @@ export class Role implements Editability {
 Update the `User` at `shared/src/models/user.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
+import { Permissionable } from "../interfaces/permissionable";
 import { Role } from "./role";
 
-export class User implements Editability {
+export class User implements Permissionable, Editability {
   userId: number;
   name: string;
   email: string;
+  permission: string;
+  isVisible: boolean;
   isReadonlOnly: boolean;
   roles: Role[];
 
@@ -666,12 +687,16 @@ export class User implements Editability {
     userId: number,
     name: string,
     email: string,
+    permission: string,
+    isVisible: boolean,
     isReadonlOnly: boolean,
     roles: Role[] = []
   ) {
     this.userId = userId;
     this.name = name;
     this.email = email;
+    this.permission = permission;
+    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.roles = roles;
   }
@@ -690,6 +715,7 @@ export const pageSchema = z.object({
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   url: z.string().min(1, "URL is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type PageInput = z.infer<typeof pageSchema>;
@@ -701,6 +727,7 @@ import { z } from "zod";
 export const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
@@ -712,6 +739,7 @@ import { z } from "zod";
 export const moduleSchema = z.object({
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type ModuleInput = z.infer<typeof moduleSchema>;
@@ -726,6 +754,7 @@ import { z } from "zod";
 
 export const permissionSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type PermissionInput = z.infer<typeof permissionSchema>;
@@ -736,6 +765,7 @@ import { z } from "zod";
 
 export const roleSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type RoleInput = z.infer<typeof roleSchema>;
@@ -747,6 +777,7 @@ import { z } from "zod";
 export const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
+  permission: z.string().min(1, "Permission is required"),
 });
 
 export type UserInput = z.infer<typeof userSchema>;
@@ -1534,38 +1565,39 @@ import {
 } from "@/components/ui/sidebar";
 
 const data = [	// 👈 create the dummy data
+const data = [
   {
     moduleId: 1,
     name: "Administration",
     icon: "settings",
-    permission: "admin",
+    permission: "admin_ro|admin_rw",
     categories: [
       {
         categoryId: 1,
         name: "Authorisation",
         icon: "authorisation",
-        permission: "auth",
+        permission: "auth_ro|auth_rw",
         pages: [
           {
             pageId: 1,
             name: "Users",
             icon: "users",
             url: "#",
-            permission: "auth",
+            permission: "auth_ro|auth_rw",
           },
           {
             pageId: 2,
             name: "Roles",
             icon: "roles",
             url: "#",
-            permission: "auth",
+            permission: "auth_ro|auth_rw",
           },
           {
             pageId: 3,
             name: "Permissions",
             icon: "permissions",
             url: "#",
-            permission: "auth",
+            permission: "auth_ro|auth_rw",
           },
         ],
       },
@@ -1573,28 +1605,28 @@ const data = [	// 👈 create the dummy data
         categoryId: 2,
         name: "Applications",
         icon: "applications",
-        permission: "apps",
+        permission: "apps_ro|apps_rw",
         pages: [
           {
             pageId: 4,
             name: "Modules",
             icon: "modules",
             url: "#",
-            permission: "apps",
+            permission: "apps_ro|apps_rw",
           },
           {
             pageId: 5,
             name: "Categories",
             icon: "categories",
             url: "#",
-            permission: "apps",
+            permission: "apps_ro|apps_rw",
           },
           {
             pageId: 6,
             name: "Pages",
             icon: "pages",
             url: "#",
-            permission: "apps",
+            permission: "apps_ro|apps_rw",
           },
         ],
       },
