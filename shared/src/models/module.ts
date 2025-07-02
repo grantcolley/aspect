@@ -1,13 +1,14 @@
 import { Editability } from "../interfaces/editability";
-import { Visibility } from "../interfaces/visibility";
+import { Permissionable } from "../interfaces/permissionable";
 import { Category } from "./category";
 
-export class Module implements Editability, Visibility {
+export class Module implements Editability, Permissionable {
   moduleId: number;
   name: string;
   icon: string;
   isReadonlOnly: boolean;
   isVisible: boolean;
+  permission: string;
   categories: Category[];
 
   constructor(
@@ -16,6 +17,7 @@ export class Module implements Editability, Visibility {
     icon: string,
     isReadonlOnly: boolean,
     isVisible: boolean,
+    permission: string,
     categories: Category[] = []
   ) {
     this.moduleId = moduleId;
@@ -23,6 +25,7 @@ export class Module implements Editability, Visibility {
     this.icon = icon;
     this.isReadonlOnly = isReadonlOnly;
     this.isVisible = isVisible;
+    this.permission = permission;
     this.categories = categories;
   }
 
