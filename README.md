@@ -1533,73 +1533,73 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = [  // 👈 create the dummy data
+const data = [	// 👈 create the dummy data
+  {
+    moduleId: 1,
+    name: "Administration",
+    icon: "settings",
+    permission: "admin",
+    categories: [
       {
-        moduleId: 1,
-        name: "Administration",
-        icon: "settings",
-        isVisible: true,
-        categories: [
+        categoryId: 1,
+        name: "Authorisation",
+        icon: "authorisation",
+        permission: "auth",
+        pages: [
           {
-            categoryId: 1,
-            name: "Authorisation",
-            icon: "authorisation",
-            isVisible: true,
-            pages: [
-              {
-                pageId: 1,
-                name: "Users",
-                icon: "users",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 2,
-                name: "Roles",
-                icon: "roles",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 3,
-                name: "Permissions",
-                icon: "permissions",
-                url: "#",
-                isVisible: true,
-              },
-            ],
+            pageId: 1,
+            name: "Users",
+            icon: "users",
+            url: "#",
+            permission: "auth",
           },
           {
-            categoryId: 2,
-            name: "Applications",
-            icon: "applications",
-            isVisible: true,
-            pages: [
-              {
-                pageId: 4,
-                name: "Modules",
-                icon: "modules",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 5,
-                name: "Categories",
-                icon: "categories",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 6,
-                name: "Pages",
-                icon: "pages",
-                url: "#",
-                isVisible: true,
-              },
-            ],
+            pageId: 2,
+            name: "Roles",
+            icon: "roles",
+            url: "#",
+            permission: "auth",
+          },
+          {
+            pageId: 3,
+            name: "Permissions",
+            icon: "permissions",
+            url: "#",
+            permission: "auth",
           },
         ],
       },
+      {
+        categoryId: 2,
+        name: "Applications",
+        icon: "applications",
+        permission: "apps",
+        pages: [
+          {
+            pageId: 4,
+            name: "Modules",
+            icon: "modules",
+            url: "#",
+            permission: "apps",
+          },
+          {
+            pageId: 5,
+            name: "Categories",
+            icon: "categories",
+            url: "#",
+            permission: "apps",
+          },
+          {
+            pageId: 6,
+            name: "Pages",
+            icon: "pages",
+            url: "#",
+            permission: "apps",
+          },
+        ],
+      },
+    ],
+  },
 ] as Module[];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
