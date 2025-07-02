@@ -1503,7 +1503,7 @@ export function NavigationPanel({ modules }: Props) {
   return (
     <>
       {modules.filter(isVisible).map((module) => (
-        <SidebarGroup>
+        <SidebarGroup key={module.moduleId}>
           <SidebarGroupLabel>
             <IconLoader name={module.icon} />
             <span>&nbsp;{module.name}</span>
@@ -1511,7 +1511,7 @@ export function NavigationPanel({ modules }: Props) {
           <SidebarMenu>
             {module.categories.filter(isVisible).map((category) => (
               <Collapsible
-                key={category.id}
+                key={category.categoryId}
                 asChild
                 className="group/collapsible"
               >
@@ -1526,7 +1526,7 @@ export function NavigationPanel({ modules }: Props) {
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {category.pages?.filter(isVisible).map((page) => (
-                        <SidebarMenuSubItem key={page.name}>
+                        <SidebarMenuSubItem key={page.pageId}>
                           <SidebarMenuSubButton asChild>
                             <a href={page.url}>
                               <IconLoader name={page.icon} />
@@ -1565,18 +1565,19 @@ import {
 } from "@/components/ui/sidebar";
 
 const data = [	// 👈 create the dummy data
-const data = [
   {
     moduleId: 1,
     name: "Administration",
     icon: "settings",
     permission: "admin_ro|admin_rw",
+    isVisible: true,
     categories: [
       {
         categoryId: 1,
         name: "Authorisation",
         icon: "authorisation",
         permission: "auth_ro|auth_rw",
+        isVisible: true,
         pages: [
           {
             pageId: 1,
@@ -1584,6 +1585,7 @@ const data = [
             icon: "users",
             url: "#",
             permission: "auth_ro|auth_rw",
+            isVisible: true,
           },
           {
             pageId: 2,
@@ -1591,6 +1593,7 @@ const data = [
             icon: "roles",
             url: "#",
             permission: "auth_ro|auth_rw",
+            isVisible: true,
           },
           {
             pageId: 3,
@@ -1598,6 +1601,7 @@ const data = [
             icon: "permissions",
             url: "#",
             permission: "auth_ro|auth_rw",
+            isVisible: true,
           },
         ],
       },
@@ -1606,6 +1610,7 @@ const data = [
         name: "Applications",
         icon: "applications",
         permission: "apps_ro|apps_rw",
+        isVisible: true,
         pages: [
           {
             pageId: 4,
@@ -1613,6 +1618,7 @@ const data = [
             icon: "modules",
             url: "#",
             permission: "apps_ro|apps_rw",
+            isVisible: true,
           },
           {
             pageId: 5,
@@ -1620,6 +1626,7 @@ const data = [
             icon: "categories",
             url: "#",
             permission: "apps_ro|apps_rw",
+            isVisible: true,
           },
           {
             pageId: 6,
@@ -1627,6 +1634,7 @@ const data = [
             icon: "pages",
             url: "#",
             permission: "apps_ro|apps_rw",
+            isVisible: true,
           },
         ],
       },
