@@ -1,7 +1,7 @@
 import { Editability } from "../interfaces/editability";
-import { Visibility } from "../interfaces/visibility";
+import { Permissionable } from "../interfaces/permissionable";
 
-export class Page implements Editability, Visibility {
+export class Page implements Editability, Permissionable {
   pageId: number;
   categoryId: number;
   name: string;
@@ -9,6 +9,7 @@ export class Page implements Editability, Visibility {
   url: string;
   isReadonlOnly: boolean;
   isVisible: boolean;
+  permission: string;
 
   constructor(
     pageId: number,
@@ -17,7 +18,8 @@ export class Page implements Editability, Visibility {
     icon: string,
     url: string,
     isReadonlOnly: boolean,
-    isVisible: boolean
+    isVisible: boolean,
+    permission: string
   ) {
     this.pageId = pageId;
     this.categoryId = categoryId;
@@ -26,5 +28,6 @@ export class Page implements Editability, Visibility {
     this.url = url;
     this.isReadonlOnly = isReadonlOnly;
     this.isVisible = isVisible;
+    this.permission = permission;
   }
 }
