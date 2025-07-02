@@ -2,7 +2,7 @@ import { Editability } from "../interfaces/editability";
 import { Visibility } from "../interfaces/visibility";
 
 export class Page implements Editability, Visibility {
-  id: number;
+  pageId: number;
   categoryId: number;
   name: string;
   icon: string;
@@ -11,7 +11,7 @@ export class Page implements Editability, Visibility {
   isVisible: boolean;
 
   constructor(
-    id: number,
+    pageId: number,
     categoryId: number,
     name: string,
     icon: string,
@@ -19,7 +19,7 @@ export class Page implements Editability, Visibility {
     isReadonlOnly: boolean,
     isVisible: boolean
   ) {
-    this.id = id;
+    this.pageId = pageId;
     this.categoryId = categoryId;
     this.name = name;
     this.icon = icon;
