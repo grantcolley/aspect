@@ -427,7 +427,7 @@ const app = express();
 const port = 3000;
 
 app.get("/api/user", (req, res) => {
-  const user: User = { id: 1, name: "Alice" };
+  const user: User = { userId: 1, name: "Alice" };
   res.json(user);
 });
 
