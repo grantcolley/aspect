@@ -2,20 +2,20 @@ import { Editability } from "../interfaces/editability";
 import { Role } from "./role";
 
 export class User implements Editability {
-  id: number;
+  userId: number;
   name: string;
   email: string;
   isReadonlOnly: boolean;
   roles: Role[];
 
   constructor(
-    id: number,
+    userId: number,
     name: string,
     email: string,
     isReadonlOnly: boolean,
     roles: Role[] = []
   ) {
-    this.id = id;
+    this.userId = userId;
     this.name = name;
     this.email = email;
     this.isReadonlOnly = isReadonlOnly;
