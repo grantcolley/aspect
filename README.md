@@ -469,7 +469,7 @@ Client: `http://localhost:5173/`
 ## Create Interfaces
 Create subfolder `shared/src/interfaces`.
 
-Create the `Edibility` and `Visibility` interfaces 
+Create the `Edibility` and `Permissionable` interfaces 
 \
 \
 `shared/src/interfaces/edibility.ts`
@@ -478,10 +478,11 @@ export interface Editability {
   isReadonlOnly: boolean;
 }
 ```
-`shared/src/interfaces/visibility.ts`
+`shared/src/interfaces/permissionable.ts`
 ```TypeScript
-export interface Visibility {
+export interface Permissionable {
   isVisible: boolean;
+  permission: string;
 }
 ```
 
@@ -492,9 +493,9 @@ Create the navigation models `Module`, `Category` and `Page` classes.
 `shared/src/models/page.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
-import { Visibility } from "../interfaces/visibility";
+import { Permissionable } from "../interfaces/permissionable";
 
-export class Page implements Editability, Visibility {
+export class Page implements Editability, Permissionable {
   pageId: number;
   categoryId: number;
   name: string;
@@ -502,6 +503,7 @@ export class Page implements Editability, Visibility {
   url: string;
   isReadonlOnly: boolean;
   isVisible: boolean;
+  permission: string;
 
   constructor(
     pageId: number,
@@ -510,7 +512,8 @@ export class Page implements Editability, Visibility {
     icon: string,
     url: string,
     isReadonlOnly: boolean,
-    isVisible: boolean
+    isVisible: boolean,
+    permission: string
   ) {
     this.pageId = pageId;
     this.categoryId = categoryId;
@@ -519,22 +522,24 @@ export class Page implements Editability, Visibility {
     this.url = url;
     this.isReadonlOnly = isReadonlOnly;
     this.isVisible = isVisible;
+    this.permission = permission;
   }
 }
 ```
 `shared/src/models/category.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
-import { Visibility } from "../interfaces/visibility";
+import { Permissionable } from "../interfaces/permissionable";
 import { Page } from "./page";
 
-export class Category implements Editability, Visibility {
+export class Category implements Editability, Permissionable {
   categoryId: number;
   moduleId: number;
   name: string;
   icon: string;
   isReadonlOnly: boolean;
   isVisible: boolean;
+  permission: string;
   pages: Page[];
 
   constructor(
@@ -544,6 +549,7 @@ export class Category implements Editability, Visibility {
     icon: string,
     isReadonlOnly: boolean,
     isVisible: boolean,
+    permission: string,
     pages: Page[] = []
   ) {
     this.categoryId = categoryId;
@@ -552,6 +558,7 @@ export class Category implements Editability, Visibility {
     this.icon = icon;
     this.isReadonlOnly = isReadonlOnly;
     this.isVisible = isVisible;
+    this.permission = permission;
     this.pages = pages;
   }
 
@@ -564,15 +571,16 @@ export class Category implements Editability, Visibility {
 `shared/src/models/module.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
-import { Visibility } from "../interfaces/visibility";
+import { Permissionable } from "../interfaces/permissionable";
 import { Category } from "./category";
 
-export class Module implements Editability, Visibility {
+export class Module implements Editability, Permissionable {
   moduleId: number;
   name: string;
   icon: string;
   isReadonlOnly: boolean;
   isVisible: boolean;
+  permission: string;
   categories: Category[];
 
   constructor(
@@ -581,6 +589,7 @@ export class Module implements Editability, Visibility {
     icon: string,
     isReadonlOnly: boolean,
     isVisible: boolean,
+    permission: string,
     categories: Category[] = []
   ) {
     this.moduleId = moduleId;
@@ -588,6 +597,7 @@ export class Module implements Editability, Visibility {
     this.icon = icon;
     this.isReadonlOnly = isReadonlOnly;
     this.isVisible = isVisible;
+    this.permission = permission;
     this.categories = categories;
   }
 
@@ -1523,73 +1533,73 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = [  // 👈 create the dummy data
+const data = [	// 👈 create the dummy data
+  {
+    moduleId: 1,
+    name: "Administration",
+    icon: "settings",
+    permission: "admin",
+    categories: [
       {
-        moduleId: 1,
-        name: "Administration",
-        icon: "settings",
-        isVisible: true,
-        categories: [
+        categoryId: 1,
+        name: "Authorisation",
+        icon: "authorisation",
+        permission: "auth",
+        pages: [
           {
-            categoryId: 1,
-            name: "Authorisation",
-            icon: "authorisation",
-            isVisible: true,
-            pages: [
-              {
-                pageId: 1,
-                name: "Users",
-                icon: "users",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 2,
-                name: "Roles",
-                icon: "roles",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 3,
-                name: "Permissions",
-                icon: "permissions",
-                url: "#",
-                isVisible: true,
-              },
-            ],
+            pageId: 1,
+            name: "Users",
+            icon: "users",
+            url: "#",
+            permission: "auth",
           },
           {
-            categoryId: 2,
-            name: "Applications",
-            icon: "applications",
-            isVisible: true,
-            pages: [
-              {
-                pageId: 4,
-                name: "Modules",
-                icon: "modules",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 5,
-                name: "Categories",
-                icon: "categories",
-                url: "#",
-                isVisible: true,
-              },
-              {
-                pageId: 6,
-                name: "Pages",
-                icon: "pages",
-                url: "#",
-                isVisible: true,
-              },
-            ],
+            pageId: 2,
+            name: "Roles",
+            icon: "roles",
+            url: "#",
+            permission: "auth",
+          },
+          {
+            pageId: 3,
+            name: "Permissions",
+            icon: "permissions",
+            url: "#",
+            permission: "auth",
           },
         ],
       },
+      {
+        categoryId: 2,
+        name: "Applications",
+        icon: "applications",
+        permission: "apps",
+        pages: [
+          {
+            pageId: 4,
+            name: "Modules",
+            icon: "modules",
+            url: "#",
+            permission: "apps",
+          },
+          {
+            pageId: 5,
+            name: "Categories",
+            icon: "categories",
+            url: "#",
+            permission: "apps",
+          },
+          {
+            pageId: 6,
+            name: "Pages",
+            icon: "pages",
+            url: "#",
+            permission: "apps",
+          },
+        ],
+      },
+    ],
+  },
 ] as Module[];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
