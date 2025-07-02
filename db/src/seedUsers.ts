@@ -4,7 +4,7 @@ import { User } from "shared/src/models/user";
 export async function seedUsers(db: Database, users: User[]) {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL
     );
