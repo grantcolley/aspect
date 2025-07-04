@@ -42,6 +42,7 @@ aspect/
  	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
+ 	  * [Create a Debug Configuration](#create-a-debug-configuration) 
 	* [Run & Build](#run--build)
 * [The Shared Package](#the-shared-package)
    * [Create Interfaces](#create-interfaces)
@@ -421,7 +422,9 @@ Create `server/tsconfig.json`.
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "sourceMap": true,
     "module": "CommonJS",
+    "target": "es2020",
     "declaration": true
   },
   "include": ["src"]
@@ -444,6 +447,32 @@ app.get("/api/user", (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+```
+
+#### Create a Debug Configuration
+- Click the Run and Debug icon in the sidebar (or press Ctrl+Shift+D).
+- Click “create a launch.json file”.
+- Choose Node.js.
+
+VS Code creates a `.vscode/launch.json file`. Modify as follows:
+```json
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch API Server",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/server/src/index.ts"],
+      "cwd": "${workspaceFolder}/server",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
 ```
 
 ### Run & Build
