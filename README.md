@@ -456,6 +456,7 @@ app.listen(port, () => {
 
 VS Code creates a `.vscode/launch.json file`. Modify as follows:
 ```json
+{
   "version": "0.2.0",
   "configurations": [
     {
