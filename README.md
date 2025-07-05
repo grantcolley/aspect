@@ -54,6 +54,7 @@ aspect/
    * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
    * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [The Server](#the-server)
+   * [Enable CORS in the Node.js API](#)
   
  
 # Scaffolding the Monorepo
@@ -1465,7 +1466,7 @@ Athenticate
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
-# Adding Navigation to the Sidebar
+## Adding Navigation to the Sidebar
 Install the `collapsible` component.
 ```bash
 npx shadcn@latest add collapsible
@@ -1727,6 +1728,35 @@ Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-navigation.png?raw=true "Client")
 
 # The Server
+## Enable CORS in the Node.js API
+```
+npm install cors
+npm install --save-dev @types/cors
+```
 
+Update the `server/src/index.ts` to support CORS.
+```TypeScript
+import express from "express";
+import cors from "cors";    	// 👈 import CORS
+import { User } from "shared";
 
+const app = express();
+const port = 3000;
+
+app.use(	// 👈 use CORS
+  cors({
+    origin: "http://localhost:5173", // 👈 or use '*' for all origins (not recommended for production)
+    credentials: true, // if you're using cookies or HTTP auth
+  })
+);
+
+app.get("/api/user", (req, res) => {
+  const user: User = { userId: 1, name: "Alice" };
+  res.json(user);
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
+```
 
