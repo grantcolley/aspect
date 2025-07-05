@@ -9,6 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "shared": "*",
     "sqlite": "^5.1.1",
@@ -20,6 +21,7 @@
   "license": "MIT License",
   "description": "Aspect Server",
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.29",
     "ts-node-dev": "^2.0.0",
