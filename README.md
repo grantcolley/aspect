@@ -42,8 +42,8 @@ aspect/
  	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
- 	  * [Create a Debug Configuration](#create-a-debug-configuration) 
 	* [Run & Build](#run--build)
+ 	* [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces) 
 * [The Shared Package](#the-shared-package)
    * [Create Interfaces](#create-interfaces)
    * [Create Models](#create-models)
@@ -54,6 +54,7 @@ aspect/
    * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
    * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [The Server](#the-server)
+   * [Enable CORS in the Node.js API](#)
   
  
 # Scaffolding the Monorepo
@@ -449,33 +450,6 @@ app.listen(port, () => {
 });
 ```
 
-#### Create a Debug Configuration
-- Click the Run and Debug icon in the sidebar (or press Ctrl+Shift+D).
-- Click “create a launch.json file”.
-- Choose Node.js.
-
-VS Code creates a `.vscode/launch.json file`. Modify as follows:
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch API Server",
-      "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/server/src/index.ts"],
-      "cwd": "${workspaceFolder}/server",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "sourceMaps": true,
-      "skipFiles": ["<node_internals>/**"]
-    }
-  ]
-}
-```
-
 ### Run & Build
 ```bash
 # Run shared build first if used by others
@@ -498,6 +472,54 @@ Server: `http://localhost:3000/api/user`
 
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-initial.png?raw=true "Client")
+
+### Create Monorepo Debug Configuration using `npm` Workspaces
+To debug a monorepo using npm workspaces in VS Code set up multi-target debugging in a single `launch.json`.
+
+To create the Debug Configuration
+- Click the Run and Debug icon in the sidebar (or press Ctrl+Shift+D).
+- Click “create a launch.json file”.
+- Choose Node.js.
+
+VS Code creates a `.vscode/launch.json` file which can be modified as follows:
+```json
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Full Stack (client + server)",
+      "configurations": ["Launch Client", "Launch API Server"]
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Launch Client",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/client/src",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": ["${workspaceFolder}/client/src/**/*"]
+    },
+    {
+      "name": "Launch API Server",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/server/src/index.ts"],
+      "cwd": "${workspaceFolder}/server",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
+```
+> [!TIP]
+>
+> Start debugging but hitting `F5` or click the green ▶️ in the debug panel.
 
 # The Shared Package
 ## Create Interfaces
@@ -1444,7 +1466,7 @@ Athenticate
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
-# Adding Navigation to the Sidebar
+## Adding Navigation to the Sidebar
 Install the `collapsible` component.
 ```bash
 npx shadcn@latest add collapsible
@@ -1706,6 +1728,35 @@ Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-navigation.png?raw=true "Client")
 
 # The Server
+## Enable CORS in the Node.js API
+```
+npm install cors
+npm install --save-dev @types/cors
+```
 
+Update the `server/src/index.ts` to support CORS.
+```TypeScript
+import express from "express";
+import cors from "cors";    	// 👈 import CORS
+import { User } from "shared";
 
+const app = express();
+const port = 3000;
+
+app.use(	// 👈 use CORS
+  cors({
+    origin: "http://localhost:5173", // 👈 or use '*' for all origins (not recommended for production)
+    credentials: true, // if you're using cookies or HTTP auth
+  })
+);
+
+app.get("/api/user", (req, res) => {
+  const user: User = { userId: 1, name: "Alice" };
+  res.json(user);
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
+```
 
