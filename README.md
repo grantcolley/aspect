@@ -42,7 +42,7 @@ aspect/
  	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
- 	  * [Create a Debug Configuration](#create-a-debug-configuration) 
+ 	* [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces) 
 	* [Run & Build](#run--build)
 * [The Shared Package](#the-shared-package)
    * [Create Interfaces](#create-interfaces)
@@ -449,20 +449,38 @@ app.listen(port, () => {
 });
 ```
 
-#### Create a Debug Configuration
+### Create Monorepo Debug Configuration using `npm` Workspaces
+To debug a monorepo using npm workspaces in VS Code set up multi-target debugging in a single `launch.json`.
+
+To create the Debug Configuration
 - Click the Run and Debug icon in the sidebar (or press Ctrl+Shift+D).
 - Click “create a launch.json file”.
 - Choose Node.js.
 
-VS Code creates a `.vscode/launch.json file`. Modify as follows:
+VS Code creates a `.vscode/launch.json` file which can be modified as follows:
 ```json
 {
   "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Full Stack (client + server)",
+      "configurations": ["Launch Client", "Launch API Server"]
+    }
+  ],
   "configurations": [
     {
+      "name": "Launch Client",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/client/src",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": ["${workspaceFolder}/client/src/**/*"]
+    },
+    {
+      "name": "Launch API Server",
       "type": "node",
       "request": "launch",
-      "name": "Launch API Server",
       "runtimeArgs": ["-r", "ts-node/register"],
       "args": ["${workspaceFolder}/server/src/index.ts"],
       "cwd": "${workspaceFolder}/server",
