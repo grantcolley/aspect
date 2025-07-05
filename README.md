@@ -42,8 +42,8 @@ aspect/
  	* [Create the DB Seed package](#create-the-db-seed-package)
 	* [Client Setup](#client-setup)	
 	* [Server Setup](#server-setup)
- 	* [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces) 
 	* [Run & Build](#run--build)
+ 	* [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces) 
 * [The Shared Package](#the-shared-package)
    * [Create Interfaces](#create-interfaces)
    * [Create Models](#create-models)
@@ -449,6 +449,29 @@ app.listen(port, () => {
 });
 ```
 
+### Run & Build
+```bash
+# Run shared build first if used by others
+npm run --workspace shared build
+
+# Create and seed the database
+npm run --workspace db seed
+
+# Start dev server
+npm run --workspace server dev
+
+# Start dev client
+npm run --workspace client dev
+```
+
+Launch the server and client in the browser:
+\
+Server: `http://localhost:3000/api/user`
+![Alt text](/readme-images/server.png?raw=true "Server API")
+
+Client: `http://localhost:5173/`
+![Alt text](/readme-images/client-initial.png?raw=true "Client")
+
 ### Create Monorepo Debug Configuration using `npm` Workspaces
 To debug a monorepo using npm workspaces in VS Code set up multi-target debugging in a single `launch.json`.
 
@@ -493,29 +516,9 @@ VS Code creates a `.vscode/launch.json` file which can be modified as follows:
   ]
 }
 ```
-
-### Run & Build
-```bash
-# Run shared build first if used by others
-npm run --workspace shared build
-
-# Create and seed the database
-npm run --workspace db seed
-
-# Start dev server
-npm run --workspace server dev
-
-# Start dev client
-npm run --workspace client dev
-```
-
-Launch the server and client in the browser:
-\
-Server: `http://localhost:3000/api/user`
-![Alt text](/readme-images/server.png?raw=true "Server API")
-
-Client: `http://localhost:5173/`
-![Alt text](/readme-images/client-initial.png?raw=true "Client")
+> [!TIP]
+>
+> Start debugging but hitting `F5` or click the green ▶️ in the debug panel.
 
 # The Shared Package
 ## Create Interfaces
