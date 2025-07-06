@@ -47,7 +47,7 @@ aspect/
 * [Create Interfaces in the Shared Package](#create-interfaces-in-the-shared-package)
 * [Create Models in the Shared Package](#create-models-in-the-shared-package)
 * [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
-* [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebarin-the-client)
+* [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
 * [Support Dark/Light Theme](#support-darklight-theme)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
