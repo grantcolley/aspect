@@ -47,13 +47,14 @@ aspect/
 * [Create Interfaces in the Shared Package](#create-interfaces-in-the-shared-package)
 * [Create Models in the Shared Package](#create-models-in-the-shared-package)
 * [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
-* [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
+* [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebarin-the-client)
 * [Support Dark/Light Theme](#support-darklight-theme)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
-* [Enable CORS in the Node.js API](#enable-cors-in-the-nodejs-api)
+* [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
 * [Seed the Modules data](#seed-the-modules-data)
-* [Add the Navigation Route](#add-the-navigation-route)
+* [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
+* [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
    
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -836,8 +837,7 @@ export const userSchema = z.object({
 export type UserInput = z.infer<typeof userSchema>;
 ```
 
-# The Client
-## Create Main Layout with Sidebar
+# Create Main Layout with Sidebar in the Client
 First, change the browser tab's title and icon in `index.html`.
 ```html
 <!DOCTYPE html>
@@ -1016,7 +1016,7 @@ export default App;
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-sidebar.png?raw=true "Client")
 
-## Support Dark/Light Theme
+# Support Dark/Light Theme
 Install `dropdown` and `tooltip` components.
 ```bash
 npx shadcn@latest add dropdown-menu
@@ -1229,7 +1229,7 @@ export function SidebarHeader() {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
 
-## Add Auth0 Authentication to the Client
+# Add Auth0 Authentication to the Client
 
 > [!TIP]
 >
@@ -1463,7 +1463,7 @@ Athenticate
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
-## Adding Navigation to the Sidebar
+# Adding Navigation to the Sidebar
 Install the `collapsible` component.
 ```bash
 npx shadcn@latest add collapsible
@@ -1724,8 +1724,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-navigation.png?raw=true "Client")
 
-# The Server
-## Enable CORS in the Node.js API
+# Enable CORS in the Node.js Server
 ```
 npm install cors
 npm install --save-dev @types/cors
@@ -1757,7 +1756,7 @@ app.listen(port, () => {
 });
 ```
 
-## Seed the Modules data
+# Seed the Modules data
 
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
@@ -2001,7 +2000,7 @@ const fs = require("fs");
 > npm --workspace db run seed
 > ```
 
-### Add the Navigation Route
+# Add the Navigation Route to the Server
 In the Server project, create the `server/src/data/db.ts` for connecting to the database.
 ```TypeScript
 import sqlite3 from "sqlite3";
@@ -2163,6 +2162,7 @@ const start = async () => {
 
 start();
 ```
+# Call the Navigation Route from the Client
 In the Client project update the the `.env.developmnent` file.
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
