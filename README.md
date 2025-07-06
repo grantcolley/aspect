@@ -58,7 +58,7 @@ aspect/
    
 # Scaffolding the Monorepo
 ### Setup the Workspaces
-Create a root folder `aspect`, and inside create three subfolders: `client`, `db`, `server` and `shared`.
+Create a root folder `aspect` and a subfolder `apps`. Inside `aspect\apps` create three subfolders: `client`, `db`, `server` and `shared`.
 
 Inside the root `aspect` folder:
 ```bash
@@ -72,10 +72,8 @@ Configure the root `package.json`.
   "version": "1.0.0",
   "description": "Aspect",
   "workspaces": [
-    "client",
-    "db",
-    "server",
-    "shared",
+    "apps/*",
+    "db"
   ]
 }
 ```
@@ -111,7 +109,7 @@ dist
 ```
 
 ### Initialise the Shared Package
-Inside the `shared` folder:
+Inside the `apps\shared` folder:
 ```bash
 npm init -y
 ```
@@ -121,7 +119,7 @@ Install `zod` for model validation.
 npm install zod
 ```
 
-Configure the `shared/package.json`.
+Configure the `apps/shared/package.json`.
 ```json
 {
   "name": "shared",
@@ -134,10 +132,10 @@ Configure the `shared/package.json`.
 }
 ```
 
-Create `shared/tsconfig.json`.
+Create `apps/shared/tsconfig.json`.
 ```json
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
     "declaration": true
@@ -146,7 +144,7 @@ Create `shared/tsconfig.json`.
 }
 ```
 
-Create subfolder `src/models`, and inside it create the shared `User` class `shared/src/models/user.ts`.
+Create subfolder `apps/shared/src/models`, and inside it create the shared `User` class `apps/shared/src/models/user.ts`.
 ```TypeScript
 export class User {
   userId: number;
@@ -168,11 +166,11 @@ Install `dotenv`.
 npm install dotenv
 ```
 
-Inside the `db` folder create subfolders `/src/data`.
+Inside the `apps/db` folder create subfolder `apps/db/src/data`.
 
-Create the `db/src/data/userData.ts`.
+Create the `apps/db/src/data/userData.ts`.
 ```TypeScript
-import { User } from "shared/src/models/user";
+import { User } from "../../../apps/shared/src/models/user";
 
 export function getUsers() {
   return [
@@ -182,10 +180,10 @@ export function getUsers() {
 }
 ```
 
-Create the `db/src/seedUsers.ts`.
+Create the `apps/db/src/seedUsers.ts`.
 ```TypeScript
 import { Database } from "sqlite";
-import { User } from "shared/src/models/user";
+import { User } from "../../apps/shared/src/models/user";
 
 export async function seedUsers(db: Database, users: User[]) {
   await db.exec(`
@@ -211,7 +209,7 @@ export async function seedUsers(db: Database, users: User[]) {
 }
 ```
 
-Create the `db/src/seed.ts`.
+Create the `apps/db/src/seed.ts`.
 ```TypeScript
 import dotenv from "dotenv";
 import path from "path";
@@ -252,7 +250,7 @@ seed().catch((err) => {
 });
 ```
 
-Configure the `db/package.json`.
+Configure the `apps/db/package.json`.
 ```json
 {
   "name": "db",
@@ -272,7 +270,7 @@ Configure the `db/package.json`.
 }
 ```
 
-Create `db/tsconfig.json`.
+Create `apps/db/tsconfig.json`.
 ```json
 {
   "extends": "../tsconfig.base.json",
@@ -299,12 +297,12 @@ npm install tailwindcss @tailwindcss/vite
 npm install -D @types/node
 ```
 
-Replace everything in `client/src/index.css` with the following:
+Replace everything in `apps/client/src/index.css` with the following:
 ```css
 @import "tailwindcss";
 ```
 
-Configure the `client/package.json`.
+Configure the `apps/client/package.json`.
 ```json
 {
 
@@ -323,7 +321,7 @@ Configure the `client/package.json`.
 
 Add the following code to the `tsconfig.json` file to resolve paths.
 ```json
-  "extends": "../tsconfig.base.json",  👈 add extends ../tsconfig.base.json
+  "extends": "../../tsconfig.base.json",  👈 add extends ../tsconfig.base.json
   
   ... removed for brevity
 
@@ -398,7 +396,7 @@ npm install -D typescript ts-node-dev @types/express @types/node
 npm install zod
 ```
 
-Configure the `server/package.json`.
+Configure the `apps/server/package.json`.
 ```json
 {
   "name": "server",
@@ -416,10 +414,10 @@ Configure the `server/package.json`.
   },
 ```
 
-Create `server/tsconfig.json`.
+Create `apps/server/tsconfig.json`.
 ```json
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
     "sourceMap": true,
@@ -431,7 +429,7 @@ Create `server/tsconfig.json`.
 }
 ```
 
-Create subfolder `src`, and create a `server/src/index.ts`.
+Create subfolder `apps/server/src`, and create a `apps/server/src/index.ts`.
 ```TypeScript
 import express from "express";
 import { User } from "shared";
@@ -496,17 +494,17 @@ VS Code creates a `.vscode/launch.json` file which can be modified as follows:
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/client/src",
+      "webRoot": "${workspaceFolder}/apps/client/src",
       "sourceMaps": true,
-      "resolveSourceMapLocations": ["${workspaceFolder}/client/src/**/*"]
+      "resolveSourceMapLocations": ["${workspaceFolder}/apps/client/src/**/*"]
     },
     {
       "name": "Launch API Server",
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/server/src/index.ts"],
-      "cwd": "${workspaceFolder}/server",
+      "args": ["${workspaceFolder}/apps/server/src/index.ts"],
+      "cwd": "${workspaceFolder}/apps/server",
       "env": {
         "NODE_ENV": "development"
       },
@@ -521,18 +519,18 @@ VS Code creates a `.vscode/launch.json` file which can be modified as follows:
 > Start debugging but hitting `F5` or click the green ▶️ in the debug panel.
 
 # Create Interfaces in the Shared Package
-Create subfolder `shared/src/interfaces`.
+Create subfolder `apps/shared/src/interfaces`.
 
 Create the `Edibility` and `Permissionable` interfaces 
 \
 \
-`shared/src/interfaces/edibility.ts`
+`apps/shared/src/interfaces/edibility.ts`
 ```TypeScript
 export interface Editability {
   isReadonlOnly: boolean;
 }
 ```
-`shared/src/interfaces/permissionable.ts`
+`apps/shared/src/interfaces/permissionable.ts`
 ```TypeScript
 export interface Permissionable {
   isVisible: boolean;
@@ -544,7 +542,7 @@ export interface Permissionable {
 Create the navigation models `Module`, `Category` and `Page` classes.
 \
 \
-`shared/src/models/page.ts`
+`apps/shared/src/models/page.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -580,7 +578,7 @@ export class Page implements Permissionable, Editability {
   }
 }
 ```
-`shared/src/models/category.ts`
+`apps/shared/src/models/category.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -622,7 +620,7 @@ export class Category implements Permissionable, Editability {
   }
 }
 ```
-`shared/src/models/module.ts`
+`apps/shared/src/models/module.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -664,7 +662,7 @@ export class Module implements Permissionable, Editability {
 Create the authorisation models `User`, `Role` and `Permission` classes.
 \
 \
-`shared/src/models/permission.ts`
+`apps/shared/src/models/permission.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -691,7 +689,7 @@ export class Permission implements Permissionable, Editability {
   }
 }
 ```
-`shared/src/models/role.ts`
+`apps/shared/src/models/role.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -722,7 +720,7 @@ export class Role implements Permissionable, Editability {
   }
 }
 ```
-Update the `User` at `shared/src/models/user.ts`
+Update the `User` at `apps/shared/src/models/user.ts`
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -761,7 +759,7 @@ export class User implements Permissionable, Editability {
 Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
 \
 \
-`shared/src/validation/pageSchema.ts`
+`apps/shared/src/validation/pageSchema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -774,7 +772,7 @@ export const pageSchema = z.object({
 
 export type PageInput = z.infer<typeof pageSchema>;
 ```
-`shared/src/validation/categorySchema.ts`
+`apps/shared/src/validation/categorySchema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -786,7 +784,7 @@ export const categorySchema = z.object({
 
 export type CategoryInput = z.infer<typeof categorySchema>;
 ```
-`shared/src/validation/moduleSchema.ts`
+`apps/shared/src/validation/moduleSchema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -802,7 +800,7 @@ export type ModuleInput = z.infer<typeof moduleSchema>;
 Create the authorisation validation schema `userSchema`, `roleSchema` and `pemissionSchema`.
 \
 \
-`shared/src/validation/pemissionSchema.ts`
+`apps/shared/src/validation/pemissionSchema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -813,7 +811,7 @@ export const permissionSchema = z.object({
 
 export type PermissionInput = z.infer<typeof permissionSchema>;
 ```
-`shared/src/validation/roleSchema.ts`
+`apps/shared/src/validation/roleSchema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -824,7 +822,7 @@ export const roleSchema = z.object({
 
 export type RoleInput = z.infer<typeof roleSchema>;
 ```
-`shared/src/validation/userSchema.ts`
+`apps/shared/src/validation/userSchema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -890,7 +888,7 @@ npx shadcn@latest add sidebar
 > Installing the shadcn/ui sidebar came with two unexpected issues that needed to be resolved.
 
 First, installing the sidebar (and related components) created a folder called `src\` directly under the root application level `aspect\` folder.
-The `components` and `hook` folders in `aspect\src\` had to be moved into the `aspect\client\src\` folder, and then delete `aspect\src\`, as follows:
+The `components` and `hook` folders in `aspect\src\` had to be moved into the `aspect\apps\client\src\` folder, and then delete `aspect\src\`, as follows:
 ```
 aspect/
 ├── src/   👈 delete src/
@@ -909,7 +907,7 @@ To fix this go to the top of `components\ui\sidebar.tsx`, and add `type` in fron
 import { cva, type VariantProps } from "class-variance-authority"
 ```
 
-Create `app-sidebar.tsx` in `client\src\components`.
+Create `app-sidebar.tsx` in `apps\client\src\components`.
 ```TypeScript
 import * as React from "react";
 import { IconWorld } from "@tabler/icons-react";
@@ -948,7 +946,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 ```
 
-Create `app-sidebar-header.tsx` in `client\src\components`.
+Create `app-sidebar-header.tsx` in `apps\client\src\components`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -1469,10 +1467,10 @@ Install the `collapsible` component.
 npx shadcn@latest add collapsible
 ```
 
-Create an `icons` folder at `client\src\components\icons`.
+Create an `icons` folder at `apps\client\src\components\icons`.
 \
 \
-In the `client\src\components\icons` folder create `iconsMap.ts`.
+In the `apps\client\src\components\icons` folder create `iconsMap.ts`.
 ```TypeScript
 import {
   IconHome,
@@ -1499,7 +1497,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
 };
 ```
 
-In the `client\src\components\icons` folder create `iconLoader.tsx`.
+In the `apps\client\src\components\icons` folder create `iconLoader.tsx`.
 ```TypeScript
 import React from "react";
 import { IconPhotoExclamation } from "@tabler/icons-react";
@@ -1522,7 +1520,7 @@ const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
 export default IconLoader;
 ```
 
-In the `client\src\components\layout` folder create `navigation-panel.tsx`.
+In the `apps\client\src\components\layout` folder create `navigation-panel.tsx`.
 ```TypeScript
 import { IconChevronRight } from "@tabler/icons-react";
 import IconLoader from "@/components/icons/IconLoader";
@@ -1730,7 +1728,7 @@ npm install cors
 npm install --save-dev @types/cors
 ```
 
-Update the `server/src/index.ts` to support CORS.
+Update the `apps/server/src/index.ts` to support CORS.
 ```TypeScript
 import express from "express";
 import cors from "cors";    	// 👈 import CORS
@@ -2001,7 +1999,7 @@ const fs = require("fs");
 > ```
 
 # Add the Navigation Route to the Server
-In the Server project, create the `server/src/data/db.ts` for connecting to the database.
+In the Server project, create the `apps/server/src/data/db.ts` for connecting to the database.
 ```TypeScript
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
@@ -2016,7 +2014,7 @@ export const initDb = async (dbFile: string) => {
 };
 ```
 
-Create data interface `server/src/interfaces/navigationRow.ts` for extracting the rows from the database.
+Create data interface `apps/server/src/interfaces/navigationRow.ts` for extracting the rows from the database.
 ```TypeScript
 export interface NavigationRow {
   moduleId: number;
@@ -2037,7 +2035,7 @@ export interface NavigationRow {
 }
 ```
 
-Create the route `server/src/route/navigation.ts`.`
+Create the route `apps/server/src/route/navigation.ts`.`
 ```TypeScript
 import { Router, Request, Response, RequestHandler } from "express";
 import { Database } from "sqlite";
@@ -2126,7 +2124,7 @@ HOST_PORT=3000
 CORS_URL=http://localhost:5173
 ```
 
-Update the `server/src/index.ts`
+Update the `apps/server/src/index.ts`
 ```TypeScript
 import express from "express";
 import cors from "cors";
