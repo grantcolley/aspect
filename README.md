@@ -56,6 +56,7 @@ aspect/
 * [The Server](#the-server)
    * [Enable CORS in the Node.js API](#enable-cors-in-the-nodejs-api)
    * [Seed the Modules data](#seed-the-modules-data)
+   * [Add the Navigation Route](#add-the-navigation-route)
    
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -2004,3 +2005,165 @@ const fs = require("fs");
 > npm --workspace db run seed
 > ```
 
+### Add the Navigation Route
+In the Server project, create the `server/src/data/db.ts` for connecting to the database.
+```JSX
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+
+export const initDb = async (dbFile: string) => {
+  const db = await open({
+    filename: dbFile,
+    driver: sqlite3.Database,
+  });
+
+  return db;
+};
+```
+
+Create data interface `server/src/interfaces/navigationRow.ts` for extracting the rows from the database.
+```JSX
+export interface NavigationRow {
+  moduleId: number;
+  mName: string;
+  mIcon: string;
+  mPermission: string;
+
+  categoryId: number;
+  cName: string;
+  cIcon: string;
+  cPermission: string;
+
+  pageId: number;
+  pName: string;
+  pIcon: string;
+  pUrl: string;
+  pPermission: string;
+}
+```
+
+Create the route `server/src/route/navigation.ts`.`
+```JSX
+import { Router, Request, Response, RequestHandler } from "express";
+import { Database } from "sqlite";
+import { NavigationRow } from "../interfaces/navigationRow";
+import { Module } from "shared/src/models/module";
+import { Category } from "shared/src/models/category";
+import { Page } from "shared/src/models/page";
+
+export default function createNavigationRoute(db: Database) {
+  const router = Router();
+
+  router.get("/", async (_req: Request, res: Response) => {
+    const rows: NavigationRow[] = await db.all(`
+      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
+              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
+              p.pageId, p.name pName, p.icon pIcon, p.url pUrl, p.permission pPermission
+      FROM 	modules m
+      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
+      INNER JOIN categories c ON mc.categoryId = c.categoryId
+      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
+      INNER JOIN pages p ON cp.pageId = p.pageId;
+    `);
+
+    const modulesMap = new Map<number, Module>();
+    const categoriesMap = new Map<number, Category>();
+
+    for (const row of rows) {
+      let module = modulesMap.get(row.moduleId);
+      if (!module) {
+        module = new Module(
+          row.moduleId,
+          row.mName,
+          row.mIcon,
+          row.mPermission,
+          true
+        );
+        modulesMap.set(row.moduleId, module);
+      }
+
+      let category = categoriesMap.get(row.categoryId);
+      if (!category) {
+        category = new Category(
+          row.categoryId,
+          row.moduleId,
+          row.cName,
+          row.cIcon,
+          row.cPermission,
+          true
+        );
+        categoriesMap.set(row.categoryId, category);
+      }
+
+      const moduleCategory = module.categories.some(
+        (category) => category.categoryId === row.categoryId
+      );
+      if (!moduleCategory) {
+        module.addCategory(category);
+      }
+
+      const page = new Page(
+        row.pageId,
+        row.categoryId,
+        row.pName,
+        row.pIcon,
+        row.pUrl,
+        row.pPermission,
+        true
+      );
+
+      if (!category.pages.some((p) => p.pageId === page.pageId)) {
+        category.addPage(page);
+      }
+    }
+
+    res.json(Array.from(modulesMap.values()));
+  });
+
+  return router;
+}
+```
+Update the `env.development`
+```
+DATABASE=aspect.sqlite
+HOST_URL=http://localhost
+HOST_PORT=3000
+CORS_URL=http://localhost:5173
+```
+
+Update the `server/src/index.ts`
+```TSX
+import express from "express";
+import cors from "cors";
+import path from "path";
+import dotenv from "dotenv";
+import createNavigationRoute from "./routes/navigation";
+import { initDb } from "./data/db";
+
+dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+
+const dbFile = path.resolve(__dirname, `../../db/${process.env.DATABASE}`);
+
+const PORT = process.env.HOST_PORT;
+const app = express();
+app.use(express.json());
+
+app.use(
+  cors({
+    origin: `${process.env.CORS_URL}`, // or use '*' for all origins (not recommended for production)
+    credentials: true, // if you're using cookies or HTTP auth
+  })
+);
+
+const start = async () => {
+  const db = await initDb(dbFile);
+
+  app.use("/api/navigation", createNavigationRoute(db));
+
+  app.listen(PORT, () =>
+    console.log(`Server running on ${process.env.HOST_URL}:${PORT}`)
+  );
+};
+
+start();
+```
