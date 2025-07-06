@@ -2175,7 +2175,7 @@ VITE_REACT_API_URL=http://localhost:3000  // 👈 add local API url
 VITE_REACT_API_NAVIGATION_URL=api/navigation // 👈 add navigation route
 ```
 
-Update `app-sidebar.tsx` to fetch data from modules from the web API.
+Update `app-sidebar.tsx` to fetch module data from the web API's navigation route.
 ```TypeScript
 import * as React from "react";
 import { useEffect, useState } from "react";
