@@ -44,19 +44,17 @@ aspect/
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
  	* [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces) 
-* [The Shared Package](#the-shared-package)
-   * [Create Interfaces](#create-interfaces)
-   * [Create Models](#create-models)
-   * [Create Validation](#create-validation)
-* [The Client](#the-client)
-   * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
-   * [Support Dark/Light Theme](#support-darklight-theme)
-   * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
-   * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
-* [The Server](#the-server)
-   * [Enable CORS in the Node.js API](#enable-cors-in-the-nodejs-api)
-   * [Seed the Modules data](#seed-the-modules-data)
-   * [Add the Navigation Route](#add-the-navigation-route)
+* [Create Interfaces in the Shared Package](#create-interfaces-in-the-shared-package)
+* [Create Models in the Shared Package](#create-models-in-the-shared-package)
+* [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
+* [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
+* [Support Dark/Light Theme](#support-darklight-theme)
+* [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
+* [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
+* [Seed the Modules data](#seed-the-modules-data)
+* [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
+* [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
    
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -522,8 +520,7 @@ VS Code creates a `.vscode/launch.json` file which can be modified as follows:
 >
 > Start debugging but hitting `F5` or click the green ▶️ in the debug panel.
 
-# The Shared Package
-## Create Interfaces
+# Create Interfaces in the Shared Package
 Create subfolder `shared/src/interfaces`.
 
 Create the `Edibility` and `Permissionable` interfaces 
@@ -543,7 +540,7 @@ export interface Permissionable {
 }
 ```
 
-## Create Models
+## Create Models in the Shared Package
 Create the navigation models `Module`, `Category` and `Page` classes.
 \
 \
@@ -760,7 +757,7 @@ export class User implements Permissionable, Editability {
 }
 ```
 
-## Create Validation
+## Create Validation using `zod` in the Shared Package
 Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
 \
 \
@@ -840,8 +837,7 @@ export const userSchema = z.object({
 export type UserInput = z.infer<typeof userSchema>;
 ```
 
-# The Client
-## Create Main Layout with Sidebar
+# Create Main Layout with Sidebar in the Client
 First, change the browser tab's title and icon in `index.html`.
 ```html
 <!DOCTYPE html>
@@ -1020,7 +1016,7 @@ export default App;
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-sidebar.png?raw=true "Client")
 
-## Support Dark/Light Theme
+# Support Dark/Light Theme
 Install `dropdown` and `tooltip` components.
 ```bash
 npx shadcn@latest add dropdown-menu
@@ -1233,7 +1229,7 @@ export function SidebarHeader() {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
 
-## Add Auth0 Authentication to the Client
+# Add Auth0 Authentication to the Client
 
 > [!TIP]
 >
@@ -1467,7 +1463,7 @@ Athenticate
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
-## Adding Navigation to the Sidebar
+# Adding Navigation to the Sidebar
 Install the `collapsible` component.
 ```bash
 npx shadcn@latest add collapsible
@@ -1728,8 +1724,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-navigation.png?raw=true "Client")
 
-# The Server
-## Enable CORS in the Node.js API
+# Enable CORS in the Node.js Server
 ```
 npm install cors
 npm install --save-dev @types/cors
@@ -1761,7 +1756,7 @@ app.listen(port, () => {
 });
 ```
 
-## Seed the Modules data
+# Seed the Modules data
 
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
@@ -2005,7 +2000,7 @@ const fs = require("fs");
 > npm --workspace db run seed
 > ```
 
-### Add the Navigation Route
+# Add the Navigation Route to the Server
 In the Server project, create the `server/src/data/db.ts` for connecting to the database.
 ```TypeScript
 import sqlite3 from "sqlite3";
@@ -2166,4 +2161,90 @@ const start = async () => {
 };
 
 start();
+```
+# Call the Navigation Route from the Client
+In the Client project update the the `.env.developmnent` file.
+```
+VITE_REACT_APP_AUTH0_DOMAIN=
+VITE_REACT_APP_AUTH0_CLIENT_ID=
+VITE_REACT_API_URL=http://localhost:3000  // 👈 add local API url
+VITE_REACT_API_NAVIGATION_URL=api/navigation // 👈 add navigation route
+```
+
+Update `app-sidebar.tsx` to fetch module data from the web API's navigation route.
+```TypeScript
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { IconWorld } from "@tabler/icons-react";
+import { NavigationPanel } from "@/components/layout/navigation-panel";
+import { Module } from "shared/src/models/module";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [modules, setModules] = useState<Module[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
+    import.meta.env.VITE_REACT_API_NAVIGATION_URL
+  }`;
+
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const response = await fetch(navigationUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: Module[] = await response.json();
+
+        setModules(data);
+      } catch (err) {
+        setError("Failed to fetch modules");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModules();
+  }, []); // 👈 empty array means "run only on first render"
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <a href="#">
+                <IconWorld className="!size-5" />
+                <span className="text-base font-semibold">Aspect</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavigationPanel modules={modules}></NavigationPanel>
+      </SidebarContent>
+      <SidebarFooter></SidebarFooter>
+    </Sidebar>
+  );
+}
 ```
