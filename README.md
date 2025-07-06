@@ -54,9 +54,10 @@ aspect/
    * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
    * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [The Server](#the-server)
-   * [Enable CORS in the Node.js API](#)
-  
- 
+   * [Enable CORS in the Node.js API](#enable-cors-in-the-nodejs-api)
+   * [Seed the Modules data](#seed-the-modules-data)
+   * [Add the Navigation Route](#add-the-navigation-route)
+   
 # Scaffolding the Monorepo
 ### Setup the Workspaces
 Create a root folder `aspect`, and inside create three subfolders: `client`, `db`, `server` and `shared`.
@@ -1760,3 +1761,409 @@ app.listen(port, () => {
 });
 ```
 
+## Seed the Modules data
+
+Create `db/src/data/moduleData.ts` for the seed modules data.
+```TypeScript
+import { Module } from "shared/src/models/module";
+
+export function getModules() {
+  return [
+    {
+      moduleId: 1,
+      name: "Administration",
+      icon: "settings",
+      permission: "admin_ro|admin_rw",
+      isVisible: true,
+      categories: [
+        {
+          categoryId: 1,
+          name: "Authorisation",
+          icon: "authorisation",
+          permission: "auth_ro|auth_rw",
+          isVisible: true,
+          pages: [
+            {
+              pageId: 1,
+              name: "Users",
+              icon: "users",
+              url: "#",
+              permission: "auth_ro|auth_rw",
+              isVisible: true,
+            },
+            {
+              pageId: 2,
+              name: "Roles",
+              icon: "roles",
+              url: "#",
+              permission: "auth_ro|auth_rw",
+              isVisible: true,
+            },
+            {
+              pageId: 3,
+              name: "Permissions",
+              icon: "permissions",
+              url: "#",
+              permission: "auth_ro|auth_rw",
+              isVisible: true,
+            },
+          ],
+        },
+        {
+          categoryId: 2,
+          name: "Applications",
+          icon: "applications",
+          permission: "apps_ro|apps_rw",
+          isVisible: true,
+          pages: [
+            {
+              pageId: 4,
+              name: "Modules",
+              icon: "modules",
+              url: "#",
+              permission: "apps_ro|apps_rw",
+              isVisible: true,
+            },
+            {
+              pageId: 5,
+              name: "Categories",
+              icon: "categories",
+              url: "#",
+              permission: "apps_ro|apps_rw",
+              isVisible: true,
+            },
+            {
+              pageId: 6,
+              name: "Pages",
+              icon: "pages",
+              url: "#",
+              permission: "apps_ro|apps_rw",
+              isVisible: true,
+            },
+          ],
+        },
+      ],
+    },
+  ] as Module[];
+}
+```
+
+Create the `db/src/seedModules.ts`
+```TypeScript
+import { Database } from "sqlite";
+import { Module } from "shared/src/models/module";
+
+export async function seedModules(db: Database, modules: Module[]) {
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS modules (
+      moduleId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      icon TEXT NOT NULL,
+      permission TEXT NOT NULL
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS categories (
+      categoryId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      icon TEXT NOT NULL,
+      permission TEXT NOT NULL
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS pages (
+      pageId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      icon TEXT NOT NULL,
+      url TEXT NOT NULL,
+      permission TEXT NOT NULL
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE moduleCategories (
+        moduleId INTEGER,
+        categoryId INTEGER,
+        PRIMARY KEY (moduleId, categoryId),
+        FOREIGN KEY (moduleId) REFERENCES modules(moduleId),
+        FOREIGN KEY (categoryId) REFERENCES categories(categoryId)
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE categoryPages (
+        categoryId INTEGER,
+        pageId INTEGER,
+        PRIMARY KEY (categoryId, pageId),
+        FOREIGN KEY (categoryId) REFERENCES categories(categoryId),
+        FOREIGN KEY (pageId) REFERENCES pages(pageId)
+    );
+  `);
+
+  const modulesStatement = await db.prepare(
+    "INSERT INTO modules (moduleId, name, icon, permission) VALUES (?, ?, ?, ?)"
+  );
+
+  const categoryStatement = await db.prepare(
+    "INSERT INTO categories (categoryId, name, icon, permission) VALUES (?, ?, ?, ?)"
+  );
+
+  const pageStatement = await db.prepare(
+    "INSERT INTO pages (pageId, name, icon, url, permission) VALUES (?, ?, ?, ?, ?)"
+  );
+
+  const moduleCategoriesStatement = await db.prepare(
+    "INSERT INTO moduleCategories (moduleId, categoryId) VALUES (?, ?)"
+  );
+
+  const categoryPagesStatement = await db.prepare(
+    "INSERT INTO categoryPages (categoryId, pageId) VALUES (?, ?)"
+  );
+
+  for (const module of modules) {
+    await modulesStatement.run(
+      module.moduleId,
+      module.name,
+      module.icon,
+      module.permission
+    );
+    console.log(`Inserted: ${module.name}`);
+
+    for (const category of module.categories) {
+      await categoryStatement.run(
+        category.categoryId,
+        category.name,
+        category.icon,
+        category.permission
+      );
+      console.log(`Inserted: ${category.name}`);
+
+      await moduleCategoriesStatement.run(module.moduleId, category.categoryId);
+      console.log(
+        `Inserted: moduleId ${module.moduleId}, categoryId ${category.categoryId}`
+      );
+
+      for (const page of category.pages) {
+        await pageStatement.run(
+          page.pageId,
+          page.name,
+          page.icon,
+          page.url,
+          page.permission
+        );
+        console.log(`Inserted: ${page.name}`);
+
+        await categoryPagesStatement.run(category.categoryId, page.pageId);
+        console.log(
+          `Inserted: categoryId ${category.categoryId}, pageId ${page.pageId}`
+        );
+      }
+    }
+  }
+
+  modulesStatement.finalize();
+  categoryStatement.finalize();
+  pageStatement.finalize();
+  moduleCategoriesStatement.finalize();
+  categoryPagesStatement.finalize();
+
+  await db.each("SELECT moduleId, name, icon FROM modules", (err, row) => {
+    console.log(`Inserted ${row.name}`);
+  });
+
+  console.log(`Insert Modules Complete.`);
+}
+```
+
+Update the `db/src/seed.ts` to seed the module data.
+```TypeScript
+
+// existing code removed for brevity
+ 
+import { getUsers } from "./data/userData";
+import { seedModules } from "./seedModules"; // 👈 add
+import { getModules } from "./data/moduleData"; // 👈 add
+const fs = require("fs");
+
+// existing code removed for brevity
+
+  let users = getUsers();
+  let modules = getModules();  // 👈 add
+
+  await seedUsers(db, users);
+  await seedModules(db, modules);  // 👈 add
+
+// existing code removed for brevity
+```
+
+> [!TIP]
+> Seeding the data can be done by by running the following command.
+> 
+> ```
+> npm --workspace db run seed
+> ```
+
+### Add the Navigation Route
+In the Server project, create the `server/src/data/db.ts` for connecting to the database.
+```TypeScript
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+
+export const initDb = async (dbFile: string) => {
+  const db = await open({
+    filename: dbFile,
+    driver: sqlite3.Database,
+  });
+
+  return db;
+};
+```
+
+Create data interface `server/src/interfaces/navigationRow.ts` for extracting the rows from the database.
+```TypeScript
+export interface NavigationRow {
+  moduleId: number;
+  mName: string;
+  mIcon: string;
+  mPermission: string;
+
+  categoryId: number;
+  cName: string;
+  cIcon: string;
+  cPermission: string;
+
+  pageId: number;
+  pName: string;
+  pIcon: string;
+  pUrl: string;
+  pPermission: string;
+}
+```
+
+Create the route `server/src/route/navigation.ts`.`
+```TypeScript
+import { Router, Request, Response, RequestHandler } from "express";
+import { Database } from "sqlite";
+import { NavigationRow } from "../interfaces/navigationRow";
+import { Module } from "shared/src/models/module";
+import { Category } from "shared/src/models/category";
+import { Page } from "shared/src/models/page";
+
+export default function createNavigationRoute(db: Database) {
+  const router = Router();
+
+  router.get("/", async (_req: Request, res: Response) => {
+    const rows: NavigationRow[] = await db.all(`
+      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
+              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
+              p.pageId, p.name pName, p.icon pIcon, p.url pUrl, p.permission pPermission
+      FROM 	modules m
+      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
+      INNER JOIN categories c ON mc.categoryId = c.categoryId
+      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
+      INNER JOIN pages p ON cp.pageId = p.pageId;
+    `);
+
+    const modulesMap = new Map<number, Module>();
+    const categoriesMap = new Map<number, Category>();
+
+    for (const row of rows) {
+      let module = modulesMap.get(row.moduleId);
+      if (!module) {
+        module = new Module(
+          row.moduleId,
+          row.mName,
+          row.mIcon,
+          row.mPermission,
+          true
+        );
+        modulesMap.set(row.moduleId, module);
+      }
+
+      let category = categoriesMap.get(row.categoryId);
+      if (!category) {
+        category = new Category(
+          row.categoryId,
+          row.moduleId,
+          row.cName,
+          row.cIcon,
+          row.cPermission,
+          true
+        );
+        categoriesMap.set(row.categoryId, category);
+      }
+
+      const moduleCategory = module.categories.some(
+        (category) => category.categoryId === row.categoryId
+      );
+      if (!moduleCategory) {
+        module.addCategory(category);
+      }
+
+      const page = new Page(
+        row.pageId,
+        row.categoryId,
+        row.pName,
+        row.pIcon,
+        row.pUrl,
+        row.pPermission,
+        true
+      );
+
+      if (!category.pages.some((p) => p.pageId === page.pageId)) {
+        category.addPage(page);
+      }
+    }
+
+    res.json(Array.from(modulesMap.values()));
+  });
+
+  return router;
+}
+```
+Update the `env.development`
+```
+DATABASE=aspect.sqlite
+HOST_URL=http://localhost
+HOST_PORT=3000
+CORS_URL=http://localhost:5173
+```
+
+Update the `server/src/index.ts`
+```TypeScript
+import express from "express";
+import cors from "cors";
+import path from "path";
+import dotenv from "dotenv";
+import createNavigationRoute from "./routes/navigation";
+import { initDb } from "./data/db";
+
+dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+
+const dbFile = path.resolve(__dirname, `../../db/${process.env.DATABASE}`);
+
+const PORT = process.env.HOST_PORT;
+const app = express();
+app.use(express.json());
+
+app.use(
+  cors({
+    origin: `${process.env.CORS_URL}`, // or use '*' for all origins (not recommended for production)
+    credentials: true, // if you're using cookies or HTTP auth
+  })
+);
+
+const start = async () => {
+  const db = await initDb(dbFile);
+
+  app.use("/api/navigation", createNavigationRoute(db));
+
+  app.listen(PORT, () =>
+    console.log(`Server running on ${process.env.HOST_URL}:${PORT}`)
+  );
+};
+
+start();
+```
