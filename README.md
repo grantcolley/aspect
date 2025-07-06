@@ -1764,7 +1764,7 @@ app.listen(port, () => {
 ## Seed the Modules data
 
 Create `db/src/data/moduleData.ts` for the seed modules data.
-```JSX
+```TypeScript
 import { Module } from "shared/src/models/module";
 
 export function getModules() {
@@ -1849,7 +1849,7 @@ export function getModules() {
 ```
 
 Create the `db/src/seedModules.ts`
-```JSX
+```TypeScript
 import { Database } from "sqlite";
 import { Module } from "shared/src/models/module";
 
@@ -1978,7 +1978,7 @@ export async function seedModules(db: Database, modules: Module[]) {
 ```
 
 Update the `db/src/seed.ts` to seed the module data.
-```JSX
+```TypeScript
 
 // existing code removed for brevity
  
@@ -2007,7 +2007,7 @@ const fs = require("fs");
 
 ### Add the Navigation Route
 In the Server project, create the `server/src/data/db.ts` for connecting to the database.
-```JSX
+```TypeScript
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
@@ -2022,7 +2022,7 @@ export const initDb = async (dbFile: string) => {
 ```
 
 Create data interface `server/src/interfaces/navigationRow.ts` for extracting the rows from the database.
-```JSX
+```TypeScript
 export interface NavigationRow {
   moduleId: number;
   mName: string;
@@ -2043,7 +2043,7 @@ export interface NavigationRow {
 ```
 
 Create the route `server/src/route/navigation.ts`.`
-```JSX
+```TypeScript
 import { Router, Request, Response, RequestHandler } from "express";
 import { Database } from "sqlite";
 import { NavigationRow } from "../interfaces/navigationRow";
@@ -2132,7 +2132,7 @@ CORS_URL=http://localhost:5173
 ```
 
 Update the `server/src/index.ts`
-```TSX
+```TypeScript
 import express from "express";
 import cors from "cors";
 import path from "path";
