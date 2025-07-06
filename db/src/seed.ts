@@ -4,6 +4,8 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
 import { getUsers } from "./data/userData";
+import { seedModules } from "./seedModules";
+import { getModules } from "./data/moduleData";
 const fs = require("fs");
 
 sqlite3.verbose();
@@ -24,8 +26,10 @@ async function seed() {
   });
 
   let users = getUsers();
+  let modules = getModules();
 
   await seedUsers(db, users);
+  await seedModules(db, modules);
 
   await db.close();
   console.log(`Database seeding complete: ${dbFile}`);
