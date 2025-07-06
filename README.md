@@ -44,19 +44,16 @@ aspect/
 	* [Server Setup](#server-setup)
 	* [Run & Build](#run--build)
  	* [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces) 
-* [The Shared Package](#the-shared-package)
-   * [Create Interfaces](#create-interfaces)
-   * [Create Models](#create-models)
-   * [Create Validation](#create-validation)
-* [The Client](#the-client)
-   * [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
-   * [Support Dark/Light Theme](#support-darklight-theme)
-   * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
-   * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
-* [The Server](#the-server)
-   * [Enable CORS in the Node.js API](#enable-cors-in-the-nodejs-api)
-   * [Seed the Modules data](#seed-the-modules-data)
-   * [Add the Navigation Route](#add-the-navigation-route)
+* [Create Interfaces in the Shared Package](#create-interfaces-in-the-shared-package)
+* [Create Models in the Shared Package](#create-models-in-the-shared-package)
+* [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
+* [Create Main Layout with Sidebar](#create-main-layout-with-sidebar)
+* [Support Dark/Light Theme](#support-darklight-theme)
+* [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
+* [Enable CORS in the Node.js API](#enable-cors-in-the-nodejs-api)
+* [Seed the Modules data](#seed-the-modules-data)
+* [Add the Navigation Route](#add-the-navigation-route)
    
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -522,8 +519,7 @@ VS Code creates a `.vscode/launch.json` file which can be modified as follows:
 >
 > Start debugging but hitting `F5` or click the green ▶️ in the debug panel.
 
-# The Shared Package
-## Create Interfaces
+# Create Interfaces in the Shared Package
 Create subfolder `shared/src/interfaces`.
 
 Create the `Edibility` and `Permissionable` interfaces 
@@ -543,7 +539,7 @@ export interface Permissionable {
 }
 ```
 
-## Create Models
+## Create Models in the Shared Package
 Create the navigation models `Module`, `Category` and `Page` classes.
 \
 \
@@ -760,7 +756,7 @@ export class User implements Permissionable, Editability {
 }
 ```
 
-## Create Validation
+## Create Validation using `zod` in the Shared Package
 Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
 \
 \
