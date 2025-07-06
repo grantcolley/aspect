@@ -17,22 +17,23 @@ Authentication is implemented using Auth0.
 
 The project structure looks something like this:
 ```
-aspect/
+aspect
 ├── package.json
 ├── tsconfig.base.json
 ├── .gitignore
-├── client/
-│   ├── package.json
-│   └── ... (Vite + React code)
+├── apps/
+│   └── client/
+│   	├── package.json
+│   	└── ... (Vite + React code)
+|   └── server/
+│   	├── package.json
+│   	└── ... (Express API code)
+|   └── shared/
+|    	├── package.json
+|    	└── ... (Shared TypeScript types/utils)
 ├── db/
 │   ├── package.json
 │   └── ... (db seed code)
-├── server/
-│   ├── package.json
-│   └── ... (Express API code)
-└── shared/
-    ├── package.json
-    └── ... (Shared TypeScript types/utils)
 ```
 
 ### Table of contents
@@ -894,8 +895,9 @@ aspect/
 ├── src/   👈 delete src/
 │   ├── components/*   👈 move into client/src
 │   └── hooks/*        👈 move into client/src
-└── client/
-│   └── src/   👈 move folders `components` and `hooks` into client/src/ 
+└── apps/
+|   └── client/
+│   	└── src/   👈 move folders `components` and `hooks` into client/src/ 
 ```
 
 Second, there is a bug in `components/ui/sidebar.tsx` resulting in the following errror:
