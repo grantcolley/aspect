@@ -58,7 +58,7 @@ aspect/
    
 # Scaffolding the Monorepo
 ### Setup the Workspaces
-Create a root folder `aspect` and a subfolder `apps`. Inside `aspect\apps` create three subfolders: `client`, `db`, `server` and `shared`.
+Create a root folder `aspect` and a subfolder `apps`. Inside `aspect/apps` create three subfolders: `client`, `db`, `server` and `shared`.
 
 Inside the root `aspect` folder:
 ```bash
@@ -109,7 +109,7 @@ dist
 ```
 
 ### Initialise the Shared Package
-Inside the `apps\shared` folder:
+Inside the `apps/shared` folder:
 ```bash
 npm init -y
 ```
@@ -887,8 +887,8 @@ npx shadcn@latest add sidebar
 > [!CAUTION]
 > Installing the shadcn/ui sidebar came with two unexpected issues that needed to be resolved.
 
-First, installing the sidebar (and related components) created a folder called `src\` directly under the root application level `aspect\` folder.
-The `components` and `hook` folders in `aspect\src\` had to be moved into the `aspect\apps\client\src\` folder, and then delete `aspect\src\`, as follows:
+First, installing the sidebar (and related components) created a folder called `src/` directly under the root application level `aspect/` folder.
+The `components` and `hook` folders in `aspect/src/` had to be moved into the `aspect/apps/client/src/` folder, and then delete `aspect/src/`, as follows:
 ```
 aspect/
 ├── src/   👈 delete src/
@@ -898,16 +898,16 @@ aspect/
 │   └── src/   👈 move folders `components` and `hooks` into client/src/ 
 ```
 
-Second, there is a bug in `components\ui\sidebar.tsx` resulting in the following errror:
+Second, there is a bug in `components/ui/sidebar.tsx` resulting in the following errror:
 
 `Uncaught SyntaxError: The requested module '/node_modules/.vite/deps/class-variance-authority.js?v=6f2cdce7' does not provide an export named 'VariantProps'`
 
-To fix this go to the top of `components\ui\sidebar.tsx`, and add `type` in front of the import for `VariantProps`, as follows:
+To fix this go to the top of `components/ui/sidebar.tsx`, and add `type` in front of the import for `VariantProps`, as follows:
 ```TypeScript
 import { cva, type VariantProps } from "class-variance-authority"
 ```
 
-Create `app-sidebar.tsx` in `apps\client\src\components`.
+Create `app-sidebar.tsx` in `apps/client/src/components`.
 ```TypeScript
 import * as React from "react";
 import { IconWorld } from "@tabler/icons-react";
@@ -946,7 +946,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 ```
 
-Create `app-sidebar-header.tsx` in `apps\client\src\components`.
+Create `app-sidebar-header.tsx` in `apps/client/src/components`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -1467,10 +1467,10 @@ Install the `collapsible` component.
 npx shadcn@latest add collapsible
 ```
 
-Create an `icons` folder at `apps\client\src\components\icons`.
+Create an `icons` folder at `apps/client/src/components/icons`.
 \
 \
-In the `apps\client\src\components\icons` folder create `iconsMap.ts`.
+In the `apps/client/src/components/icons` folder create `iconsMap.ts`.
 ```TypeScript
 import {
   IconHome,
@@ -1497,7 +1497,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
 };
 ```
 
-In the `apps\client\src\components\icons` folder create `iconLoader.tsx`.
+In the `apps/client/src/components/icons` folder create `iconLoader.tsx`.
 ```TypeScript
 import React from "react";
 import { IconPhotoExclamation } from "@tabler/icons-react";
@@ -1520,7 +1520,7 @@ const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
 export default IconLoader;
 ```
 
-In the `apps\client\src\components\layout` folder create `navigation-panel.tsx`.
+In the `apps/client/src/components/layout` folder create `navigation-panel.tsx`.
 ```TypeScript
 import { IconChevronRight } from "@tabler/icons-react";
 import IconLoader from "@/components/icons/IconLoader";
