@@ -1758,7 +1758,7 @@ app.listen(port, () => {
 
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
-import { Module } from "shared/src/models/module";
+import { Module } from "../../../apps/shared/src/models/module";
 
 export function getModules() {
   return [
@@ -1844,7 +1844,7 @@ export function getModules() {
 Create the `db/src/seedModules.ts`
 ```TypeScript
 import { Database } from "sqlite";
-import { Module } from "shared/src/models/module";
+import { Module } from "../../apps/shared/src/models/module";
 
 export async function seedModules(db: Database, modules: Module[]) {
   await db.exec(`
