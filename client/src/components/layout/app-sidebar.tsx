@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { IconWorld } from "@tabler/icons-react";
 import { NavigationPanel } from "@/components/layout/navigation-panel";
 import { Module } from "shared/src/models/module";
@@ -12,85 +13,41 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = [
-  {
-    moduleId: 1,
-    name: "Administration",
-    icon: "settings",
-    permission: "admin_ro|admin_rw",
-    isVisible: true,
-    categories: [
-      {
-        categoryId: 1,
-        name: "Authorisation",
-        icon: "authorisation",
-        permission: "auth_ro|auth_rw",
-        isVisible: true,
-        pages: [
-          {
-            pageId: 1,
-            name: "Users",
-            icon: "users",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 2,
-            name: "Roles",
-            icon: "roles",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 3,
-            name: "Permissions",
-            icon: "permissions",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-        ],
-      },
-      {
-        categoryId: 2,
-        name: "Applications",
-        icon: "applications",
-        permission: "apps_ro|apps_rw",
-        isVisible: true,
-        pages: [
-          {
-            pageId: 4,
-            name: "Modules",
-            icon: "modules",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 5,
-            name: "Categories",
-            icon: "categories",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 6,
-            name: "Pages",
-            icon: "pages",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-        ],
-      },
-    ],
-  },
-] as Module[];
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [modules, setModules] = useState<Module[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
+    import.meta.env.VITE_REACT_API_NAVIGATION_URL
+  }`;
+
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const response = await fetch(navigationUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: Module[] = await response.json();
+
+        setModules(data);
+      } catch (err) {
+        setError("Failed to fetch modules");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModules();
+  }, []); // 👈 empty array means "run only on first render"
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -109,7 +66,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavigationPanel modules={data}></NavigationPanel>
+        <NavigationPanel modules={modules}></NavigationPanel>
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
     </Sidebar>
