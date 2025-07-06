@@ -1,5 +1,5 @@
 import { Database } from "sqlite";
-import { Module } from "shared/src/models/module";
+import { Module } from "../../apps/shared/src/models/module";
 
 export async function seedModules(db: Database, modules: Module[]) {
   await db.exec(`

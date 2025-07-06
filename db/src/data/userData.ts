@@ -1,4 +1,4 @@
-import { User } from "shared/src/models/user";
+import { User } from "../../../apps/shared/src/models/user";
 
 export function getUsers() {
   return [

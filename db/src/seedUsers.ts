@@ -1,5 +1,5 @@
 import { Database } from "sqlite";
-import { User } from "shared/src/models/user";
+import { User } from "../../apps/shared/src/models/user";
 
 export async function seedUsers(db: Database, users: User[]) {
   await db.exec(`

@@ -15,17 +15,17 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/client/src",
+      "webRoot": "${workspaceFolder}/apps/client/src",
       "sourceMaps": true,
-      "resolveSourceMapLocations": ["${workspaceFolder}/client/src/**/*"]
+      "resolveSourceMapLocations": ["${workspaceFolder}/apps/client/src/**/*"]
     },
     {
       "name": "Launch API Server",
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/server/src/index.ts"],
-      "cwd": "${workspaceFolder}/server",
+      "args": ["${workspaceFolder}/apps/server/src/index.ts"],
+      "cwd": "${workspaceFolder}/apps/server",
       "env": {
         "NODE_ENV": "development"
       },

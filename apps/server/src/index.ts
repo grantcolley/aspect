@@ -5,9 +5,9 @@ import dotenv from "dotenv";
 import createNavigationRoute from "./routes/navigation";
 import { initDb } from "./data/db";
 
-dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+dotenv.config({ path: path.resolve(__dirname, "../../../.env.development") });
 
-const dbFile = path.resolve(__dirname, `../../db/${process.env.DATABASE}`);
+const dbFile = path.resolve(__dirname, `../../../db/${process.env.DATABASE}`);
 
 const PORT = process.env.HOST_PORT;
 const app = express();

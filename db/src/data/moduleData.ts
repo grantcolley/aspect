@@ -1,4 +1,4 @@
-import { Module } from "shared/src/models/module";
+import { Module } from "../../../apps/shared/src/models/module";
 
 export function getModules() {
   return [
