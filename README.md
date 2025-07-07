@@ -2118,9 +2118,8 @@ export default function createNavigationRoute(db: Database) {
   return router;
 }
 ```
-Update the `env.development`
+Create `apps/server/env.development`
 ```
-DATABASE=aspect.sqlite
 HOST_URL=http://localhost
 HOST_PORT=3000
 CORS_URL=http://localhost:5173
@@ -2136,10 +2135,12 @@ import createNavigationRoute from "./routes/navigation";
 import { initDb } from "./data/db";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+dotenv.config({ path: path.resolve(__dirname, "../.env.development") });
 
-const dbFile = path.resolve(__dirname, `../../db/${process.env.DATABASE}`);
+const dbFile = path.resolve(__dirname, `../../../db/${process.env.DATABASE}`);
+const HOST = process.env.HOST_URL || "localhost";
+const PORT = process.env.HOST_PORT ? parseInt(process.env.HOST_PORT) : 3000;
 
-const PORT = process.env.HOST_PORT;
 const app = express();
 app.use(express.json());
 
@@ -2155,8 +2156,8 @@ const start = async () => {
 
   app.use("/api/navigation", createNavigationRoute(db));
 
-  app.listen(PORT, () =>
-    console.log(`Server running on ${process.env.HOST_URL}:${PORT}`)
+  app.listen(PORT, HOST, () =>
+    console.log(`Server running on ${HOST}:${PORT}`)
   );
 };
 
