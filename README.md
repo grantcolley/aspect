@@ -56,7 +56,8 @@ aspect
 * [Seed the Modules data](#seed-the-modules-data)
 * [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
 * [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
-   
+* [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
+
 # Scaffolding the Monorepo
 ### Setup the Workspaces
 Create a root folder `aspect` and a subfolder `apps`. Inside `aspect/apps` create three subfolders: `client`, `db`, `server` and `shared`.
@@ -2270,3 +2271,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   );
 }
 ```
+
+# Add Structured Error Handling to the Node.js Server
