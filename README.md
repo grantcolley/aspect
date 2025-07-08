@@ -21,6 +21,9 @@ aspect
 ├── package.json
 ├── tsconfig.base.json
 ├── .gitignore
+├── db/
+│   ├── package.json
+│   └── ... (db seed code)
 ├── apps/
 │   └── client/
 │   	├── package.json
@@ -31,9 +34,6 @@ aspect
 |   └── shared/
 |    	├── package.json
 |    	└── ... (Shared TypeScript types/utils)
-├── db/
-│   ├── package.json
-│   └── ... (db seed code)
 ```
 
 ### Table of contents
