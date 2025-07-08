@@ -4,7 +4,7 @@ Create step-by-step a monorepo solution using npm workspaces containing a React 
 
 The Aspect web client is built using React, Vite, TypeScript, shadcn/ui, react-router, react-hook-form, and zod for validation. 
 
-The Aspect web API is built using Node.js, Express, TypeScript and a SQLite database.
+The Aspect web API is built using Node.js, Express, TypeScript, a SQLite database and the Winston logging library.
 
 Both the client and server consume the same TypeScript classes in a shared package.
 
@@ -12,7 +12,7 @@ Authentication is implemented using Auth0.
 
 ##### Technology:
 ###### client: React + Vite + TypeScript + shadcn/ui + react-router + react-hook-form + zod
-###### server: Node.js + Express + TypeScript + SQLite
+###### server: Node.js + Express + TypeScript + SQLite + Winston (logging)
 ###### shared: TypeScript-only package with shared types and utilities
 
 The project structure looks something like this:
@@ -57,6 +57,7 @@ aspect
 * [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
 * [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
 * [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
+* [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
 
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -2391,4 +2392,108 @@ const start = async () => {
 };
 
 start();
+```
+
+# Add Logging to the Node.js Server
+Install the **Winston** logging library.
+```
+npm install winston winston-daily-rotate-file
+npm install --save-dev @types/winston @types/express
+```
+
+Create folder `apps/server/src/logger` and inside create the class `apps/server/src/logger/aspectError.ts`.
+```TypeScript
+import winston from "winston";
+import DailyRotateFile from "winston-daily-rotate-file";
+
+const logFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.errors({ stack: true }),
+  winston.format.json()
+);
+
+const logger = winston.createLogger({
+  level: "info",
+  format: logFormat,
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      ),
+    }),
+    new DailyRotateFile({
+      dirname: "logs",
+      filename: "aspect-server-%DATE%.log",
+      datePattern: "YYYY-MM-DD",
+      maxFiles: "14d",
+      zippedArchive: true,
+    }),
+    new DailyRotateFile({
+      dirname: "logs",
+      filename: "errors-%DATE%.log",
+      level: "error",
+      datePattern: "YYYY-MM-DD",
+      maxFiles: "30d",
+      zippedArchive: true,
+    }),
+  ],
+  exceptionHandlers: [
+    new winston.transports.File({ filename: "logs/exceptions.log" }),
+  ],
+  rejectionHandlers: [
+    new winston.transports.File({ filename: "logs/rejections.log" }),
+  ],
+});
+
+export default logger;
+```
+
+Update the `errorHandler` at `` to log all errors.
+```TypeScript
+import { Request, Response, NextFunction } from "express";
+import { AspectError } from "../errors/aspectError";
+import logger from "../logger/logger";
+
+export const errorHandler = (
+  err: Error | AspectError,
+  req: Request,
+  res: Response,
+  _next: NextFunction
+) => {
+  let statusCode = 500;
+  let message = "Internal Server Error";
+
+  if (process.env.NODE_ENV !== "production") {
+    console.error(`[Error]: ${message}`);
+    message = err.message || message;
+    statusCode = err instanceof AspectError ? err.statusCode : 500;
+  }
+
+  logger.error("Unhandled error", {
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    body: req.body,
+    query: req.query,
+  });
+
+  res.status(statusCode).json({
+    status: "error",
+    message,
+  });
+};
+```
+
+Update `.gitignore` to ignore the logging output.
+```
+node_modules
+dist
+.env.local
+.env.development
+*.sqlite
+sqlite3.exe
+*-audit.json   // 👈 add
+*.log   // 👈 add
 ```
