@@ -56,7 +56,8 @@ aspect
 * [Seed the Modules data](#seed-the-modules-data)
 * [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
 * [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
-   
+* [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
+
 # Scaffolding the Monorepo
 ### Setup the Workspaces
 Create a root folder `aspect` and a subfolder `apps`. Inside `aspect/apps` create three subfolders: `client`, `db`, `server` and `shared`.
@@ -2269,4 +2270,125 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   );
 }
+```
+
+# Add Structured Error Handling to the Node.js Server
+Create folder `apps/server/src/errors` and inside a custom error class `apps/server/src/errors/aspectError.ts`.
+```TypeScript
+export class AspectError extends Error {
+  public readonly statusCode: number;
+  public readonly isOperational: boolean;
+
+  constructor(message: string, statusCode = 500, isOperational = true) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+```
+
+Create folder `apps/server/src/middleware` and inside a create centralized error response middleware class `apps/server/src/middleware/errorHandler.ts`.
+```TypeScript
+import { Request, Response, NextFunction } from "express";
+import { AspectError } from "../errors/aspectError";
+
+export const errorHandler = (
+  err: Error | AspectError,
+  req: Request,
+  res: Response,
+  _next: NextFunction
+) => {
+  const statusCode = err instanceof AspectError ? err.statusCode : 500;
+  const message = err.message || "Something went wrong";
+
+  if (process.env.NODE_ENV !== "production") {
+    console.error(`[Error]: ${message}`);
+  }
+
+  res.status(statusCode).json({
+    status: "error",
+    message,
+  });
+};
+```
+Create a Async handler wrapper `apps/server/src/middleware/asyncHandler.ts`.
+```TypeScript
+import { Request, Response, NextFunction } from "express";
+
+export const asyncHandler = (
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
+) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    fn(req, res, next).catch(next);
+  };
+};
+```
+> [!TIP]
+>
+> Use a wrapper to avoid repeating try-catch in every async route.
+
+Wrap the request with the `asyncHandler` to avoid repeating try-catch in every async route.
+```TypeScript
+import { Router, Request, Response, RequestHandler } from "express";
+import { Database } from "sqlite";
+import { NavigationRow } from "../interfaces/navigationRow";
+import { Module } from "shared/src/models/module";
+import { Category } from "shared/src/models/category";
+import { Page } from "shared/src/models/page";
+import { asyncHandler } from "../middleware/asyncHandler"; // 👈 import asyncHandler
+
+export default function createNavigationRoute(db: Database) {
+  const router = Router();
+
+  router.get(
+    "/",
+    asyncHandler(async (_req: Request, res: Response) => {  // 👈 wrap with asyncHandler
+      const rows: NavigationRow[] = await db.all(`
+      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
+              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
+              p.pageId, p.name pName, p.icon pIcon, p.url pUrl, p.permission pPermission
+      FROM 	modules m
+      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
+      INNER JOIN categories c ON mc.categoryId = c.categoryId
+      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
+      INNER JOIN pages p ON cp.pageId = p.pageId;
+    `);
+
+
+	// other code removed for brevity...
+
+```
+
+In `apps/server/src/index.ts`, add the error handling middleware last.
+```TypeScript
+import express from "express";
+import cors from "cors";
+import path from "path";
+import dotenv from "dotenv";
+import { errorHandler } from "./middleware/errorHandler"; // 👈 import errorHandler
+import createNavigationRoute from "./routes/navigation";
+import { initDb } from "./data/db";
+
+// code removed for brevity...
+
+const start = async () => {
+  const db = await initDb(dbFile);
+
+  app.use(navigationEndpoint, createNavigationRoute(db));
+
+  app.use(errorHandler); // 👈 add the errorHandler last
+
+  if (!HOST) {
+    app.listen(PORT, () =>
+      console.log(`Server running on http://${HOST}:${PORT}`)
+    );
+  } else {
+    app.listen(PORT, HOST, () =>
+      console.log(`Server running on http://${HOST}:${PORT}`)
+    );
+  }
+};
+
+start();
 ```
