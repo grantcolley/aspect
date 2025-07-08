@@ -4,3 +4,5 @@ dist
 .env.development
 *.sqlite
 sqlite3.exe
+*-audit.json
+*.log
