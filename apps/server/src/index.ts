@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
+import { errorHandler } from "./middleware/errorHandler";
 import createNavigationRoute from "./routes/navigation";
 import { initDb } from "./data/db";
 
@@ -40,6 +41,8 @@ const start = async () => {
   const db = await initDb(dbFile);
 
   app.use(navigationEndpoint, createNavigationRoute(db));
+
+  app.use(errorHandler);
 
   if (!HOST) {
     app.listen(PORT, () =>
