@@ -58,7 +58,8 @@ aspect
 * [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
 * [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
 * [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
-
+* [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
+  
 # Scaffolding the Monorepo
 ### Setup the Workspaces
 Create a root folder `aspect` and a subfolder `apps`. Inside `aspect/apps` create three subfolders: `client`, `db`, `server` and `shared`.
@@ -2497,3 +2498,10 @@ sqlite3.exe
 *-audit.json   // 👈 add
 *.log   // 👈 add
 ```
+
+# Add Auth0 Authentication to the Server
+> [!TIP]
+>
+> Review the Auth0 instructions for setting up and configuring authentication.
+>
+> https://auth0.com/docs/quickstart/backend/nodejs/01-authorization
