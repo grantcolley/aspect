@@ -2505,3 +2505,8 @@ sqlite3.exe
 > Review the Auth0 instructions for setting up and configuring authentication.
 >
 > https://auth0.com/docs/quickstart/backend/nodejs/01-authorization
+
+Install the Auth0 SDK.
+```
+npm install --save express-oauth2-jwt-bearer
+```
