@@ -2450,7 +2450,7 @@ const logger = winston.createLogger({
 export default logger;
 ```
 
-Update the `errorHandler` at `` to log all errors.
+Update the `errorHandler` at `apps/server/src/middleware/errorHandler.ts` to log all errors.
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
