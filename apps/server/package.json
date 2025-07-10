@@ -11,6 +11,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "express-oauth2-jwt-bearer": "^1.6.1",
     "shared": "*",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
