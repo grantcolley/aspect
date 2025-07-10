@@ -2504,7 +2504,7 @@ sqlite3.exe
 >
 > Review the Auth0 instructions for setting up and configuring authentication.
 >
-> https://auth0.com/docs/quickstart/backend/nodejs/01-authorization
+> [Node (Express) API: Authorization](https://auth0.com/docs/quickstart/backend/nodejs/01-authorization)
 
 Install the Auth0 SDK.
 ```
