@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { IconWorld } from "@tabler/icons-react";
 import { NavigationPanel } from "@/components/layout/navigation-panel";
@@ -15,17 +16,27 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [modules, setModules] = useState<Module[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
 
   const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
     import.meta.env.VITE_REACT_API_NAVIGATION_URL
   }`;
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
     const fetchModules = async () => {
       try {
-        const response = await fetch(navigationUrl);
+        const token = await getAccessTokenSilently();
+
+        const response = await fetch(navigationUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -37,15 +48,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       } catch (err) {
         setError("Failed to fetch modules");
         console.error(err);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchModules();
-  }, []); // 👈 empty array means "run only on first render"
+  }, [isAuthenticated, getAccessTokenSilently]);
 
-  if (loading) return <p>Loading...</p>;
+  if (!isAuthenticated) return <></>;
   if (error) return <p>{error}</p>;
 
   return (

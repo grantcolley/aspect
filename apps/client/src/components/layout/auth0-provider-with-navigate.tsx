@@ -6,6 +6,7 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
 }) => {
   const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
   const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
+  const audience = import.meta.env.VITE_REACT_APP_AUTH0_AUDIENCE;
 
   if (!(domain && clientId)) {
     return null;
@@ -25,7 +26,10 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
     <Auth0Provider
       domain={domain}
       clientId={clientId}
-      authorizationParams={{ redirect_uri: window.location.origin }}
+      authorizationParams={{
+        redirect_uri: window.location.origin,
+        audience: audience || undefined,
+      }}
       onRedirectCallback={onRedirectCallback}
     >
       {children}
