@@ -2506,7 +2506,223 @@ sqlite3.exe
 >
 > [Node (Express) API: Authorization](https://auth0.com/docs/quickstart/backend/nodejs/01-authorization)
 
-Install the Auth0 SDK.
+Install the Auth0 SDK in the server.
 ```
 npm install --save express-oauth2-jwt-bearer
+```
+
+Update the server's `apps/server/env.development`.
+```
+HOST_URL=localhost
+HOST_PORT=3000
+AUTH_AUDIENCE=https://Aspect.API.com 	// 👈 add
+AUTH_ISSUER_BASE_URL=https:		// 👈 add
+AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
+CORS_URL=http://localhost:5173
+ENDPOINT_NAVIGATION=/api/navigation
+```
+Update the server's `apps/server/src/index.ts`
+```TypeScript
+import express from "express";
+import cors from "cors";
+import path from "path";
+import dotenv from "dotenv";
+import { auth } from "express-oauth2-jwt-bearer";
+import { errorHandler } from "./middleware/errorHandler";
+import createNavigationRoute from "./routes/navigation";
+import { initDb } from "./data/db";
+
+// code removed for brevity
+
+const dbFile = path.resolve(__dirname, `../../../db/${process.env.DATABASE}`);
+const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
+const authAudience = process.env.AUTH_AUDIENCE;	// 👈 add
+const authIssuerBaseURL = process.env.AUTH_ISSUER_BASE_URL;	// 👈 add
+const authTokenSigningAlg = process.env.AUTH_TOKEN_SIGNING_ALGORITHM;	// 👈 add
+
+// code removed for brevity
+
+const start = async () => {
+  const db = await initDb(dbFile);
+
+// 👇 new code
+
+  const jwtCheck = auth({
+    audience: authAudience,
+    issuerBaseURL: authIssuerBaseURL,
+    tokenSigningAlg: authTokenSigningAlg,
+  });
+
+  // enforce on all endpoints
+  app.use(jwtCheck);
+
+// 👆 new code
+
+  app.use(navigationEndpoint, createNavigationRoute(db));
+
+  app.use(errorHandler);
+
+// code removed for brevity
+
+};
+
+start();
+```
+
+Update the client's `apps/client/env.development`
+```
+VITE_REACT_APP_AUTH0_DOMAIN=
+VITE_REACT_APP_AUTH0_CLIENT_ID=
+VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add
+VITE_REACT_API_URL=http://localhost:3000
+VITE_REACT_API_NAVIGATION_URL=api/navigation
+```
+
+Add Authorizatrion Parameters to `Auth0Provider` in `apps/client/src/components/layout/auth0-provider-with-navigate.tsx`
+```TypeScript
+import { useNavigate } from "react-router-dom";
+import { Auth0Provider } from "@auth0/auth0-react";
+
+const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
+  children,
+}) => {
+  const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
+  const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
+  const audience = import.meta.env.VITE_REACT_APP_AUTH0_AUDIENCE; // 👈 add
+
+  // code removed for brevity
+
+  return (
+    <Auth0Provider
+      domain={domain}
+      clientId={clientId}
+      authorizationParams={{ 
+        redirect_uri: window.location.origin,
+        audience: audience || undefined, // 👈 add
+      }}
+      onRedirectCallback={onRedirectCallback}
+    >
+      {children}
+    </Auth0Provider>
+  );
+};
+
+export default Auth0ProviderWithNavigate;
+```
+
+Update `apps/client/src/components/layout/app-sidebar.tsx`
+```TypeScript
+import * as React from "react";
+import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
+import { useEffect, useState } from "react";
+
+// code removed for brevity
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [modules, setModules] = useState<Module[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0(); // 👈 add
+
+  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
+    import.meta.env.VITE_REACT_API_NAVIGATION_URL
+  }`;
+
+  useEffect(() => {
+    if (!isAuthenticated) {  // 👈 add
+      return;
+    }
+
+    const fetchModules = async () => {
+      try {
+
+	// 👇 new code
+        const token = await getAccessTokenSilently();
+
+        const response = await fetch(navigationUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+	// 👆 new code
+
+	if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: Module[] = await response.json();
+
+        setModules(data);
+      } catch (err) {
+        setError("Failed to fetch modules");
+        console.error(err);
+      }
+    };
+
+    fetchModules();
+  }, [isAuthenticated, getAccessTokenSilently]); // 👈 add
+
+  if (!isAuthenticated) return <></>; // 👈 add
+  if (error) return <p>{error}</p>;
+
+  return (
+    <Sidebar collapsible="icon" {...props}>
+
+    // code removed for brevity
+
+    </Sidebar>
+  );
+}
+```
+
+Update `Update `apps/client/src/components/layout/app-sidebar.tsx`.
+```TypeScript
+import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import Authentication from "./authentication";
+
+export function AppSidebarHeader() {
+  const { isAuthenticated } = useAuth0();
+
+  return (
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+
+	// 👇 new code
+
+        {isAuthenticated ? (
+          <>
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mx-2 data-[orientation=vertical]:h-4"
+            />
+          </>
+        ) : (
+          <></>
+        )}
+
+	// 👆 new code
+
+	<h1 className="text-base font-medium">Home</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <Authentication />
+          <ThemeToggle />
+          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+            <a
+              href="https://github.com/grantcolley/aspect"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="dark:text-foreground"
+            >
+              GitHub
+            </a>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
 ```
