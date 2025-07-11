@@ -6,6 +6,8 @@ import { seedUsers } from "./seedUsers";
 import { getUsers } from "./data/userData";
 import { seedModules } from "./seedModules";
 import { getModules } from "./data/moduleData";
+import { getRoles } from "./data/roleData";
+import { seedAuthorisation } from "./seedAuthorisation";
 const fs = require("fs");
 
 sqlite3.verbose();
@@ -25,11 +27,13 @@ async function seed() {
     driver: sqlite3.Database,
   });
 
-  let users = getUsers();
   let modules = getModules();
+  let roles = getRoles();
+  let users = getUsers(roles);
 
-  await seedUsers(db, users);
   await seedModules(db, modules);
+  await seedAuthorisation(db, roles);
+  await seedUsers(db, users);
 
   await db.close();
   console.log(`Database seeding complete: ${dbFile}`);

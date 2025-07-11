@@ -2,24 +2,31 @@ import { Database } from "sqlite";
 import { User } from "../../apps/shared/src/models/user";
 
 export async function seedUsers(db: Database, users: User[]) {
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      userId INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      permission TEXT NOT NULL
-    );
-  `);
+  const userStatement = await db.prepare(
+    "INSERT INTO users (userId, name, email, permission) VALUES (?, ?, ?, ?)"
+  );
+
+  const userRoleStatement = await db.prepare(
+    "INSERT INTO userRoles (userId, roleId) VALUES (?, ?)"
+  );
 
   for (const user of users) {
-    await db.run(
-      "INSERT INTO users (name, email, permission) VALUES (?, ?, ?)",
+    await userStatement.run(
+      user.userId,
       user.name,
       user.email,
       user.permission
     );
     console.log(`Inserted: ${user.name}`);
+
+    for (const role of user.roles) {
+      await userRoleStatement.run(user.userId, role.roleId);
+      console.log(`Inserted: userId ${user.userId}, roleId ${role.roleId}`);
+    }
   }
+
+  userStatement.finalize();
+  userRoleStatement.finalize();
 
   console.log(`Insert Users Complete.`);
 }
