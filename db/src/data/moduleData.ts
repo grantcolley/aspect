@@ -7,14 +7,12 @@ export function getModules() {
       name: "Administration",
       icon: "settings",
       permission: "admin_ro|admin_rw",
-      isVisible: true,
       categories: [
         {
           categoryId: 1,
           name: "Authorisation",
           icon: "authorisation",
           permission: "auth_ro|auth_rw",
-          isVisible: true,
           pages: [
             {
               pageId: 1,
@@ -22,7 +20,6 @@ export function getModules() {
               icon: "users",
               url: "#",
               permission: "auth_ro|auth_rw",
-              isVisible: true,
             },
             {
               pageId: 2,
@@ -30,7 +27,6 @@ export function getModules() {
               icon: "roles",
               url: "#",
               permission: "auth_ro|auth_rw",
-              isVisible: true,
             },
             {
               pageId: 3,
@@ -38,7 +34,6 @@ export function getModules() {
               icon: "permissions",
               url: "#",
               permission: "auth_ro|auth_rw",
-              isVisible: true,
             },
           ],
         },
@@ -47,7 +42,6 @@ export function getModules() {
           name: "Applications",
           icon: "applications",
           permission: "apps_ro|apps_rw",
-          isVisible: true,
           pages: [
             {
               pageId: 4,
@@ -55,7 +49,6 @@ export function getModules() {
               icon: "modules",
               url: "#",
               permission: "apps_ro|apps_rw",
-              isVisible: true,
             },
             {
               pageId: 5,
@@ -63,7 +56,6 @@ export function getModules() {
               icon: "categories",
               url: "#",
               permission: "apps_ro|apps_rw",
-              isVisible: true,
             },
             {
               pageId: 6,
@@ -71,7 +63,6 @@ export function getModules() {
               icon: "pages",
               url: "#",
               permission: "apps_ro|apps_rw",
-              isVisible: true,
             },
           ],
         },
