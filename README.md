@@ -59,6 +59,7 @@ aspect
 * [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
 * [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
 * [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
+* [Seed the Authorisation data](#seed-the-authorisation-data)
   
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -2725,4 +2726,254 @@ export function AppSidebarHeader() {
     </header>
   );
 }
+```
+
+# Seed the Authorisation data
+Create role data class `db/src/data/roleData.ts`.
+```TypeScript
+import { Role } from "../../../apps/shared/src/models/role";
+
+export function getRoles() {
+  return [
+    {
+      roleId: 1,
+      name: "admin",
+      permission: "admin_ro|admin_rw",
+      permissions: [
+        {
+          permissionId: 1,
+          name: "admin_ro",
+          permission: "admin_ro|admin_rw",
+        },
+        {
+          permissionId: 2,
+          name: "admin_rw",
+          permission: "admin_ro|admin_rw",
+        },
+        {
+          permissionId: 3,
+          name: "auth_rw",
+          permission: "admin_ro|admin_rw",
+        },
+        {
+          permissionId: 4,
+          name: "auth_ro",
+          permission: "admin_ro|admin_rw",
+        },
+      ],
+    },
+    {
+      roleId: 2,
+      name: "auth",
+      permission: "admin_ro|admin_rw",
+      permissions: [
+        {
+          permissionId: 3,
+          name: "auth_rw",
+          permission: "admin_ro|admin_rw",
+        },
+        {
+          permissionId: 4,
+          name: "auth_ro",
+          permission: "admin_ro|admin_rw",
+        },
+      ],
+    },
+  ] as Role[];
+}
+```
+Update `userData` class `db/src/data/userData.ts`.
+```TypeScript
+import { User } from "../../../apps/shared/src/models/user";
+import { Role } from "../../../apps/shared/src/models/role";
+
+export function getUsers(roles: Role[]) {
+  let alice = new User(1, "Alice", "alice@email.com", "auth_rw|auth_ro");
+  let bob = new User(2, "Bob", "bob@email.com", "auth_rw|auth_ro");
+
+  alice.roles.push(roles[0]); // Assigning 'admin' role to Alice
+  bob.roles.push(roles[1]); // Assigning 'auth' role to Bob
+
+  return [alice, bob];
+}
+```
+Create seed authorisation data class `db/src/seedAuthorisation.ts`.
+```TypeScript
+import { Database } from "sqlite";
+import { Role } from "../../apps/shared/src/models/role";
+import { Permission } from "../../apps/shared/src/models/permission";
+
+export async function seedAuthorisation(db: Database, roles: Role[]) {
+  const permissionsMap = new Map<number, Permission>();
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      userId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      permission TEXT NOT NULL
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS roles (
+      roleId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      permission TEXT NOT NULL
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS permissions (
+      permissionId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      permission TEXT NOT NULL
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE userRoles (
+        userId INTEGER,
+        roleId INTEGER,
+        PRIMARY KEY (userId, roleId),
+        FOREIGN KEY (userId) REFERENCES users(userId),
+        FOREIGN KEY (roleId) REFERENCES roles(roleId)
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE rolePermissions (
+        roleId INTEGER,
+        permissionId INTEGER,
+        PRIMARY KEY (roleId, permissionId),
+        FOREIGN KEY (roleId) REFERENCES roles(roleId),
+        FOREIGN KEY (permissionId) REFERENCES permissions(permissionId)
+    );
+  `);
+
+  const roleStatement = await db.prepare(
+    "INSERT INTO roles (roleId, name, permission) VALUES (?, ?, ?)"
+  );
+
+  const permissionStatement = await db.prepare(
+    "INSERT INTO permissions (permissionId, name, permission) VALUES (?, ?, ?)"
+  );
+
+  const rolePermissionStatement = await db.prepare(
+    "INSERT INTO rolePermissions (roleId, permissionId) VALUES (?, ?)"
+  );
+
+  for (const role of roles) {
+    await roleStatement.run(role.roleId, role.name, role.permission);
+    console.log(`Inserted: ${role.name}`);
+
+    for (const permission of role.permissions) {
+      let p = permissionsMap.get(permission.permissionId);
+      if (!p) {
+        await permissionStatement.run(
+          permission.permissionId,
+          permission.name,
+          permission.permission
+        );
+        console.log(`Inserted: ${permission.name}`);
+
+        permissionsMap.set(permission.permissionId, permission);
+      }
+
+      await rolePermissionStatement.run(role.roleId, permission.permissionId);
+      console.log(
+        `Inserted: roleId ${role.roleId}, permissionId ${permission.permissionId}`
+      );
+    }
+  }
+
+  roleStatement.finalize();
+  permissionStatement.finalize();
+  rolePermissionStatement.finalize();
+
+  console.log(`Insert Authorisation Complete.`);
+}
+```
+Change seed users data class `db/src/seedUsers.ts`.
+```TypeScript
+import { Database } from "sqlite";
+import { User } from "../../apps/shared/src/models/user";
+
+export async function seedUsers(db: Database, users: User[]) {
+  const userStatement = await db.prepare(
+    "INSERT INTO users (userId, name, email, permission) VALUES (?, ?, ?, ?)"
+  );
+
+  const userRoleStatement = await db.prepare(
+    "INSERT INTO userRoles (userId, roleId) VALUES (?, ?)"
+  );
+
+  for (const user of users) {
+    await userStatement.run(
+      user.userId,
+      user.name,
+      user.email,
+      user.permission
+    );
+    console.log(`Inserted: ${user.name}`);
+
+    for (const role of user.roles) {
+      await userRoleStatement.run(user.userId, role.roleId);
+      console.log(`Inserted: userId ${user.userId}, roleId ${role.roleId}`);
+    }
+  }
+
+  userStatement.finalize();
+  userRoleStatement.finalize();
+
+  console.log(`Insert Users Complete.`);
+}
+```
+Update seed class class `db/src/seed.ts`.
+```TypeScript
+import dotenv from "dotenv";
+import path from "path";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+import { seedUsers } from "./seedUsers";
+import { getUsers } from "./data/userData";
+import { seedModules } from "./seedModules";
+import { getModules } from "./data/moduleData";
+import { getRoles } from "./data/roleData"; // 👈 add
+import { seedAuthorisation } from "./seedAuthorisation"; // 👈 add
+const fs = require("fs");
+
+sqlite3.verbose();
+
+async function seed() {
+  dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+
+  let dbFile = `./${process.env.DATABASE}`;
+
+  if (fs.existsSync(dbFile)) {
+    fs.unlinkSync(dbFile);
+    console.log(`Existing database deleted ${dbFile}`);
+  }
+
+  const db = await open({
+    filename: dbFile,
+    driver: sqlite3.Database,
+  });
+
+  let modules = getModules();
+  let roles = getRoles(); // 👈 add
+  let users = getUsers(roles); // 👈 modify
+
+  await seedModules(db, modules);
+  await seedAuthorisation(db, roles); // 👈 add
+  await seedUsers(db, users);
+
+  await db.close();
+  console.log(`Database seeding complete: ${dbFile}`);
+}
+
+seed().catch((err) => {
+  console.error("Seed error:", err);
+  process.exit(1);
+});
 ```
