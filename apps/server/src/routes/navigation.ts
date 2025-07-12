@@ -1,18 +1,29 @@
+import path from "path";
+import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
-import { Database } from "sqlite";
+import { dbConnection } from "../data/db";
 import { NavigationRow } from "../interfaces/navigationRow";
 import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
 import { asyncHandler } from "../middleware/asyncHandler";
 
-export default function createNavigationRoute(db: Database) {
-  const router = Router();
+const env = process.env.NODE_ENV || "development";
+dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
+dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
 
-  router.get(
-    "/",
-    asyncHandler(async (_req: Request, res: Response) => {
-      const rows: NavigationRow[] = await db.all(`
+const dbFile = path.resolve(
+  __dirname,
+  `../../../../db/${process.env.DATABASE}`
+);
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
               p.pageId, p.name pName, p.icon pIcon, p.url pUrl, p.permission pPermission
@@ -23,60 +34,59 @@ export default function createNavigationRoute(db: Database) {
       INNER JOIN pages p ON cp.pageId = p.pageId;
     `);
 
-      const modulesMap = new Map<number, Module>();
-      const categoriesMap = new Map<number, Category>();
+    const modulesMap = new Map<number, Module>();
+    const categoriesMap = new Map<number, Category>();
 
-      for (const row of rows) {
-        let module = modulesMap.get(row.moduleId);
-        if (!module) {
-          module = new Module(
-            row.moduleId,
-            row.mName,
-            row.mIcon,
-            row.mPermission,
-            true
-          );
-          modulesMap.set(row.moduleId, module);
-        }
-
-        let category = categoriesMap.get(row.categoryId);
-        if (!category) {
-          category = new Category(
-            row.categoryId,
-            row.moduleId,
-            row.cName,
-            row.cIcon,
-            row.cPermission,
-            true
-          );
-          categoriesMap.set(row.categoryId, category);
-        }
-
-        const moduleCategory = module.categories.some(
-          (category) => category.categoryId === row.categoryId
-        );
-        if (!moduleCategory) {
-          module.addCategory(category);
-        }
-
-        const page = new Page(
-          row.pageId,
-          row.categoryId,
-          row.pName,
-          row.pIcon,
-          row.pUrl,
-          row.pPermission,
+    for (const row of rows) {
+      let module = modulesMap.get(row.moduleId);
+      if (!module) {
+        module = new Module(
+          row.moduleId,
+          row.mName,
+          row.mIcon,
+          row.mPermission,
           true
         );
-
-        if (!category.pages.some((p) => p.pageId === page.pageId)) {
-          category.addPage(page);
-        }
+        modulesMap.set(row.moduleId, module);
       }
 
-      res.json(Array.from(modulesMap.values()));
-    })
-  );
+      let category = categoriesMap.get(row.categoryId);
+      if (!category) {
+        category = new Category(
+          row.categoryId,
+          row.moduleId,
+          row.cName,
+          row.cIcon,
+          row.cPermission,
+          true
+        );
+        categoriesMap.set(row.categoryId, category);
+      }
 
-  return router;
-}
+      const moduleCategory = module.categories.some(
+        (category) => category.categoryId === row.categoryId
+      );
+      if (!moduleCategory) {
+        module.addCategory(category);
+      }
+
+      const page = new Page(
+        row.pageId,
+        row.categoryId,
+        row.pName,
+        row.pIcon,
+        row.pUrl,
+        row.pPermission,
+        true
+      );
+
+      if (!category.pages.some((p) => p.pageId === page.pageId)) {
+        category.addPage(page);
+      }
+    }
+
+    res.json(Array.from(modulesMap.values()));
+  })
+);
+
+export default router;
