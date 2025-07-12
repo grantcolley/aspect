@@ -2001,7 +2001,7 @@ In the Server project, create the `apps/server/src/data/db.ts` for connecting to
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
-export const initDb = async (dbFile: string) => {
+export const dbConnection = async (dbFile: string) => {
   const db = await open({
     filename: dbFile,
     driver: sqlite3.Database,
@@ -2034,17 +2034,31 @@ export interface NavigationRow {
 
 Create the route `apps/server/src/route/navigation.ts`.`
 ```TypeScript
+import path from "path";
+import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
-import { Database } from "sqlite";
+import { dbConnection } from "../data/db";
 import { NavigationRow } from "../interfaces/navigationRow";
 import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
+import { asyncHandler } from "../middleware/asyncHandler";
 
-export default function createNavigationRoute(db: Database) {
-  const router = Router();
+const env = process.env.NODE_ENV || "development";
+dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
+dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
 
-  router.get("/", async (_req: Request, res: Response) => {
+const dbFile = path.resolve(
+  __dirname,
+  `../../../../db/${process.env.DATABASE}`
+);
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
@@ -2108,10 +2122,10 @@ export default function createNavigationRoute(db: Database) {
     }
 
     res.json(Array.from(modulesMap.values()));
-  });
+  })
+);
 
-  return router;
-}
+export default router;
 ```
 Create `apps/server/env.development`
 ```
@@ -2127,8 +2141,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
-import createNavigationRoute from "./routes/navigation";
-import { initDb } from "./data/db";
+import navigationRouter from "./routes/navigation";
 
 const env = process.env.NODE_ENV || "development";
 
@@ -2146,7 +2159,6 @@ if (!process.env.ENDPOINT_NAVIGATION) {
   throw new Error("ENDPOINT_NAVIGATION environment variable is not set");
 }
 
-const dbFile = path.resolve(__dirname, `../../../db/${process.env.DATABASE}`);
 const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
 
 const app = express();
@@ -2162,9 +2174,7 @@ if (process.env.CORS_URL) {
 }
 
 const start = async () => {
-  const db = await initDb(dbFile);
-
-  app.use(navigationEndpoint, createNavigationRoute(db));
+  app.use(navigationEndpoint, navigationRouter);
 
   if (!HOST) {
     app.listen(PORT, () =>
@@ -2361,15 +2371,12 @@ import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
 import { errorHandler } from "./middleware/errorHandler"; // 👈 import errorHandler
-import createNavigationRoute from "./routes/navigation";
-import { initDb } from "./data/db";
+import navigationRouter from "./routes/navigation";
 
 // code removed for brevity...
 
 const start = async () => {
-  const db = await initDb(dbFile);
-
-  app.use(navigationEndpoint, createNavigationRoute(db));
+  app.use(navigationEndpoint, navigationRouter);
 
   app.use(errorHandler); // 👈 add the errorHandler last
 
@@ -2521,12 +2528,10 @@ import path from "path";
 import dotenv from "dotenv";
 import { auth } from "express-oauth2-jwt-bearer";
 import { errorHandler } from "./middleware/errorHandler";
-import createNavigationRoute from "./routes/navigation";
-import { initDb } from "./data/db";
+import navigationRouter from "./routes/navigation";
 
 // code removed for brevity
 
-const dbFile = path.resolve(__dirname, `../../../db/${process.env.DATABASE}`);
 const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
 const authAudience = process.env.AUTH_AUDIENCE;	// 👈 add
 const authIssuerBaseURL = process.env.AUTH_ISSUER_BASE_URL;	// 👈 add
@@ -2535,7 +2540,6 @@ const authTokenSigningAlg = process.env.AUTH_TOKEN_SIGNING_ALGORITHM;	// 👈 ad
 // code removed for brevity
 
 const start = async () => {
-  const db = await initDb(dbFile);
 
 // 👇 new code
 
@@ -2550,7 +2554,7 @@ const start = async () => {
 
 // 👆 new code
 
-  app.use(navigationEndpoint, createNavigationRoute(db));
+  app.use(navigationEndpoint, navigationRouter);
 
   app.use(errorHandler);
 
