@@ -4,8 +4,7 @@ import path from "path";
 import dotenv from "dotenv";
 import { auth } from "express-oauth2-jwt-bearer";
 import { errorHandler } from "./middleware/errorHandler";
-import createNavigationRoute from "./routes/navigation";
-import { initDb } from "./data/db";
+import navigationRouter from "./routes/navigation";
 
 const env = process.env.NODE_ENV || "development";
 
@@ -37,7 +36,6 @@ if (!process.env.AUTH_TOKEN_SIGNING_ALGORITHM) {
   );
 }
 
-const dbFile = path.resolve(__dirname, `../../../db/${process.env.DATABASE}`);
 const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
 const authAudience = process.env.AUTH_AUDIENCE;
 const authIssuerBaseURL = process.env.AUTH_ISSUER_BASE_URL;
@@ -56,8 +54,6 @@ if (process.env.CORS_URL) {
 }
 
 const start = async () => {
-  const db = await initDb(dbFile);
-
   const jwtCheck = auth({
     audience: authAudience,
     issuerBaseURL: authIssuerBaseURL,
@@ -67,7 +63,7 @@ const start = async () => {
   // enforce on all endpoints
   app.use(jwtCheck);
 
-  app.use(navigationEndpoint, createNavigationRoute(db));
+  app.use(navigationEndpoint, navigationRouter);
 
   app.use(errorHandler);
 
