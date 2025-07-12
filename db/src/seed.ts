@@ -1,5 +1,6 @@
-import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
@@ -8,7 +9,6 @@ import { seedModules } from "./seedModules";
 import { getModules } from "./data/moduleData";
 import { getRoles } from "./data/roleData";
 import { seedAuthorisation } from "./seedAuthorisation";
-const fs = require("fs");
 
 sqlite3.verbose();
 
