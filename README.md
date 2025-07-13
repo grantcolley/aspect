@@ -2496,6 +2496,7 @@ dist
 sqlite3.exe
 *-audit.json   // 👈 add
 *.log   // 👈 add
+*.log.gz   // 👈 add
 ```
 
 # Add Auth0 Authentication to the Server
