@@ -60,6 +60,10 @@ aspect
 * [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
 * [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
 * [Seed the Authorisation data](#seed-the-authorisation-data)
+* [Add API Endpoints](#add-api-Endpoints)
+	* [Permissions](#permissions)
+ 	* [Test the Permissions API using Postman](#test-the-permissions-api-using-postman) 
+   
   
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -2032,7 +2036,7 @@ export interface NavigationRow {
 }
 ```
 
-Create the route `apps/server/src/route/navigation.ts`.`
+Create the route `apps/server/src/route/navigation.ts`.
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -2973,3 +2977,222 @@ seed().catch((err) => {
   process.exit(1);
 });
 ```
+
+# Add API Endpoints
+### Permissions
+Update the server's `apps/server/env.development` with the permissions endpoint.
+```
+HOST_URL=localhost
+HOST_PORT=3000
+AUTH_AUDIENCE=https://Aspect.API.com 	
+AUTH_ISSUER_BASE_URL=https:		
+AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	
+CORS_URL=http://localhost:5173
+ENDPOINT_NAVIGATION=/api/navigation
+ENDPOINT_NAVIGATION=/api/permissions // 👈 add
+```
+
+Create the route `apps/server/src/route/permissions.ts`.
+```TypeScript
+import path from "path";
+import dotenv from "dotenv";
+import { Router, Request, Response, RequestHandler } from "express";
+import { dbConnection } from "../data/db";
+import { Permission } from "shared/src/models/permission";
+import { permissionSchema } from "shared/src/validation/permissionSchema";
+import { asyncHandler } from "../middleware/asyncHandler";
+
+const env = process.env.NODE_ENV || "development";
+dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
+dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
+
+const dbFile = path.resolve(
+  __dirname,
+  `../../../../db/${process.env.DATABASE}`
+);
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result: Permission[] = await db.all(`
+      SELECT    permissionId, name, permission  
+      FROM 	    permissions
+    `);
+
+    res.json(result);
+  })
+);
+
+router.get(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result: Permission = await db.all(
+      `
+      SELECT    permissionId, name, permission  
+      FROM 	    permissions
+      WHERE     permissionId = ?
+    `,
+      _req.params.id
+    );
+
+    if (!result) return res.status(404).json({ error: "Permission not found" });
+
+    res.json(result);
+  })
+);
+
+router.post(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = permissionSchema.safeParse(_req.body);
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+    const result = await db.run(
+      "INSERT INTO permissions (name, permission) VALUES (?, ?)",
+      [name, permission]
+    );
+
+    res.status(201).json({ id: result.lastID, name, permission });
+  })
+);
+
+router.put(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = permissionSchema.safeParse(_req.body);
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+    const result = await db.run(
+      "UPDATE permissions SET name = ?, permission = ? WHERE permissionId = ?",
+      [name, permission, _req.params.id]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Permission not found" });
+    }
+
+    res.json({ id: _req.params.id, name, permission });
+  })
+);
+
+router.delete(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result = await db.run(
+      "DELETE FROM permissions WHERE permissionId = ?",
+      _req.params.id
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Permission not found" });
+    }
+
+    res.status(204).send();
+  })
+);
+
+export default router;
+```
+
+Update the `apps/server/src/index.ts`
+```TypeScript
+// code removed for brevity...
+
+import navigationRouter from "./routes/navigation";
+import permissionsRouter from "./routes/permissions"; // 👈 add
+
+// code removed for brevity...
+
+if (!process.env.ENDPOINT_NAVIGATION) {
+  throw new Error("ENDPOINT_NAVIGATION environment variable is not set");
+}
+
+if (!process.env.ENDPOINT_PERMISSIONS) { // 👈 add
+  throw new Error("ENDPOINT_PERMISSIONS environment variable is not set");
+}
+
+// code removed for brevity...
+
+const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
+const permissionsEndpoint = process.env.ENDPOINT_PERMISSIONS; // 👈 add
+
+// code removed for brevity...
+
+const start = async () => {
+  const jwtCheck = auth({
+    audience: authAudience,
+    issuerBaseURL: authIssuerBaseURL,
+    tokenSigningAlg: authTokenSigningAlg,
+  });
+
+  // code removed for brevity...
+
+  app.use(navigationEndpoint, navigationRouter);
+  app.use(permissionsEndpoint, permissionsRouter); // 👈 add
+
+  // code removed for brevity...
+};
+
+start();
+```
+
+### Test the Permissions API using Postman
+To test an API that uses Auth0 token authentication in Postman, you need to first obtain a valid access token from Auth0, then include it in the Authorization header of your API requests.
+
+1. Set Up a Machine-to-Machine Application in Auth0
+- Go to your Auth0 dashboard.
+- Navigate to Applications > Applications.
+- Create or select a Machine to Machine app.
+- Under APIs, authorize it to access your API (you may need to create an API under Applications > APIs if it doesn't exist yet).
+
+2. Get an Access Token Using Postman
+In Postman, create a new POST request to Auth0’s token endpoint:
+```
+https://YOUR_DOMAIN/oauth/token
+```
+Set the body type to `x-www-form-urlencoded` and include the following key\value pairs:
+| Key             | Value                       |
+| --------------- | --------------------------- |
+| `grant_type`    | `client_credentials`        |
+| `client_id`     | (from your Auth0 app)       |
+| `client_secret` | (from your Auth0 app)       |
+| `audience`      | (your Auth0 API identifier) |
+
+Send the request. You’ll get a response like this:
+```json
+{
+  "access_token": "eyJz93a...k4laUWw",
+  "token_type": "Bearer",
+  "expires_in": 86400
+}
+```
+
+3. Use the Access Token to Call Your API
+Create a new request to your API endpoint e.g., `http://localhost:3000/api/permissions`
+
+Go to the Authorization tab in Postman and set:
+- Type: `Bearer Token`
+- Token: Paste the access_token you received earlier.
+
+Send the request!
