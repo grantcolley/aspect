@@ -624,8 +624,14 @@ export class Category implements Permissionable, Editability {
   }
 
   addPage(pages: Page) {
-    pages.categoryId = this.categoryId;
-    this.pages.push(pages);
+    if (!this.pages.find((p) => p.pageId === pages.pageId)) {
+      pages.categoryId = this.categoryId;
+      this.pages.push(pages);
+    }
+  }
+
+  removePage(pageId: number) {
+    this.pages = this.pages.filter((p) => p.pageId !== pageId);
   }
 }
 ```
@@ -663,8 +669,16 @@ export class Module implements Permissionable, Editability {
   }
 
   addCategory(category: Category) {
-    category.moduleId = this.moduleId;
-    this.categories.push(category);
+    if (!this.categories.find((c) => c.categoryId === category.categoryId)) {
+      category.moduleId = this.moduleId;
+      this.categories.push(category);
+    }
+  }
+
+  removeCategory(categoryId: number) {
+    this.categories = this.categories.filter(
+      (c) => c.categoryId !== categoryId
+    );
   }
 }
 ```
@@ -727,6 +741,20 @@ export class Role implements Permissionable, Editability {
     this.isReadonlOnly = isReadonlOnly;
     this.permissions = permissions;
   }
+
+  addPermission(permission: Permission) {
+    if (
+      !this.permissions.find((p) => p.permissionId === permission.permissionId)
+    ) {
+      this.permissions.push(permission);
+    }
+  }
+
+  removePermission(permissionId: number) {
+    this.permissions = this.permissions.filter(
+      (p) => p.permissionId !== permissionId
+    );
+  }
 }
 ```
 Update the `User` at `apps/shared/src/models/user.ts`
@@ -760,6 +788,16 @@ export class User implements Permissionable, Editability {
     this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.roles = roles;
+  }
+
+  addRole(role: Role) {
+    if (!this.roles.find((r) => r.roleId === role.roleId)) {
+      this.roles.push(role);
+    }
+  }
+
+  removeRole(roleId: number) {
+    this.roles = this.roles.filter((r) => r.roleId !== roleId);
   }
 }
 ```
@@ -3064,7 +3102,7 @@ router.post(
       [name, permission]
     );
 
-    res.status(201).json({ id: result.lastID, name, permission });
+    res.status(201).json({ permissionId: result.lastID, name, permission });
   })
 );
 
@@ -3091,7 +3129,7 @@ router.put(
       return res.status(404).json({ error: "Permission not found" });
     }
 
-    res.json({ id: _req.params.id, name, permission });
+    res.json({ permissionId: _req.params.id, name, permission });
   })
 );
 
