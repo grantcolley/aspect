@@ -61,7 +61,7 @@ aspect
 * [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
-	* [Permissions](#permissions)
+	* [Add the Permissions Endpoint](#add-the-permissions-endpoint)
  	* [Test the Permissions API using Postman](#test-the-permissions-api-using-postman) 
    
   
@@ -2979,7 +2979,7 @@ seed().catch((err) => {
 ```
 
 # Add API Endpoints
-### Permissions
+### Add the Permissions Endpoint
 Update the server's `apps/server/env.development` with the permissions endpoint.
 ```
 HOST_URL=localhost
