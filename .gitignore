@@ -6,3 +6,4 @@ dist
 sqlite3.exe
 *-audit.json
 *.log
+*.log.gz
