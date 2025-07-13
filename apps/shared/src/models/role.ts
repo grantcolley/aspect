@@ -25,4 +25,18 @@ export class Role implements Permissionable, Editability {
     this.isReadonlOnly = isReadonlOnly;
     this.permissions = permissions;
   }
+
+  addPermission(permission: Permission) {
+    if (
+      !this.permissions.find((p) => p.permissionId === permission.permissionId)
+    ) {
+      this.permissions.push(permission);
+    }
+  }
+
+  removePermission(permissionId: number) {
+    this.permissions = this.permissions.filter(
+      (p) => p.permissionId !== permissionId
+    );
+  }
 }

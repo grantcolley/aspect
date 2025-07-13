@@ -33,7 +33,13 @@ export class Category implements Permissionable, Editability {
   }
 
   addPage(pages: Page) {
-    pages.categoryId = this.categoryId;
-    this.pages.push(pages);
+    if (!this.pages.find((p) => p.pageId === pages.pageId)) {
+      pages.categoryId = this.categoryId;
+      this.pages.push(pages);
+    }
+  }
+
+  removePage(pageId: number) {
+    this.pages = this.pages.filter((p) => p.pageId !== pageId);
   }
 }

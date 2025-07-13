@@ -28,4 +28,14 @@ export class User implements Permissionable, Editability {
     this.isReadonlOnly = isReadonlOnly;
     this.roles = roles;
   }
+
+  addRole(role: Role) {
+    if (!this.roles.find((r) => r.roleId === role.roleId)) {
+      this.roles.push(role);
+    }
+  }
+
+  removeRole(roleId: number) {
+    this.roles = this.roles.filter((r) => r.roleId !== roleId);
+  }
 }
