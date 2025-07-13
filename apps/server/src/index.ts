@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { auth } from "express-oauth2-jwt-bearer";
 import { errorHandler } from "./middleware/errorHandler";
 import navigationRouter from "./routes/navigation";
+import permissionsRouter from "./routes/permissions";
 
 const env = process.env.NODE_ENV || "development";
 
@@ -16,10 +17,6 @@ const PORT = process.env.HOST_PORT ? parseInt(process.env.HOST_PORT) : 3000;
 
 if (!process.env.DATABASE) {
   throw new Error("DATABASE environment variable is not set");
-}
-
-if (!process.env.ENDPOINT_NAVIGATION) {
-  throw new Error("ENDPOINT_NAVIGATION environment variable is not set");
 }
 
 if (!process.env.AUTH_AUDIENCE) {
@@ -36,10 +33,19 @@ if (!process.env.AUTH_TOKEN_SIGNING_ALGORITHM) {
   );
 }
 
-const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
+if (!process.env.ENDPOINT_NAVIGATION) {
+  throw new Error("ENDPOINT_NAVIGATION environment variable is not set");
+}
+
+if (!process.env.ENDPOINT_PERMISSIONS) {
+  throw new Error("ENDPOINT_PERMISSIONS environment variable is not set");
+}
+
 const authAudience = process.env.AUTH_AUDIENCE;
 const authIssuerBaseURL = process.env.AUTH_ISSUER_BASE_URL;
 const authTokenSigningAlg = process.env.AUTH_TOKEN_SIGNING_ALGORITHM;
+const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
+const permissionsEndpoint = process.env.ENDPOINT_PERMISSIONS;
 
 const app = express();
 app.use(express.json());
@@ -64,7 +70,9 @@ const start = async () => {
   app.use(jwtCheck);
 
   app.use(navigationEndpoint, navigationRouter);
+  app.use(permissionsEndpoint, permissionsRouter);
 
+  // handle all exceptions
   app.use(errorHandler);
 
   if (!HOST) {
