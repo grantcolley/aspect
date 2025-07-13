@@ -3064,7 +3064,7 @@ router.post(
       [name, permission]
     );
 
-    res.status(201).json({ id: result.lastID, name, permission });
+    res.status(201).json({ permissionId: result.lastID, name, permission });
   })
 );
 
@@ -3091,7 +3091,7 @@ router.put(
       return res.status(404).json({ error: "Permission not found" });
     }
 
-    res.json({ id: _req.params.id, name, permission });
+    res.json({ permissionId: _req.params.id, name, permission });
   })
 );
 
