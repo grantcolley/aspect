@@ -62,7 +62,7 @@ aspect
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
 	* [Add the Permissions, Roles and Users Endpoints](#add-the-permissions-roles-and-users-endpoints)
- 	* [Add the Pages, Categoriess and Modules Endpoints](#add-the-pages-categories-and-modules-endpoints)
+ 	* [Add the Pages, Categories and Modules Endpoints](#add-the-pages-categories-and-modules-endpoints)
  	* [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
    
   
@@ -3657,7 +3657,7 @@ const start = async () => {
 start();
 ```
 
-### Add the Pages, Categoriess and Modules Endpoints
+### Add the Pages, Categories and Modules Endpoints
 
 
 
