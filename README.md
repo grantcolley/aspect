@@ -559,7 +559,6 @@ import { Permissionable } from "../interfaces/permissionable";
 
 export class Page implements Permissionable, Editability {
   pageId: number;
-  categoryId: number;
   name: string;
   icon: string;
   url: string;
@@ -569,7 +568,6 @@ export class Page implements Permissionable, Editability {
 
   constructor(
     pageId: number,
-    categoryId: number,
     name: string,
     icon: string,
     url: string,
@@ -578,7 +576,6 @@ export class Page implements Permissionable, Editability {
     isReadonlOnly: boolean = false
   ) {
     this.pageId = pageId;
-    this.categoryId = categoryId;
     this.name = name;
     this.icon = icon;
     this.url = url;
@@ -596,7 +593,6 @@ import { Page } from "./page";
 
 export class Category implements Permissionable, Editability {
   categoryId: number;
-  moduleId: number;
   name: string;
   icon: string;
   permission: string;
@@ -606,7 +602,6 @@ export class Category implements Permissionable, Editability {
 
   constructor(
     categoryId: number,
-    moduleId: number,
     name: string,
     icon: string,
     permission: string,
@@ -615,7 +610,6 @@ export class Category implements Permissionable, Editability {
     pages: Page[] = []
   ) {
     this.categoryId = categoryId;
-    this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
     this.permission = permission;
@@ -626,7 +620,6 @@ export class Category implements Permissionable, Editability {
 
   addPage(pages: Page) {
     if (!this.pages.find((p) => p.pageId === pages.pageId)) {
-      pages.categoryId = this.categoryId;
       this.pages.push(pages);
     }
   }
@@ -671,7 +664,6 @@ export class Module implements Permissionable, Editability {
 
   addCategory(category: Category) {
     if (!this.categories.find((c) => c.categoryId === category.categoryId)) {
-      category.moduleId = this.moduleId;
       this.categories.push(category);
     }
   }
@@ -812,6 +804,10 @@ Create the navigation validation schema `moduleSchema`, `categorySchema` and `pa
 import { z } from "zod";
 
 export const pageSchema = z.object({
+  categoryId: z
+    .number()
+    .int()
+    .positive("Category ID must be a positive integer"),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   url: z.string().min(1, "URL is required"),
