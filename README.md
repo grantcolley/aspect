@@ -3154,6 +3154,14 @@ router.delete(
 export default router;
 ```
 
+Create the RolePermission interface `apps/server/src/inrefaces/rolePermission.ts`.
+```TypeScript
+export interface RolePermission {
+  roleId: number;
+  permissionId: number;
+}
+```
+
 Create the roles route `apps/server/src/route/roles.ts`.
 ```TypeScript
 import path from "path";
