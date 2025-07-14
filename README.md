@@ -61,10 +61,11 @@ aspect
 * [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
-	* [Add the Permissions, Roles and Users Endpoints](#add-the-permissions-roles-and-users-endpoints)
- 	* [Add the Pages, Categories and Modules Endpoints](#add-the-pages-categories-and-modules-endpoints)
+	* [Create Endpoint Variables in `.env` File](#create-endpoint-variables-in-env-file)
+	* [Add the Authorisation Endpoints](#add-the-authorisation-endpoints)
+ 	* [Add the Applications Endpoints](#add-the-applications-endpoints)
+  	* [Update the index.ts](#update-the-indexts) 
 * [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
-   
   
 # Scaffolding the Monorepo
 ### Setup the Workspaces
@@ -3014,7 +3015,7 @@ seed().catch((err) => {
 ```
 
 # Add API Endpoints
-### Add the Permissions, Roles and Users Endpoints
+### Create Endpoint Variables in `.env` File
 Update the server's `apps/server/env.development` with the permissions endpoint.
 ```
 HOST_URL=localhost
@@ -3024,12 +3025,20 @@ AUTH_ISSUER_BASE_URL=https:
 AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	
 CORS_URL=http://localhost:5173
 ENDPOINT_NAVIGATION=/api/navigation
-ENDPOINT_NAVIGATION=/api/permissions // 👈 add
-ENDPOINT_ROLES=/api/roles // 👈 add
-ENDPOINT_ROLES=/api/roles // 👈 add
-ENDPOINT_USERS=/api/users // 👈 add
+
+// 👇 new variables
+ENDPOINT_NAVIGATION=/api/permissions
+ENDPOINT_ROLES=/api/roles
+ENDPOINT_ROLES=/api/roles
+ENDPOINT_USERS=/api/users
+ENDPOINT_PAGES=/api/pages
+ENDPOINT_CATEGORIES=/api/categories
+ENDPOINT_MODULES=/api/modules
+// 👆 new variables
+
 ```
 
+### Add the Authorisation Endpoints
 Create the `permissions` route `apps/server/src/route/permissions.ts`.
 ```TypeScript
 import path from "path";
@@ -3596,6 +3605,8 @@ router.delete(
 
 export default router;
 ```
+
+### Add the Applications Endpoints
 Create the `pages` route `apps/server/src/route/pages.ts`.
 ```TypeScript
 import path from "path";
@@ -3719,7 +3730,7 @@ router.delete(
 export default router;
 ```
 
-
+### Update the `index.ts`
 Update the `apps/server/src/index.ts`
 ```TypeScript
 // code removed for brevity...
@@ -3782,10 +3793,6 @@ const start = async () => {
 
 start();
 ```
-
-### Add the Pages, Categories and Modules Endpoints
-
-
 
 # Test the Endpoints using Postman
 To test an API that uses Auth0 token authentication in Postman, you need to first obtain a valid access token from Auth0, then include it in the Authorization header of your API requests.
