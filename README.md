@@ -63,7 +63,7 @@ aspect
 * [Add API Endpoints](#add-api-Endpoints)
 	* [Add the Permissions, Roles and Users Endpoints](#add-the-permissions-roles-and-users-endpoints)
  	* [Add the Pages, Categories and Modules Endpoints](#add-the-pages-categories-and-modules-endpoints)
- 	* [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
+* [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
    
   
 # Scaffolding the Monorepo
@@ -3657,7 +3657,7 @@ start();
 
 
 
-### Test the Endpoints using Postman
+# Test the Endpoints using Postman
 To test an API that uses Auth0 token authentication in Postman, you need to first obtain a valid access token from Auth0, then include it in the Authorization header of your API requests.
 
 1. Set Up a Machine-to-Machine Application in Auth0
