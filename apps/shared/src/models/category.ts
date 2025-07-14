@@ -4,7 +4,6 @@ import { Page } from "./page";
 
 export class Category implements Permissionable, Editability {
   categoryId: number;
-  moduleId: number;
   name: string;
   icon: string;
   permission: string;
@@ -14,7 +13,6 @@ export class Category implements Permissionable, Editability {
 
   constructor(
     categoryId: number,
-    moduleId: number,
     name: string,
     icon: string,
     permission: string,
@@ -23,7 +21,6 @@ export class Category implements Permissionable, Editability {
     pages: Page[] = []
   ) {
     this.categoryId = categoryId;
-    this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
     this.permission = permission;
@@ -34,7 +31,6 @@ export class Category implements Permissionable, Editability {
 
   addPage(pages: Page) {
     if (!this.pages.find((p) => p.pageId === pages.pageId)) {
-      pages.categoryId = this.categoryId;
       this.pages.push(pages);
     }
   }
