@@ -34,7 +34,7 @@ router.get(
   "/:id",
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
-    const result: Permission = await db.all(
+    const result = await db.get<Permission>(
       `
       SELECT    permissionId, name, permission  
       FROM 	    permissions
