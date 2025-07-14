@@ -200,6 +200,12 @@ router.delete(
   "/:id",
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
+
+    await db.run(
+      "DELETE FROM rolePermissions WHERE roleId = ?",
+      _req.params.id
+    );
+
     const result = await db.run(
       "DELETE FROM roles WHERE roleId = ?",
       _req.params.id
