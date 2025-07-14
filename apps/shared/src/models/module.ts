@@ -31,7 +31,6 @@ export class Module implements Permissionable, Editability {
 
   addCategory(category: Category) {
     if (!this.categories.find((c) => c.categoryId === category.categoryId)) {
-      category.moduleId = this.moduleId;
       this.categories.push(category);
     }
   }
