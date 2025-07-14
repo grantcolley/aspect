@@ -812,6 +812,10 @@ Create the navigation validation schema `moduleSchema`, `categorySchema` and `pa
 import { z } from "zod";
 
 export const pageSchema = z.object({
+  categoryId: z
+    .number()
+    .int()
+    .positive("Category ID must be a positive integer"),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   url: z.string().min(1, "URL is required"),
