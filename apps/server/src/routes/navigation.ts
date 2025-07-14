@@ -54,7 +54,6 @@ router.get(
       if (!category) {
         category = new Category(
           row.categoryId,
-          row.moduleId,
           row.cName,
           row.cIcon,
           row.cPermission,
@@ -72,7 +71,6 @@ router.get(
 
       const page = new Page(
         row.pageId,
-        row.categoryId,
         row.pName,
         row.pIcon,
         row.pUrl,
