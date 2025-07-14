@@ -62,6 +62,7 @@ aspect
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
 	* [Add the Permissions, Roles and Users Endpoints](#add-the-permissions-roles-and-users-endpoints)
+ 	* [Add the Pages, Categoriess and Modules Endpoints](#add-the-pages-categories-and-modules-endpoints)
  	* [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
    
   
@@ -3655,6 +3656,10 @@ const start = async () => {
 
 start();
 ```
+
+### Add the Pages, Categoriess and Modules Endpoints
+
+
 
 ### Test the Endpoints using Postman
 To test an API that uses Auth0 token authentication in Postman, you need to first obtain a valid access token from Auth0, then include it in the Authorization header of your API requests.
