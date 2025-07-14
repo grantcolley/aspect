@@ -62,7 +62,7 @@ aspect
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
 	* [Add the Permissions, Roles and Users Endpoints](#add-the-permissions-roles-and-users-endpoints)
- 	* [Test the Permissions Endpoint using Postman](#test-the-endpoints-using-postman) 
+ 	* [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
    
   
 # Scaffolding the Monorepo
