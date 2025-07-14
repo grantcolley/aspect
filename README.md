@@ -62,6 +62,7 @@ aspect
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
 	* [Add the Permissions, Roles and Users Endpoints](#add-the-permissions-roles-and-users-endpoints)
+ 	* [Add the Pages, Categories and Modules Endpoints](#add-the-pages-categories-and-modules-endpoints)
  	* [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
    
   
@@ -3029,9 +3030,11 @@ CORS_URL=http://localhost:5173
 ENDPOINT_NAVIGATION=/api/navigation
 ENDPOINT_NAVIGATION=/api/permissions // 👈 add
 ENDPOINT_ROLES=/api/roles // 👈 add
+ENDPOINT_ROLES=/api/roles // 👈 add
+ENDPOINT_USERS=/api/users // 👈 add
 ```
 
-Create the permissions route `apps/server/src/route/permissions.ts`.
+Create the `permissions` route `apps/server/src/route/permissions.ts`.
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -3154,7 +3157,7 @@ router.delete(
 export default router;
 ```
 
-Create the RolePermission interface `apps/server/src/inrefaces/rolePermission.ts`.
+Create the `RolePermission` interface `apps/server/src/inrefaces/rolePermission.ts`.
 ```TypeScript
 export interface RolePermission {
   roleId: number;
@@ -3162,7 +3165,7 @@ export interface RolePermission {
 }
 ```
 
-Create the roles route `apps/server/src/route/roles.ts`.
+Create the `roles` route `apps/server/src/route/roles.ts`.
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -3382,8 +3385,220 @@ router.delete(
 export default router;
 ```
 
-Create the route `apps/server/src/route/users.ts`.
+Create the `UserRole` interface `apps/server/src/inrefaces/userRole.ts`.
 ```TypeScript
+export interface UserRole {
+  userId: number;
+  roleId: number;
+}
+```
+
+Create the `users` route `apps/server/src/route/users.ts`.
+```TypeScript
+import path from "path";
+import dotenv from "dotenv";
+import { Router, Request, Response, RequestHandler } from "express";
+import { dbConnection } from "../data/db";
+import { User } from "shared/src/models/user";
+import { Role } from "shared/src/models/role";
+import { userSchema } from "shared/src/validation/userSchema";
+import { UserRole } from "../interfaces/userRole";
+import { asyncHandler } from "../middleware/asyncHandler";
+
+const env = process.env.NODE_ENV || "development";
+dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
+dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
+
+const dbFile = path.resolve(
+  __dirname,
+  `../../../../db/${process.env.DATABASE}`
+);
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result: User[] = await db.all(`
+      SELECT    userId, name, email, permission  
+      FROM 	    users
+    `);
+
+    res.json(result);
+  })
+);
+
+router.get(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result = await db.get<User>(
+      `
+      SELECT    userId, name, email, permission  
+      FROM 	    users
+      WHERE     userId = ?
+    `,
+      _req.params.id
+    );
+
+    if (!result) return res.status(404).json({ error: "User not found" });
+
+    const roles: Role[] = await db.all(
+      `
+      SELECT        r.roleId, r.name, r.permission  
+      FROM 	        userRoles ur
+      INNER JOIN    roles r ON ur.roleId = r.roleId
+      WHERE         ur.userId = ?
+    `,
+      _req.params.id
+    );
+
+    result.roles = roles;
+
+    res.json(result);
+  })
+);
+
+router.post(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = userSchema.safeParse(_req.body);
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, email, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+    const result = await db.run(
+      "INSERT INTO users (name, email, permission) VALUES (?, ?, ?)",
+      [name, email, permission]
+    );
+
+    const userRolesStatement = await db.prepare(
+      "INSERT INTO userRoles (userId, roleId) VALUES (?, ?)"
+    );
+
+    for (const role of _req.body.roles || []) {
+      await userRolesStatement.run(result.lastID, role.roleId);
+    }
+
+    const roles: Role[] = await db.all(
+      `
+      SELECT        r.roleId, r.name, r.permission  
+      FROM 	        userRoles ur
+      INNER JOIN    roles r ON ur.roleId = r.roleId
+      WHERE         ur.userId = ?
+    `,
+      result.lastID
+    );
+
+    res.status(201).json({
+      roleId: result.lastID,
+      name: name,
+      email: email,
+      permission: permission,
+      roles: roles,
+    });
+  })
+);
+
+router.put(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = userSchema.safeParse(_req.body);
+
+    let roles: Role[] = _req.body.roles || [];
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, email, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+
+    const result = await db.run(
+      "UPDATE users SET name = ?, email = ?, permission = ? WHERE userId = ?",
+      [name, email, permission, _req.params.id]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userRoles: UserRole[] = await db.all(
+      `
+      SELECT userId, roleId  
+      FROM 	 userRoles
+      WHERE  userId = ?
+    `,
+      _req.params.id
+    );
+
+    const userRolesInsertStatement = await db.prepare(
+      "INSERT INTO userRoles (userId, roleId) VALUES (?, ?)"
+    );
+
+    const userRolesDeleteStatement = await db.prepare(
+      "DELETE FROM userRoles WHERE userId = ? AND roleId = ?"
+    );
+
+    for (const role of roles || []) {
+      if (!userRoles.find((r) => r.roleId === role.roleId)) {
+        userRolesInsertStatement.run(_req.params.id, role.roleId);
+      }
+    }
+
+    for (const userRole of userRoles || []) {
+      if (!roles.find((r) => r.roleId === userRole.roleId)) {
+        userRolesDeleteStatement.run(userRole.userId, userRole.roleId);
+      }
+    }
+    roles = await db.all(
+      `
+      SELECT        r.roleId, r.name, r.permission  
+      FROM 	        userRoles ur
+      INNER JOIN    roles r ON ur.roleId = r.roleId
+      WHERE         ur.userId = ?
+    `,
+      _req.params.id
+    );
+
+    res.json({
+      roleId: _req.params.id,
+      name: name,
+      email: email,
+      permission: permission,
+      roles: roles,
+    });
+  })
+);
+
+router.delete(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result = await db.run(
+      "DELETE FROM users WHERE userId = ?",
+      _req.params.id
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(204).send();
+  })
+);
+
+export default router;
 ```
 
 Update the `apps/server/src/index.ts`
@@ -3393,6 +3608,7 @@ Update the `apps/server/src/index.ts`
 import navigationRouter from "./routes/navigation";
 import permissionsRouter from "./routes/permissions"; // 👈 add
 import rolesRouter from "./routes/roles"; // 👈 add
+import usersRouter from "./routes/users"; // 👈 add
 
 // code removed for brevity...
 
@@ -3408,11 +3624,16 @@ if (!process.env.ENDPOINT_ROLES) { // 👈 add
   throw new Error("ENDPOINT_ROLES environment variable is not set");
 }
 
+if (!process.env.ENDPOINT_USERS) { // 👈 add
+  throw new Error("ENDPOINT_USERS environment variable is not set");
+}
+
 // code removed for brevity...
 
 const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
 const permissionsEndpoint = process.env.ENDPOINT_PERMISSIONS; // 👈 add
 const rolesEndpoint = process.env.ENDPOINT_ROLES; // 👈 add
+const usersEndpoint = process.env.ENDPOINT_USERS; // 👈 add
 
 // code removed for brevity...
 
@@ -3428,12 +3649,17 @@ const start = async () => {
   app.use(navigationEndpoint, navigationRouter);
   app.use(permissionsEndpoint, permissionsRouter); // 👈 add
   app.use(rolesEndpoint, rolesRouter); // 👈 add
+  app.use(usersEndpoint, usersRouter); // 👈 add
 
   // code removed for brevity...
 };
 
 start();
 ```
+
+### Add the Pages, Categories and Modules Endpoints
+
+
 
 ### Test the Endpoints using Postman
 To test an API that uses Auth0 token authentication in Postman, you need to first obtain a valid access token from Auth0, then include it in the Authorization header of your API requests.
