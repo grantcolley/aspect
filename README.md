@@ -3374,6 +3374,12 @@ router.delete(
   "/:id",
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
+
+    await db.run(
+      "DELETE FROM rolePermissions WHERE roleId = ?",
+      _req.params.id
+    );
+
     const result = await db.run(
       "DELETE FROM roles WHERE roleId = ?",
       _req.params.id
@@ -3590,6 +3596,9 @@ router.delete(
   "/:id",
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
+
+    await db.run("DELETE FROM userRoles WHERE userId = ?", _req.params.id);
+
     const result = await db.run(
       "DELETE FROM users WHERE userId = ?",
       _req.params.id
@@ -3613,8 +3622,8 @@ import path from "path";
 import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
-import { Permission } from "shared/src/models/permission";
-import { permissionSchema } from "shared/src/validation/permissionSchema";
+import { Page } from "shared/src/models/page";
+import { pageSchema } from "shared/src/validation/pageSchema";
 import { asyncHandler } from "../middleware/asyncHandler";
 
 const env = process.env.NODE_ENV || "development";
@@ -3632,9 +3641,9 @@ router.get(
   "/",
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
-    const result: Permission[] = await db.all(`
-      SELECT    permissionId, name, permission  
-      FROM 	    permissions
+    const result: Page[] = await db.all(`
+      SELECT    pageId, name, icon, url, permission  
+      FROM 	    pages
     `);
 
     res.json(result);
@@ -3645,16 +3654,16 @@ router.get(
   "/:id",
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
-    const result = await db.get<Permission>(
+    const result = await db.get<Page>(
       `
-      SELECT    permissionId, name, permission  
-      FROM 	    permissions
-      WHERE     permissionId = ?
+      SELECT    pageId, name, icon, url, permission  
+      FROM 	    pages
+      WHERE     pageId = ?
     `,
       _req.params.id
     );
 
-    if (!result) return res.status(404).json({ error: "Permission not found" });
+    if (!result) return res.status(404).json({ error: "Page not found" });
 
     res.json(result);
   })
@@ -3663,7 +3672,7 @@ router.get(
 router.post(
   "/",
   asyncHandler(async (_req: Request, res: Response) => {
-    const parsed = permissionSchema.safeParse(_req.body);
+    const parsed = pageSchema.safeParse(_req.body);
 
     if (!parsed.success) {
       return res
@@ -3671,22 +3680,24 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name, icon, url, permission } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO permissions (name, permission) VALUES (?, ?)",
-      [name, permission]
+      "INSERT INTO pages (name, icon, url, permission) VALUES (?, ?, ?, ?)",
+      [name, icon, url, permission]
     );
 
-    res.status(201).json({ permissionId: result.lastID, name, permission });
+    res
+      .status(201)
+      .json({ pageId: result.lastID, name, icon, url, permission });
   })
 );
 
 router.put(
   "/:id",
   asyncHandler(async (_req: Request, res: Response) => {
-    const parsed = permissionSchema.safeParse(_req.body);
+    const parsed = pageSchema.safeParse(_req.body);
 
     if (!parsed.success) {
       return res
@@ -3694,19 +3705,19 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name, icon, url, permission } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE permissions SET name = ?, permission = ? WHERE permissionId = ?",
-      [name, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, url = ?, permission = ? WHERE pageId = ?",
+      [name, icon, url, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
-      return res.status(404).json({ error: "Permission not found" });
+      return res.status(404).json({ error: "Page not found" });
     }
 
-    res.json({ permissionId: _req.params.id, name, permission });
+    res.json({ pageId: _req.params.id, name, icon, url, permission });
   })
 );
 
@@ -3715,12 +3726,12 @@ router.delete(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "DELETE FROM permissions WHERE permissionId = ?",
+      "DELETE FROM pages WHERE pageId = ?",
       _req.params.id
     );
 
     if (result.changes === 0) {
-      return res.status(404).json({ error: "Permission not found" });
+      return res.status(404).json({ error: "Page not found" });
     }
 
     res.status(204).send();
