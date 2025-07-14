@@ -6,6 +6,7 @@ import { auth } from "express-oauth2-jwt-bearer";
 import { errorHandler } from "./middleware/errorHandler";
 import navigationRouter from "./routes/navigation";
 import permissionsRouter from "./routes/permissions";
+import rolesRouter from "./routes/roles";
 
 const env = process.env.NODE_ENV || "development";
 
@@ -41,11 +42,16 @@ if (!process.env.ENDPOINT_PERMISSIONS) {
   throw new Error("ENDPOINT_PERMISSIONS environment variable is not set");
 }
 
+if (!process.env.ENDPOINT_ROLES) {
+  throw new Error("ENDPOINT_ROLES environment variable is not set");
+}
+
 const authAudience = process.env.AUTH_AUDIENCE;
 const authIssuerBaseURL = process.env.AUTH_ISSUER_BASE_URL;
 const authTokenSigningAlg = process.env.AUTH_TOKEN_SIGNING_ALGORITHM;
 const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
 const permissionsEndpoint = process.env.ENDPOINT_PERMISSIONS;
+const rolesEndpoint = process.env.ENDPOINT_ROLES;
 
 const app = express();
 app.use(express.json());
@@ -71,6 +77,7 @@ const start = async () => {
 
   app.use(navigationEndpoint, navigationRouter);
   app.use(permissionsEndpoint, permissionsRouter);
+  app.use(rolesEndpoint, rolesRouter);
 
   // handle all exceptions
   app.use(errorHandler);
