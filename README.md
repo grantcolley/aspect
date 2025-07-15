@@ -3208,14 +3208,6 @@ router.delete(
 export default router;
 ```
 
-Create the `RolePermission` interface `apps/server/src/inrefaces/rolePermission.ts`.
-```TypeScript
-export interface RolePermission {
-  roleId: number;
-  permissionId: number;
-}
-```
-
 Create the `roles` route `apps/server/src/route/roles.ts`.
 ```TypeScript
 import path from "path";
@@ -3224,8 +3216,8 @@ import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Role } from "shared/src/models/role";
 import { Permission } from "shared/src/models/permission";
+import { RolePermission } from "shared/src/interfaces/rolePermission";
 import { roleSchema } from "shared/src/validation/roleSchema";
-import { RolePermission } from "../interfaces/rolePermission";
 import { asyncHandler } from "../middleware/asyncHandler";
 
 const env = process.env.NODE_ENV || "development";
@@ -3442,14 +3434,6 @@ router.delete(
 export default router;
 ```
 
-Create the `UserRole` interface `apps/server/src/inrefaces/userRole.ts`.
-```TypeScript
-export interface UserRole {
-  userId: number;
-  roleId: number;
-}
-```
-
 Create the `users` route `apps/server/src/route/users.ts`.
 ```TypeScript
 import path from "path";
@@ -3458,8 +3442,8 @@ import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { User } from "shared/src/models/user";
 import { Role } from "shared/src/models/role";
+import { UserRole } from "shared/src/interfaces/userRole";
 import { userSchema } from "shared/src/validation/userSchema";
-import { UserRole } from "../interfaces/userRole";
 import { asyncHandler } from "../middleware/asyncHandler";
 
 const env = process.env.NODE_ENV || "development";
@@ -3778,6 +3762,446 @@ router.delete(
 
     if (result.changes === 0) {
       return res.status(404).json({ error: "Page not found" });
+    }
+
+    res.status(204).send();
+  })
+);
+
+export default router;
+```
+
+Create the `categories` route `apps/server/src/route/categories.ts`.
+```TypeScript
+import path from "path";
+import dotenv from "dotenv";
+import { Router, Request, Response, RequestHandler } from "express";
+import { dbConnection } from "../data/db";
+import { Category } from "shared/src/models/category";
+import { Page } from "shared/src/models/page";
+import { CategoryPage } from "shared/src/interfaces/categoryPage";
+import { categorySchema } from "shared/src/validation/categorySchema";
+import { asyncHandler } from "../middleware/asyncHandler";
+
+const env = process.env.NODE_ENV || "development";
+dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
+dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
+
+const dbFile = path.resolve(
+  __dirname,
+  `../../../../db/${process.env.DATABASE}`
+);
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result: Category[] = await db.all(`
+      SELECT    categoryId, name, icon, permission  
+      FROM 	    categories
+    `);
+
+    res.json(result);
+  })
+);
+
+router.get(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result = await db.get<Category>(
+      `
+      SELECT    categoryId, name, icon, permission  
+      FROM 	    categories
+      WHERE     categoryId = ?
+    `,
+      _req.params.id
+    );
+
+    if (!result) return res.status(404).json({ error: "Category not found" });
+
+    const pages: Page[] = await db.all(
+      `
+      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      FROM 	        categoryPages cp
+      INNER JOIN    pages p ON cp.pageId = p.pageId
+      WHERE         cp.categoryId = ?
+    `,
+      _req.params.id
+    );
+
+    result.pages = pages;
+
+    res.json(result);
+  })
+);
+
+router.post(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = categorySchema.safeParse(_req.body);
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, icon, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+    const result = await db.run(
+      "INSERT INTO categories (name, icon, permission) VALUES (?, ?, ?)",
+      [name, icon, permission]
+    );
+
+    const categoryPageStatement = await db.prepare(
+      "INSERT INTO categoryPages (categoryId, pageId) VALUES (?, ?)"
+    );
+
+    for (const page of _req.body.pages || []) {
+      await categoryPageStatement.run(result.lastID, page.pageId);
+    }
+
+    const pages: Page[] = await db.all(
+      `
+      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      FROM 	        categoryPages cp
+      INNER JOIN    pages p ON cp.pageId = p.pageId
+      WHERE         cp.categoryId = ?
+    `,
+      result.lastID
+    );
+
+    res.status(201).json({
+      categoryId: result.lastID,
+      name: name,
+      icon: icon,
+      permission: permission,
+      pages: pages,
+    });
+  })
+);
+
+router.put(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = categorySchema.safeParse(_req.body);
+
+    let pages: Page[] = _req.body.pages || [];
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, icon, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+
+    const result = await db.run(
+      "UPDATE categories SET name = ?, icon = ?, permission = ? WHERE categoryId = ?",
+      [name, icon, permission, _req.params.id]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    const categoryPages: CategoryPage[] = await db.all(
+      `
+      SELECT categoryId, pageId  
+      FROM 	 categoryPages
+      WHERE  categoryId = ?
+    `,
+      _req.params.id
+    );
+
+    const categoryPagesInsertStatement = await db.prepare(
+      "INSERT INTO categoryPages (categoryId, pageId) VALUES (?, ?)"
+    );
+
+    const categoryPagesDeleteStatement = await db.prepare(
+      "DELETE FROM categoryPages WHERE categoryId = ? AND pageId = ?"
+    );
+
+    for (const page of pages || []) {
+      if (!categoryPages.find((p) => p.pageId === page.pageId)) {
+        categoryPagesInsertStatement.run(_req.params.id, page.pageId);
+      }
+    }
+
+    for (const categoryPage of categoryPages || []) {
+      if (!pages.find((p) => p.pageId === categoryPage.pageId)) {
+        categoryPagesDeleteStatement.run(
+          categoryPage.categoryId,
+          categoryPage.pageId
+        );
+      }
+    }
+
+    pages = await db.all(
+      `
+      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      FROM 	        categoryPages cp
+      INNER JOIN    pages p ON cp.pageId = p.pageId
+      WHERE         cp.categoryId = ?
+    `,
+      _req.params.id
+    );
+
+    res.json({
+      categoryId: _req.params.id,
+      name: name,
+      icon: icon,
+      permission: permission,
+      pages: pages,
+    });
+  })
+);
+
+router.delete(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+
+    await db.run(
+      "DELETE FROM categoryPages WHERE categoryId = ?",
+      _req.params.id
+    );
+
+    const result = await db.run(
+      "DELETE FROM categories WHERE categoryId = ?",
+      _req.params.id
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    res.status(204).send();
+  })
+);
+
+export default router;
+```
+
+Create the `modules` route `apps/server/src/route/modules.ts`.
+```TypeScript
+import path from "path";
+import dotenv from "dotenv";
+import { Router, Request, Response, RequestHandler } from "express";
+import { dbConnection } from "../data/db";
+import { Module } from "shared/src/models/module";
+import { Category } from "shared/src/models/category";
+import { ModuleCategory } from "shared/src/interfaces/moduleCategory";
+import { moduleSchema } from "shared/src/validation/moduleSchema";
+import { asyncHandler } from "../middleware/asyncHandler";
+
+const env = process.env.NODE_ENV || "development";
+dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
+dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
+
+const dbFile = path.resolve(
+  __dirname,
+  `../../../../db/${process.env.DATABASE}`
+);
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result: Module[] = await db.all(`
+      SELECT    moduleId, name, icon, permission  
+      FROM 	    modules
+    `);
+
+    res.json(result);
+  })
+);
+
+router.get(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const result = await db.get<Module>(
+      `
+      SELECT    moduleId, name, icon, permission  
+      FROM 	    modules
+      WHERE     moduleId = ?
+    `,
+      _req.params.id
+    );
+
+    if (!result) return res.status(404).json({ error: "module not found" });
+
+    const categories: Category[] = await db.all(
+      `
+      SELECT        c.categoryId, c.name, c.icon, c.permission  
+      FROM 	        moduleCategories mc
+      INNER JOIN    categories c ON mc.categoryId = c.categoryId
+      WHERE         mc.moduleId = ?
+    `,
+      _req.params.id
+    );
+
+    result.categories = categories;
+
+    res.json(result);
+  })
+);
+
+router.post(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = moduleSchema.safeParse(_req.body);
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, icon, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+    const result = await db.run(
+      "INSERT INTO modules (name, icon, permission) VALUES (?, ?, ?)",
+      [name, icon, permission]
+    );
+
+    const moduleCategoryStatement = await db.prepare(
+      "INSERT INTO moduleCategories (moduleId, categoryId) VALUES (?, ?)"
+    );
+
+    for (const category of _req.body.categories || []) {
+      await moduleCategoryStatement.run(result.lastID, category.categoryId);
+    }
+
+    const categories: Category[] = await db.all(
+      `
+      SELECT        c.categoryId, c.name, c.icon, c.permission  
+      FROM 	        moduleCategories mc
+      INNER JOIN    categories c ON mc.categoryId = c.categoryId
+      WHERE         mc.moduleId = ?
+    `,
+      result.lastID
+    );
+
+    res.status(201).json({
+      moduleId: result.lastID,
+      name: name,
+      icon: icon,
+      permission: permission,
+      categories: categories,
+    });
+  })
+);
+
+router.put(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const parsed = moduleSchema.safeParse(_req.body);
+
+    let categories: Category[] = _req.body.categories || [];
+
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const { name, icon, permission } = parsed.data;
+
+    const db = await dbConnection(dbFile);
+
+    const result = await db.run(
+      "UPDATE modules SET name = ?, icon = ?, permission = ? WHERE moduleId = ?",
+      [name, icon, permission, _req.params.id]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Module not found" });
+    }
+
+    const moduleCategories: ModuleCategory[] = await db.all(
+      `
+      SELECT moduleId, categoryId  
+      FROM 	 moduleCategories
+      WHERE  moduleId = ?
+    `,
+      _req.params.id
+    );
+
+    const moduleCategoryInsertStatement = await db.prepare(
+      "INSERT INTO moduleCategories (moduleId, categoryId) VALUES (?, ?)"
+    );
+
+    const moduleCategoryDeleteStatement = await db.prepare(
+      "DELETE FROM moduleCategories WHERE moduleId = ? AND categoryId = ?"
+    );
+
+    for (const category of categories || []) {
+      if (
+        !moduleCategories.find((mc) => mc.categoryId === category.categoryId)
+      ) {
+        moduleCategoryInsertStatement.run(_req.params.id, category.categoryId);
+      }
+    }
+
+    for (const moduleCategory of moduleCategories || []) {
+      if (
+        !categories.find((mc) => mc.categoryId === moduleCategory.categoryId)
+      ) {
+        moduleCategoryDeleteStatement.run(
+          moduleCategory.moduleId,
+          moduleCategory.categoryId
+        );
+      }
+    }
+
+    categories = await db.all(
+      `
+      SELECT        c.categoryId, c.name, c.icon, c.permission  
+      FROM 	        moduleCategories mc
+      INNER JOIN    categories c ON mc.categoryId = c.categoryId
+      WHERE         mc.moduleId = ?
+    `,
+      _req.params.id
+    );
+
+    res.json({
+      moduleId: _req.params.id,
+      name: name,
+      icon: icon,
+      permission: permission,
+      categories: categories,
+    });
+  })
+);
+
+router.delete(
+  "/:id",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+
+    await db.run(
+      "DELETE FROM moduleCategories WHERE moduleId = ?",
+      _req.params.id
+    );
+
+    const result = await db.run(
+      "DELETE FROM modules WHERE moduleId = ?",
+      _req.params.id
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Module not found" });
     }
 
     res.status(204).send();
