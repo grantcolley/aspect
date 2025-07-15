@@ -4217,40 +4217,24 @@ Update the `apps/server/src/index.ts`
 // code removed for brevity...
 
 import navigationRouter from "./routes/navigation";
-import permissionsRouter from "./routes/permissions"; // 👈 add
-import rolesRouter from "./routes/roles"; // 👈 add
-import usersRouter from "./routes/users"; // 👈 add
-import pagesRouter from "./routes/pages";  // 👈 add
 
-// code removed for brevity...
-
-if (!process.env.ENDPOINT_NAVIGATION) {
-  throw new Error("ENDPOINT_NAVIGATION environment variable is not set");
-}
-
-if (!process.env.ENDPOINT_PERMISSIONS) { // 👈 add
-  throw new Error("ENDPOINT_PERMISSIONS environment variable is not set");
-}
-
-if (!process.env.ENDPOINT_ROLES) { // 👈 add
-  throw new Error("ENDPOINT_ROLES environment variable is not set");
-}
-
-if (!process.env.ENDPOINT_USERS) { // 👈 add
-  throw new Error("ENDPOINT_USERS environment variable is not set");
-}
-
-if (!process.env.ENDPOINT_PAGES) {  // 👈 add
-  throw new Error("ENDPOINT_PAGES environment variable is not set");
-}
+// 👇 import new routers
+import permissionsRouter from "./routes/permissions";
+import rolesRouter from "./routes/roles";
+import usersRouter from "./routes/users";
+import pagesRouter from "./routes/pages";
+// 👆 import new routers
 
 // code removed for brevity...
 
 const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
-const permissionsEndpoint = process.env.ENDPOINT_PERMISSIONS; // 👈 add
-const rolesEndpoint = process.env.ENDPOINT_ROLES; // 👈 add
-const usersEndpoint = process.env.ENDPOINT_USERS; // 👈 add
-const pagesEndpoint = process.env.ENDPOINT_PAGES; // 👈 add
+
+// 👇 fetch new endpoints
+const permissionsEndpoint = process.env.ENDPOINT_PERMISSIONS;
+const rolesEndpoint = process.env.ENDPOINT_ROLES;
+const usersEndpoint = process.env.ENDPOINT_USERS;
+const pagesEndpoint = process.env.ENDPOINT_PAGES;
+// 👆 fetch new endpoints
 
 // code removed for brevity...
 
@@ -4264,10 +4248,13 @@ const start = async () => {
   // code removed for brevity...
 
   app.use(navigationEndpoint, navigationRouter);
-  app.use(permissionsEndpoint, permissionsRouter); // 👈 add
-  app.use(rolesEndpoint, rolesRouter); // 👈 add
-  app.use(usersEndpoint, usersRouter); // 👈 add
-  app.use(pagesEndpoint, pagesRouter); // 👈 add
+
+  // 👇 add new routes
+  app.use(permissionsEndpoint, permissionsRouter);
+  app.use(rolesEndpoint, rolesRouter);
+  app.use(usersEndpoint, usersRouter);
+  app.use(pagesEndpoint, pagesRouter);
+  // 👆 add new routes
 
   // code removed for brevity...
 };
