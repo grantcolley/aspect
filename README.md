@@ -68,7 +68,7 @@ aspect
 * [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
   
 # Scaffolding the Monorepo
-### Setup the Workspaces
+## Setup the Workspaces
 Create a root folder `aspect` and a subfolder `apps`. Inside `aspect/apps` create three subfolders: `client`, `db`, `server` and `shared`.
 
 Inside the root `aspect` folder:
@@ -119,7 +119,7 @@ dist
 *.sqlite
 ```
 
-### Initialise the Shared Package
+## Initialise the Shared Package
 Inside the `apps/shared` folder:
 ```bash
 npm init -y
@@ -171,7 +171,7 @@ export class User {
   }
 }
 ```
-### Create the DB Seed package
+## Create the DB Seed package
 Install `dotenv`.
 ```
 npm install dotenv
@@ -398,7 +398,7 @@ Set `iconLibrary` in `components.js` to `tabler`.
 }
 ```
 
-### Server Setup
+## Server Setup
 In the `server` folder run:
 ```bash
 npm init -y
@@ -458,7 +458,7 @@ app.listen(port, () => {
 });
 ```
 
-### Run & Build
+## Run & Build
 ```bash
 # Run shared build first if used by others
 npm run --workspace shared build
@@ -481,7 +481,7 @@ Server: `http://localhost:3000/api/user`
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-initial.png?raw=true "Client")
 
-### Create Monorepo Debug Configuration using `npm` Workspaces
+## Create Monorepo Debug Configuration using `npm` Workspaces
 To debug a monorepo using npm workspaces in VS Code set up multi-target debugging in a single `launch.json`.
 
 To create the Debug Configuration
@@ -842,7 +842,7 @@ export class User implements Permissionable, Editability {
 }
 ```
 
-## Create Validation using `zod` in the Shared Package
+# Create Validation using `zod` in the Shared Package
 Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
 \
 \
@@ -3061,7 +3061,7 @@ seed().catch((err) => {
 ```
 
 # Add API Endpoints
-### Create Endpoint Variables in `.env` File
+## Create Endpoint Variables in `.env` File
 Update the server's `apps/server/env.development` with the permissions endpoint.
 ```
 HOST_URL=localhost
@@ -3084,7 +3084,7 @@ ENDPOINT_MODULES=/api/modules
 
 ```
 
-### Add the Authorisation Endpoints
+## Add the Authorisation Endpoints
 Create the `permissions` route `apps/server/src/route/permissions.ts`.
 ```TypeScript
 import path from "path";
@@ -3661,7 +3661,7 @@ router.delete(
 export default router;
 ```
 
-### Add the Applications Endpoints
+## Add the Applications Endpoints
 Create the `pages` route `apps/server/src/route/pages.ts`.
 ```TypeScript
 import path from "path";
@@ -3787,7 +3787,7 @@ router.delete(
 export default router;
 ```
 
-### Update the `index.ts`
+## Update the `index.ts`
 Update the `apps/server/src/index.ts`
 ```TypeScript
 // code removed for brevity...
