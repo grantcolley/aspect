@@ -3,12 +3,10 @@ export interface NavigationRow {
   mName: string;
   mIcon: string;
   mPermission: string;
-
   categoryId: number;
   cName: string;
   cIcon: string;
   cPermission: string;
-
   pageId: number;
   pName: string;
   pIcon: string;
