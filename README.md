@@ -548,8 +548,54 @@ export interface Permissionable {
   permission: string;
 }
 ```
+`apps/shared/src/interfaces/categoryPage.ts`
+```TypeScript
+export interface CategoryPage {
+  categoryId: number;
+  pageId: number;
+}
+```
+`apps/shared/src/interfaces/moduleCategory.ts`
+```TypeScript
+export interface ModuleCategory {
+  moduleId: number;
+  categoryId: number;
+}
+```
+`apps/shared/src/interfaces/rolePermission.ts`
+```TypeScript
+export interface RolePermission {
+  roleId: number;
+  permissionId: number;
+}
+```
+`apps/shared/src/interfaces/userRole.ts`
+```TypeScript
+export interface UserRole {
+  userId: number;
+  roleId: number;
+}
+```
+`apps/shared/src/interfaces/navigationRow.ts`
+```TypeScript
+export interface NavigationRow {
+  moduleId: number;
+  mName: string;
+  mIcon: string;
+  mPermission: string;
+  categoryId: number;
+  cName: string;
+  cIcon: string;
+  cPermission: string;
+  pageId: number;
+  pName: string;
+  pIcon: string;
+  pUrl: string;
+  pPermission: string;
+}
+```
 
-## Create Models in the Shared Package
+# Create Models in the Shared Package
 Create the navigation models `Module`, `Category` and `Page` classes.
 \
 \
