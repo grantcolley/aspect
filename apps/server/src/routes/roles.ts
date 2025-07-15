@@ -4,8 +4,8 @@ import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Role } from "shared/src/models/role";
 import { Permission } from "shared/src/models/permission";
+import { RolePermission } from "shared/src/interfaces/rolePermission";
 import { roleSchema } from "shared/src/validation/roleSchema";
-import { RolePermission } from "../interfaces/rolePermission";
 import { asyncHandler } from "../middleware/asyncHandler";
 
 const env = process.env.NODE_ENV || "development";
