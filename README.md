@@ -50,6 +50,7 @@ aspect
 * [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
 * [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
 * [Support Dark/Light Theme](#support-darklight-theme)
+* [Centralize Access to `env` Variables in a `config.ts` Module](#centralize-access-to-env-variables-in-a-configts-module)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
@@ -1314,6 +1315,8 @@ export function SidebarHeader() {
 
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
+
+# Centralize Access to `env` Variables in a `config.ts` Module
 
 # Add Auth0 Authentication to the Client
 
