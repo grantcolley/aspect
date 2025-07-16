@@ -172,7 +172,7 @@ Install `dotenv`.
 npm install dotenv
 ```
 
-Inside the `apps/db` folder create `apps/db/env.development` file.
+Inside the `apps/db` folder create `apps/db/.env` file.
 ```
 DATABASE=aspect.sqlite
 ```
@@ -2209,7 +2209,7 @@ router.get(
 
 export default router;
 ```
-Create `apps/server/env.development`
+Create `apps/server/.env`
 ```
 HOST_URL=localhost
 HOST_PORT=3000
@@ -2573,7 +2573,7 @@ Update `.gitignore` to ignore the logging output.
 node_modules
 dist
 .env.local
-.env.development
+.env
 *.sqlite
 sqlite3.exe
 *-audit.json   // 👈 add
@@ -2593,7 +2593,7 @@ Install the Auth0 SDK in the server.
 npm install --save express-oauth2-jwt-bearer
 ```
 
-Update the server's `apps/server/env.development`.
+Update the server's `apps/server/.env`.
 ```
 HOST_URL=localhost
 HOST_PORT=3000
@@ -2648,7 +2648,7 @@ const start = async () => {
 start();
 ```
 
-Update the client's `apps/client/env.development`
+Update the client's `apps/client/.env`
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
 VITE_REACT_APP_AUTH0_CLIENT_ID=
@@ -3009,8 +3009,6 @@ export async function seedUsers(db: Database, users: User[]) {
 ```
 Update seed class class `db/src/seed.ts`.
 ```TypeScript
-import dotenv from "dotenv";
-import path from "path";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
@@ -3024,8 +3022,6 @@ const fs = require("fs");
 sqlite3.verbose();
 
 async function seed() {
-  dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
-
   let dbFile = `./${process.env.DATABASE}`;
 
   if (fs.existsSync(dbFile)) {
@@ -3058,7 +3054,7 @@ seed().catch((err) => {
 
 # Add API Endpoints
 ## Create Endpoint Variables in `.env` File
-Update the server's `apps/server/env.development` with the permissions endpoint.
+Update the server's `apps/server/.env` with the permissions endpoint.
 ```
 HOST_URL=localhost
 HOST_PORT=3000
