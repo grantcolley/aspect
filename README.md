@@ -1334,7 +1334,7 @@ Install the Auth0 React SDK
 npm install @auth0/auth0-react
 ```
 
-Create the `.env.developmnent` file.
+Create the `.env` file.
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=  // 👈 Auth0 domain
 VITE_REACT_APP_AUTH0_CLIENT_ID=  // 👈 Auth0 application clientId
@@ -2272,7 +2272,7 @@ const start = async () => {
 start();
 ```
 # Call the Navigation Route from the Client
-In the Client project update the the `.env.developmnent` file.
+In the Client project update the the `.env` file.
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
 VITE_REACT_APP_AUTH0_CLIENT_ID=
