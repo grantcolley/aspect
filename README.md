@@ -1317,6 +1317,11 @@ Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
 
 # Centralize Access to `env` Variables in a `config.ts` Module
+The best way to access `.env` variables is to:
+- Centralize access in a `config.ts` module
+- Type them for safety
+- Fail fast if any required `env` variables are missing by using `zod` for runtime validation
+
 
 # Add Auth0 Authentication to the Client
 
@@ -1331,10 +1336,6 @@ Client: `http://localhost:5173/`
 > [Auth0 React QuickStart](https://auth0.com/docs/quickstart/spa/react)
 
 Create the Auth0 application for `Aspect.Client` following the Auth0 instructions above.
-The best way to access `.env` variables is to:
-- Centralize access in a `config.ts` module
-- Type them for safety
-- Fail fast if any required `env` variables are missing by using `zod` for runtime validation
 
 Install the Auth0 React SDK
 ```bash
