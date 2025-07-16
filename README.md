@@ -106,11 +106,6 @@ Create a root `tsconfig.base.json`.
 }
 ```
 
-Create a `env.development` file.
-```
-DATABASE=aspect.sqlite
-```
-
 Replace the content of `.gitignore` with:
 ```nginx
 node_modules
@@ -177,6 +172,11 @@ Install `dotenv`.
 npm install dotenv
 ```
 
+Inside the `apps/db` folder create `apps/db/env.development` file.
+```
+DATABASE=aspect.sqlite
+```
+
 Inside the `apps/db` folder create subfolder `apps/db/src/data`.
 
 Create the `apps/db/src/data/userData.ts`.
@@ -222,19 +222,15 @@ export async function seedUsers(db: Database, users: User[]) {
 
 Create the `apps/db/src/seed.ts`.
 ```TypeScript
-import dotenv from "dotenv";
-import path from "path";
+import fs from "fs";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
 import { getUsers } from "./data/userData";
-const fs = require("fs");
 
 sqlite3.verbose();
 
 async function seed() {
-  dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
-
   let dbFile = `./${process.env.DATABASE}`;
 
   if (fs.existsSync(dbFile)) {
