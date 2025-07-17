@@ -2741,32 +2741,59 @@ Update the client's `apps/client/.env`
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
 VITE_REACT_APP_AUTH0_CLIENT_ID=
-VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add
+VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add the audience
 VITE_REACT_API_URL=http://localhost:3000
 VITE_REACT_API_NAVIGATION_URL=api/navigation
+```
+Update `apps/client/src/config/config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+  VITE_REACT_APP_AUTH0_AUDIENCE: z.string().min(1), // 👈 add the audience
+  VITE_REACT_API_URL: z.string().min(1),
+  VITE_REACT_API_NAVIGATION_URL: z.string().min(1),
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+  AUTH0_AUDIENCE: env.VITE_REACT_APP_AUTH0_AUDIENCE, // 👈 add the audience
+  API_URL: env.VITE_REACT_API_URL,
+  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL,
+};
 ```
 
 Add Authorizatrion Parameters to `Auth0Provider` in `apps/client/src/components/layout/auth0-provider-with-navigate.tsx`
 ```TypeScript
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { config } from "@/config/config";
 
 const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
-  const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
-  const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
-  const audience = import.meta.env.VITE_REACT_APP_AUTH0_AUDIENCE; // 👈 add
+  const navigate = useNavigate();
 
-  // code removed for brevity
+  interface AppState {
+    returnTo?: string;
+  }
+
+  const onRedirectCallback = (appState?: AppState) => {
+    navigate(appState?.returnTo || window.location.pathname);
+  };
 
   return (
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
-      authorizationParams={{ 
+      domain={config.AUTH0_DOMAIN}
+      clientId={config.AUTH0_CLIENT_ID}
+      authorizationParams={{
         redirect_uri: window.location.origin,
-        audience: audience || undefined, // 👈 add
+        audience: config.AUTH0_AUDIENCE || undefined, // 👈 add the audience
       }}
       onRedirectCallback={onRedirectCallback}
     >
@@ -2791,9 +2818,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, getAccessTokenSilently } = useAuth0(); // 👈 add
 
-  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
-    import.meta.env.VITE_REACT_API_NAVIGATION_URL
-  }`;
+ const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
 
   useEffect(() => {
     if (!isAuthenticated) {  // 👈 add
