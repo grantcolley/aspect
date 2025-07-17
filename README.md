@@ -51,7 +51,7 @@ aspect
 * [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
 * [Support Dark/Light Theme](#support-darklight-theme)
 * [Centralize Access to `env` Variables in a `config.ts` Module](#centralize-access-to-env-variables-in-a-configts-module)
-	* [Client `config.ts`](##client-configts)
+	* [Client `config.ts`](#client-configts)
 	* [Server `config.ts`](#server-configts)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
