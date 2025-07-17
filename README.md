@@ -1325,13 +1325,13 @@ The best way to access `.env` variables is to:
 - Fail fast if any required `env` variables are missing by using `zod` for runtime validation
 
 ### Client `config.ts`
-Create `.env` file at `apps\client\.env`
+Create `.env` file at `apps/client/.env`
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=// 👈 Auth0 domain
 VITE_REACT_APP_AUTH0_CLIENT_ID=// 👈 Auth0 application clientId
 ```
 
-Create `apps\client\src\config\config.ts`
+Create `apps/client/src/config/config.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -1347,11 +1347,54 @@ export const config = {
   AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
 };
 ```
-Environment variables can now be consumed anywhere like this:
+Client environment variables can now be consumed anywhere like this:
 ```JSX
 import { config } from "@/config/config";
 
 const domain = config.AUTH0_DOMAIN;
+```
+
+### Server `config.ts`
+Create `.env` file at `apps/server/.env`
+```
+HOST_URL=localhost
+HOST_PORT=3000
+CORS_URL=http://localhost:5173
+ENDPOINT_NAVIGATION=/api/navigation
+```
+
+Create `apps/server/src/config/config.ts`
+```TypeScript
+import dotenv from "dotenv";
+import { z } from "zod";
+
+dotenv.config();
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]),
+  HOST_URL: z.string().min(1),
+  HOST_PORT: z.string().transform(Number)
+  CORS_URL: z.string().min(1),
+  ENDPOINT_NAVIGATION: z.string().min(1)
+});
+
+const env = envSchema.safeParse(process.env);
+
+if (!env.success) {
+  console.error(
+    "Invalid environment variables:",
+    env.error.flatten().fieldErrors
+  );
+  process.exit(1);
+}
+
+export const config = env.data;
+```
+Server environment variables can now be consumed anywhere like this:
+```JSX
+import { config } from "@/config/config";
+
+const hostUrl = config.HOST_URL;
 ```
 
 # Add Auth0 Authentication to the Client
