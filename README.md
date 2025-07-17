@@ -2355,7 +2355,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
-  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1);
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
   VITE_REACT_API_URL: z.string().min(1), // 👈 add local API url
   VITE_REACT_API_NAVIGATION_URL: z.string().min(1), // 👈 add navigation route
 });
