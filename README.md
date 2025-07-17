@@ -51,6 +51,8 @@ aspect
 * [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
 * [Support Dark/Light Theme](#support-darklight-theme)
 * [Centralize Access to `env` Variables in a `config.ts` Module](#centralize-access-to-env-variables-in-a-configts-module)
+	* [Client `config.ts`](#client-config-ts)
+	* [Server `config.ts`](#server-config-ts)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
@@ -1322,6 +1324,35 @@ The best way to access `.env` variables is to:
 - Type them for safety
 - Fail fast if any required `env` variables are missing by using `zod` for runtime validation
 
+### Client `config.ts`
+Create `.env` file at `apps\client\.env`
+```
+VITE_REACT_APP_AUTH0_DOMAIN=// 👈 Auth0 domain
+VITE_REACT_APP_AUTH0_CLIENT_ID=// 👈 Auth0 application clientId
+```
+
+Create `apps\client\src\config\config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+};
+```
+Environment variables can now be consumed anywhere like this:
+```JSX
+import { config } from "@/config/config";
+
+const domain = config.AUTH0_DOMAIN;
+```
 
 # Add Auth0 Authentication to the Client
 
@@ -1342,27 +1373,15 @@ Install the Auth0 React SDK
 npm install @auth0/auth0-react
 ```
 
-Create the `.env` file.
-```
-VITE_REACT_APP_AUTH0_DOMAIN=  // 👈 Auth0 domain
-VITE_REACT_APP_AUTH0_CLIENT_ID=  // 👈 Auth0 application clientId
-```
-
 Create `auth0-provider-with-navigate.tsx`.
 ```TypeScript
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { config } from "@/config/config";
 
 const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
-  const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
-  const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
-
-  if (!(domain && clientId)) {
-    return null;
-  }
-
   const navigate = useNavigate();
 
   interface AppState {
@@ -1375,8 +1394,8 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
 
   return (
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={config.AUTH0_DOMAIN}
+      clientId={config.AUTH0_CLIENT_ID}
       authorizationParams={{ redirect_uri: window.location.origin }}
       onRedirectCallback={onRedirectCallback}
     >
