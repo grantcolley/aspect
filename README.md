@@ -2349,6 +2349,26 @@ VITE_REACT_APP_AUTH0_CLIENT_ID=
 VITE_REACT_API_URL=http://localhost:3000  // 👈 add local API url
 VITE_REACT_API_NAVIGATION_URL=api/navigation // 👈 add navigation route
 ```
+Update `apps/client/src/config/config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1);
+  VITE_REACT_API_URL: z.string().min(1), // 👈 add local API url
+  VITE_REACT_API_NAVIGATION_URL: z.string().min(1), // 👈 add navigation route
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+  API_URL: env.VITE_REACT_API_URL, // 👈 add local API url
+  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL, // 👈 add navigation route
+};
+```
 
 Update `app-sidebar.tsx` to fetch module data from the web API's navigation route.
 ```TypeScript
@@ -2357,6 +2377,7 @@ import { useEffect, useState } from "react";
 import { IconWorld } from "@tabler/icons-react";
 import { NavigationPanel } from "@/components/layout/navigation-panel";
 import { Module } from "shared/src/models/module";
+import { config } from "@/config/config"; // 👈 import config
 import {
   Sidebar,
   SidebarContent,
@@ -2372,9 +2393,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
-    import.meta.env.VITE_REACT_API_NAVIGATION_URL
-  }`;
+  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;  // 👈 consume config
 
   useEffect(() => {
     const fetchModules = async () => {
