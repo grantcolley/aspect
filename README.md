@@ -2523,19 +2523,16 @@ import navigationRouter from "./routes/navigation";
 // code removed for brevity...
 
 const start = async () => {
-  app.use(navigationEndpoint, navigationRouter);
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
 
+  // handle all exceptions
   app.use(errorHandler); // 👈 add the errorHandler last
 
-  if (!HOST) {
-    app.listen(PORT, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  } else {
-    app.listen(PORT, HOST, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  }
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
 };
 
 start();
