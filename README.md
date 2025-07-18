@@ -1360,6 +1360,7 @@ Create `.env` file at `apps/server/.env`
 NODE_ENV=development
 HOST_URL=localhost
 HOST_PORT=3000
+DATABASE=../../../../db/aspect.sqlite
 CORS_URL=http://localhost:5173
 ENDPOINT_NAVIGATION=/api/navigation
 ```
@@ -1374,7 +1375,8 @@ dotenv.config();
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
   HOST_URL: z.string().min(1),
-  HOST_PORT: z.string().transform(Number)
+  HOST_PORT: z.string().transform(Number),
+  DATABASE: z.string().min(1),
   CORS_URL: z.string().min(1),
   ENDPOINT_NAVIGATION: z.string().min(1)
 });
