@@ -2206,15 +2206,9 @@ import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
