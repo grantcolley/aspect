@@ -13,9 +13,13 @@ import { seedAuthorisation } from "./seedAuthorisation";
 sqlite3.verbose();
 
 async function seed() {
-  dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+  dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-  let dbFile = `./${process.env.DATABASE}`;
+  if (!process.env.DATABASE) {
+    throw new Error("DATABASE environment variable is not set");
+  }
+
+  let dbFile = process.env.DATABASE;
 
   if (fs.existsSync(dbFile)) {
     fs.unlinkSync(dbFile);
