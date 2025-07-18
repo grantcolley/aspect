@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IconWorld } from "@tabler/icons-react";
 import { NavigationPanel } from "@/components/layout/navigation-panel";
 import { Module } from "shared/src/models/module";
+import { config } from "@/config/config";
 import {
   Sidebar,
   SidebarContent,
@@ -19,9 +20,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
 
-  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
-    import.meta.env.VITE_REACT_API_NAVIGATION_URL
-  }`;
+  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
 
   useEffect(() => {
     if (!isAuthenticated) {

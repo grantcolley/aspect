@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
+import { config } from "../config/config";
 import logger from "../logger/logger";
 
 export const errorHandler = (
@@ -11,7 +12,7 @@ export const errorHandler = (
   let statusCode = 500;
   let message = "Internal Server Error";
 
-  if (process.env.NODE_ENV !== "production") {
+  if (config.NODE_ENV !== "production") {
     console.error(`[Error]: ${message}`);
     message = err.message || message;
     statusCode = err instanceof AspectError ? err.statusCode : 500;

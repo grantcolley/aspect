@@ -1,5 +1,4 @@
 import path from "path";
-import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Category } from "shared/src/models/category";
@@ -7,15 +6,9 @@ import { Page } from "shared/src/models/page";
 import { CategoryPage } from "shared/src/interfaces/categoryPage";
 import { categorySchema } from "shared/src/validation/categorySchema";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 

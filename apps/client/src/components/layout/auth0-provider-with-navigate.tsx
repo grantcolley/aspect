@@ -1,17 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { config } from "@/config/config";
 
 const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
-  const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
-  const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
-  const audience = import.meta.env.VITE_REACT_APP_AUTH0_AUDIENCE;
-
-  if (!(domain && clientId)) {
-    return null;
-  }
-
   const navigate = useNavigate();
 
   interface AppState {
@@ -24,11 +17,11 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
 
   return (
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={config.AUTH0_DOMAIN}
+      clientId={config.AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: window.location.origin,
-        audience: audience || undefined,
+        audience: config.AUTH0_AUDIENCE || undefined,
       }}
       onRedirectCallback={onRedirectCallback}
     >
