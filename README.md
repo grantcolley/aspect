@@ -50,6 +50,9 @@ aspect
 * [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
 * [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
 * [Support Dark/Light Theme](#support-darklight-theme)
+* [Centralize Access to `env` Variables in a `config.ts` Module](#centralize-access-to-env-variables-in-a-configts-module)
+	* [Client `config.ts`](#client-configts)
+	* [Server `config.ts`](#server-configts)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
@@ -104,11 +107,6 @@ Create a root `tsconfig.base.json`.
     "baseUrl": "."
   }
 }
-```
-
-Create a `env.development` file.
-```
-DATABASE=aspect.sqlite
 ```
 
 Replace the content of `.gitignore` with:
@@ -177,6 +175,11 @@ Install `dotenv`.
 npm install dotenv
 ```
 
+Inside the `apps/db` folder create `apps/db/.env` file.
+```
+DATABASE=aspect.sqlite
+```
+
 Inside the `apps/db` folder create subfolder `apps/db/src/data`.
 
 Create the `apps/db/src/data/userData.ts`.
@@ -222,20 +225,24 @@ export async function seedUsers(db: Database, users: User[]) {
 
 Create the `apps/db/src/seed.ts`.
 ```TypeScript
-import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
 import { getUsers } from "./data/userData";
-const fs = require("fs");
 
 sqlite3.verbose();
 
 async function seed() {
-  dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
+  dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-  let dbFile = `./${process.env.DATABASE}`;
+  if (!process.env.DATABASE) {
+    throw new Error("DATABASE environment variable is not set");
+  }
+
+  let dbFile = process.env.DATABASE;
 
   if (fs.existsSync(dbFile)) {
     fs.unlinkSync(dbFile);
@@ -1319,6 +1326,88 @@ export function SidebarHeader() {
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
 
+# Centralize Access to `env` Variables in a `config.ts` Module
+The best way to access `.env` variables is to:
+- Centralize access in a `config.ts` module
+- Type them for safety
+- Fail fast if any required `env` variables are missing by using `zod` for runtime validation
+
+### Client `config.ts`
+Create `.env` file at `apps/client/.env`
+```
+VITE_REACT_APP_AUTH0_DOMAIN=// 👈 Auth0 domain
+VITE_REACT_APP_AUTH0_CLIENT_ID=// 👈 Auth0 application clientId
+```
+
+Create `apps/client/src/config/config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+};
+```
+Client environment variables can now be consumed anywhere like this:
+```JSX
+import { config } from "@/config/config";
+
+const domain = config.AUTH0_DOMAIN;
+```
+
+### Server `config.ts`
+Create `.env` file at `apps/server/.env`
+```
+NODE_ENV=development
+HOST_URL=localhost
+HOST_PORT=3000
+DATABASE=../../../../db/aspect.sqlite
+CORS_URL=http://localhost:5173
+ENDPOINT_NAVIGATION=/api/navigation
+```
+
+Create `apps/server/src/config/config.ts`
+```TypeScript
+import dotenv from "dotenv";
+import { z } from "zod";
+
+dotenv.config();
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]),
+  HOST_URL: z.string().min(1),
+  HOST_PORT: z.string().transform(Number),
+  DATABASE: z.string().min(1),
+  CORS_URL: z.string().min(1),
+  ENDPOINT_NAVIGATION: z.string().min(1)
+});
+
+const env = envSchema.safeParse(process.env);
+
+if (!env.success) {
+  console.error(
+    "Invalid environment variables:",
+    env.error.flatten().fieldErrors
+  );
+  process.exit(1);
+}
+
+export const config = env.data;
+```
+Server environment variables can now be consumed anywhere like this:
+```JSX
+import { config } from "@/config/config";
+
+const hostUrl = config.HOST_URL;
+```
+
 # Add Auth0 Authentication to the Client
 
 > [!TIP]
@@ -1338,27 +1427,15 @@ Install the Auth0 React SDK
 npm install @auth0/auth0-react
 ```
 
-Create the `.env.developmnent` file.
-```
-VITE_REACT_APP_AUTH0_DOMAIN=  // 👈 Auth0 domain
-VITE_REACT_APP_AUTH0_CLIENT_ID=  // 👈 Auth0 application clientId
-```
-
 Create `auth0-provider-with-navigate.tsx`.
 ```TypeScript
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { config } from "@/config/config";
 
 const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
-  const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
-  const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
-
-  if (!(domain && clientId)) {
-    return null;
-  }
-
   const navigate = useNavigate();
 
   interface AppState {
@@ -1371,8 +1448,8 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
 
   return (
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={config.AUTH0_DOMAIN}
+      clientId={config.AUTH0_CLIENT_ID}
       authorizationParams={{ redirect_uri: window.location.origin }}
       onRedirectCallback={onRedirectCallback}
     >
@@ -2213,7 +2290,7 @@ router.get(
 
 export default router;
 ```
-Create `apps/server/env.development`
+Create `apps/server/.env`
 ```
 HOST_URL=localhost
 HOST_PORT=3000
@@ -2276,12 +2353,32 @@ const start = async () => {
 start();
 ```
 # Call the Navigation Route from the Client
-In the Client project update the the `.env.developmnent` file.
+In the Client project update the the `.env` file.
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
 VITE_REACT_APP_AUTH0_CLIENT_ID=
 VITE_REACT_API_URL=http://localhost:3000  // 👈 add local API url
 VITE_REACT_API_NAVIGATION_URL=api/navigation // 👈 add navigation route
+```
+Update `apps/client/src/config/config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+  VITE_REACT_API_URL: z.string().min(1), // 👈 add local API url
+  VITE_REACT_API_NAVIGATION_URL: z.string().min(1), // 👈 add navigation route
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+  API_URL: env.VITE_REACT_API_URL, // 👈 add local API url
+  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL, // 👈 add navigation route
+};
 ```
 
 Update `app-sidebar.tsx` to fetch module data from the web API's navigation route.
@@ -2291,6 +2388,7 @@ import { useEffect, useState } from "react";
 import { IconWorld } from "@tabler/icons-react";
 import { NavigationPanel } from "@/components/layout/navigation-panel";
 import { Module } from "shared/src/models/module";
+import { config } from "@/config/config"; // 👈 import config
 import {
   Sidebar,
   SidebarContent,
@@ -2306,9 +2404,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
-    import.meta.env.VITE_REACT_API_NAVIGATION_URL
-  }`;
+  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;  // 👈 consume config
 
   useEffect(() => {
     const fetchModules = async () => {
@@ -2577,7 +2673,7 @@ Update `.gitignore` to ignore the logging output.
 node_modules
 dist
 .env.local
-.env.development
+.env
 *.sqlite
 sqlite3.exe
 *-audit.json   // 👈 add
@@ -2597,7 +2693,7 @@ Install the Auth0 SDK in the server.
 npm install --save express-oauth2-jwt-bearer
 ```
 
-Update the server's `apps/server/env.development`.
+Update the server's `apps/server/.env`.
 ```
 HOST_URL=localhost
 HOST_PORT=3000
@@ -2652,36 +2748,63 @@ const start = async () => {
 start();
 ```
 
-Update the client's `apps/client/env.development`
+Update the client's `apps/client/.env`
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
 VITE_REACT_APP_AUTH0_CLIENT_ID=
-VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add
+VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add the audience
 VITE_REACT_API_URL=http://localhost:3000
 VITE_REACT_API_NAVIGATION_URL=api/navigation
+```
+Update `apps/client/src/config/config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+  VITE_REACT_APP_AUTH0_AUDIENCE: z.string().min(1), // 👈 add the audience
+  VITE_REACT_API_URL: z.string().min(1),
+  VITE_REACT_API_NAVIGATION_URL: z.string().min(1),
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+  AUTH0_AUDIENCE: env.VITE_REACT_APP_AUTH0_AUDIENCE, // 👈 add the audience
+  API_URL: env.VITE_REACT_API_URL,
+  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL,
+};
 ```
 
 Add Authorizatrion Parameters to `Auth0Provider` in `apps/client/src/components/layout/auth0-provider-with-navigate.tsx`
 ```TypeScript
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { config } from "@/config/config";
 
 const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
-  const domain = import.meta.env.VITE_REACT_APP_AUTH0_DOMAIN;
-  const clientId = import.meta.env.VITE_REACT_APP_AUTH0_CLIENT_ID;
-  const audience = import.meta.env.VITE_REACT_APP_AUTH0_AUDIENCE; // 👈 add
+  const navigate = useNavigate();
 
-  // code removed for brevity
+  interface AppState {
+    returnTo?: string;
+  }
+
+  const onRedirectCallback = (appState?: AppState) => {
+    navigate(appState?.returnTo || window.location.pathname);
+  };
 
   return (
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
-      authorizationParams={{ 
+      domain={config.AUTH0_DOMAIN}
+      clientId={config.AUTH0_CLIENT_ID}
+      authorizationParams={{
         redirect_uri: window.location.origin,
-        audience: audience || undefined, // 👈 add
+        audience: config.AUTH0_AUDIENCE || undefined, // 👈 add the audience
       }}
       onRedirectCallback={onRedirectCallback}
     >
@@ -2706,9 +2829,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, getAccessTokenSilently } = useAuth0(); // 👈 add
 
-  const navigationUrl = `${import.meta.env.VITE_REACT_API_URL}/${
-    import.meta.env.VITE_REACT_API_NAVIGATION_URL
-  }`;
+ const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
 
   useEffect(() => {
     if (!isAuthenticated) {  // 👈 add
@@ -3013,8 +3134,6 @@ export async function seedUsers(db: Database, users: User[]) {
 ```
 Update seed class class `db/src/seed.ts`.
 ```TypeScript
-import dotenv from "dotenv";
-import path from "path";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
@@ -3028,8 +3147,6 @@ const fs = require("fs");
 sqlite3.verbose();
 
 async function seed() {
-  dotenv.config({ path: path.resolve(__dirname, "../../.env.development") });
-
   let dbFile = `./${process.env.DATABASE}`;
 
   if (fs.existsSync(dbFile)) {
@@ -3062,7 +3179,7 @@ seed().catch((err) => {
 
 # Add API Endpoints
 ## Create Endpoint Variables in `.env` File
-Update the server's `apps/server/env.development` with the permissions endpoint.
+Update the server's `apps/server/.env` with the permissions endpoint.
 ```
 HOST_URL=localhost
 HOST_PORT=3000
