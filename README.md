@@ -226,6 +226,8 @@ export async function seedUsers(db: Database, users: User[]) {
 Create the `apps/db/src/seed.ts`.
 ```TypeScript
 import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
@@ -234,7 +236,13 @@ import { getUsers } from "./data/userData";
 sqlite3.verbose();
 
 async function seed() {
-  let dbFile = `./${process.env.DATABASE}`;
+  dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+  if (!process.env.DATABASE) {
+    throw new Error("DATABASE environment variable is not set");
+  }
+
+  let dbFile = process.env.DATABASE;
 
   if (fs.existsSync(dbFile)) {
     fs.unlinkSync(dbFile);
