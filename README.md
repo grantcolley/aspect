@@ -2442,6 +2442,7 @@ Create folder `apps/server/src/middleware` and inside a create centralized error
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
+import { config } from "../config/config";
 
 export const errorHandler = (
   err: Error | AspectError,
@@ -2452,7 +2453,7 @@ export const errorHandler = (
   const statusCode = err instanceof AspectError ? err.statusCode : 500;
   const message = err.message || "Something went wrong";
 
-  if (process.env.NODE_ENV !== "production") {
+  if (config.NODE_ENV !== "production") {
     console.error(`[Error]: ${message}`);
   }
 
@@ -2599,6 +2600,7 @@ Update the `errorHandler` at `apps/server/src/middleware/errorHandler.ts` to log
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
+import { config } from "../config/config";
 import logger from "../logger/logger";
 
 export const errorHandler = (
@@ -2610,7 +2612,7 @@ export const errorHandler = (
   let statusCode = 500;
   let message = "Internal Server Error";
 
-  if (process.env.NODE_ENV !== "production") {
+  if (config.NODE_ENV !== "production") {
     console.error(`[Error]: ${message}`);
     message = err.message || message;
     statusCode = err instanceof AspectError ? err.statusCode : 500;
