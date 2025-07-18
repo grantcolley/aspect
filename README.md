@@ -177,7 +177,7 @@ npm install dotenv
 
 Inside the `apps/db` folder create `apps/db/.env` file.
 ```
-DATABASE=aspect.sqlite
+DATABASE=./aspect.sqlite
 ```
 
 Inside the `apps/db` folder create subfolder `apps/db/src/data`.
