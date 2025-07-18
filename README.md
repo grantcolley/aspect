@@ -1357,6 +1357,7 @@ const domain = config.AUTH0_DOMAIN;
 ### Server `config.ts`
 Create `.env` file at `apps/server/.env`
 ```
+NODE_ENV=development
 HOST_URL=localhost
 HOST_PORT=3000
 CORS_URL=http://localhost:5173
