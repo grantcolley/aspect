@@ -177,7 +177,7 @@ npm install dotenv
 
 Inside the `apps/db` folder create `apps/db/.env` file.
 ```
-DATABASE=aspect.sqlite
+DATABASE=./aspect.sqlite
 ```
 
 Inside the `apps/db` folder create subfolder `apps/db/src/data`.
@@ -2206,15 +2206,9 @@ import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
@@ -2290,64 +2284,34 @@ router.get(
 
 export default router;
 ```
-Create `apps/server/.env`
-```
-HOST_URL=localhost
-HOST_PORT=3000
-CORS_URL=http://localhost:5173
-ENDPOINT_NAVIGATION=/api/navigation
-```
 
 Update the `apps/server/src/index.ts`
 ```TypeScript
 import express from "express";
 import cors from "cors";
-import path from "path";
-import dotenv from "dotenv";
+import { config } from "./config/config";
 import navigationRouter from "./routes/navigation";
-
-const env = process.env.NODE_ENV || "development";
-
-dotenv.config({ path: path.resolve(__dirname, `../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../.env.${env}`) });
-
-const HOST = process.env.HOST_URL || "localhost";
-const PORT = process.env.HOST_PORT ? parseInt(process.env.HOST_PORT) : 3000;
-
-if (!process.env.DATABASE) {
-  throw new Error("DATABASE environment variable is not set");
-}
-
-if (!process.env.ENDPOINT_NAVIGATION) {
-  throw new Error("ENDPOINT_NAVIGATION environment variable is not set");
-}
-
-const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
 
 const app = express();
 app.use(express.json());
 
-if (process.env.CORS_URL) {
+if (config.CORS_URL) {
   app.use(
     cors({
-      origin: `${process.env.CORS_URL}`, // or use '*' for all origins (not recommended for production)
+      origin: `${config.CORS_URL}`, // or use '*' for all origins (not recommended for production)
       credentials: true, // if you're using cookies or HTTP auth
     })
   );
 }
 
 const start = async () => {
-  app.use(navigationEndpoint, navigationRouter);
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
 
-  if (!HOST) {
-    app.listen(PORT, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  } else {
-    app.listen(PORT, HOST, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  }
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
 };
 
 start();
@@ -2478,6 +2442,7 @@ Create folder `apps/server/src/middleware` and inside a create centralized error
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
+import { config } from "../config/config";
 
 export const errorHandler = (
   err: Error | AspectError,
@@ -2488,7 +2453,7 @@ export const errorHandler = (
   const statusCode = err instanceof AspectError ? err.statusCode : 500;
   const message = err.message || "Something went wrong";
 
-  if (process.env.NODE_ENV !== "production") {
+  if (config.NODE_ENV !== "production") {
     console.error(`[Error]: ${message}`);
   }
 
@@ -2558,19 +2523,16 @@ import navigationRouter from "./routes/navigation";
 // code removed for brevity...
 
 const start = async () => {
-  app.use(navigationEndpoint, navigationRouter);
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
 
+  // handle all exceptions
   app.use(errorHandler); // 👈 add the errorHandler last
 
-  if (!HOST) {
-    app.listen(PORT, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  } else {
-    app.listen(PORT, HOST, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  }
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
 };
 
 start();
@@ -2635,6 +2597,7 @@ Update the `errorHandler` at `apps/server/src/middleware/errorHandler.ts` to log
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
+import { config } from "../config/config";
 import logger from "../logger/logger";
 
 export const errorHandler = (
@@ -2646,7 +2609,7 @@ export const errorHandler = (
   let statusCode = 500;
   let message = "Internal Server Error";
 
-  if (process.env.NODE_ENV !== "production") {
+  if (config.NODE_ENV !== "production") {
     console.error(`[Error]: ${message}`);
     message = err.message || message;
     statusCode = err instanceof AspectError ? err.statusCode : 500;
@@ -2695,8 +2658,10 @@ npm install --save express-oauth2-jwt-bearer
 
 Update the server's `apps/server/.env`.
 ```
+NODE_ENV=development
 HOST_URL=localhost
 HOST_PORT=3000
+DATABASE=../../../../db/aspect.sqlite
 AUTH_AUDIENCE=https://Aspect.API.com 	// 👈 add
 AUTH_ISSUER_BASE_URL=https:		// 👈 add
 AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
@@ -2709,16 +2674,10 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
-import { auth } from "express-oauth2-jwt-bearer";
+import { auth } from "express-oauth2-jwt-bearer"; // 👈 import
+import { config } from "./config/config";
 import { errorHandler } from "./middleware/errorHandler";
 import navigationRouter from "./routes/navigation";
-
-// code removed for brevity
-
-const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
-const authAudience = process.env.AUTH_AUDIENCE;	// 👈 add
-const authIssuerBaseURL = process.env.AUTH_ISSUER_BASE_URL;	// 👈 add
-const authTokenSigningAlg = process.env.AUTH_TOKEN_SIGNING_ALGORITHM;	// 👈 add
 
 // code removed for brevity
 
@@ -2727,9 +2686,9 @@ const start = async () => {
 // 👇 new code
 
   const jwtCheck = auth({
-    audience: authAudience,
-    issuerBaseURL: authIssuerBaseURL,
-    tokenSigningAlg: authTokenSigningAlg,
+    audience: config.AUTH_AUDIENCE,
+    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
+    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
   });
 
   // enforce on all endpoints
@@ -3134,6 +3093,9 @@ export async function seedUsers(db: Database, users: User[]) {
 ```
 Update seed class class `db/src/seed.ts`.
 ```TypeScript
+import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { seedUsers } from "./seedUsers";
@@ -3147,7 +3109,13 @@ const fs = require("fs");
 sqlite3.verbose();
 
 async function seed() {
-  let dbFile = `./${process.env.DATABASE}`;
+  dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+  if (!process.env.DATABASE) {
+    throw new Error("DATABASE environment variable is not set");
+  }
+
+  let dbFile = process.env.DATABASE;
 
   if (fs.existsSync(dbFile)) {
     fs.unlinkSync(dbFile);
@@ -3211,15 +3179,9 @@ import { dbConnection } from "../data/db";
 import { Permission } from "shared/src/models/permission";
 import { permissionSchema } from "shared/src/validation/permissionSchema";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
@@ -3336,15 +3298,9 @@ import { Permission } from "shared/src/models/permission";
 import { RolePermission } from "shared/src/interfaces/rolePermission";
 import { roleSchema } from "shared/src/validation/roleSchema";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
@@ -3562,15 +3518,9 @@ import { Role } from "shared/src/models/role";
 import { UserRole } from "shared/src/interfaces/userRole";
 import { userSchema } from "shared/src/validation/userSchema";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
@@ -3772,15 +3722,9 @@ import { dbConnection } from "../data/db";
 import { Page } from "shared/src/models/page";
 import { pageSchema } from "shared/src/validation/pageSchema";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
@@ -3899,15 +3843,9 @@ import { Page } from "shared/src/models/page";
 import { CategoryPage } from "shared/src/interfaces/categoryPage";
 import { categorySchema } from "shared/src/validation/categorySchema";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
@@ -4117,15 +4055,9 @@ import { Category } from "shared/src/models/category";
 import { ModuleCategory } from "shared/src/interfaces/moduleCategory";
 import { moduleSchema } from "shared/src/validation/moduleSchema";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-const env = process.env.NODE_ENV || "development";
-dotenv.config({ path: path.resolve(__dirname, `../../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) });
-
-const dbFile = path.resolve(
-  __dirname,
-  `../../../../db/${process.env.DATABASE}`
-);
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
 const router = Router();
 
@@ -4340,26 +4272,17 @@ import permissionsRouter from "./routes/permissions";
 import rolesRouter from "./routes/roles";
 import usersRouter from "./routes/users";
 import pagesRouter from "./routes/pages";
+import categoriesRouter from "./routes/categories";
+import modulesRouter from "./routes/modules";
 // 👆 import new routers
-
-// code removed for brevity...
-
-const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
-
-// 👇 fetch new endpoints
-const permissionsEndpoint = process.env.ENDPOINT_PERMISSIONS;
-const rolesEndpoint = process.env.ENDPOINT_ROLES;
-const usersEndpoint = process.env.ENDPOINT_USERS;
-const pagesEndpoint = process.env.ENDPOINT_PAGES;
-// 👆 fetch new endpoints
 
 // code removed for brevity...
 
 const start = async () => {
   const jwtCheck = auth({
-    audience: authAudience,
-    issuerBaseURL: authIssuerBaseURL,
-    tokenSigningAlg: authTokenSigningAlg,
+    audience: config.AUTH_AUDIENCE,
+    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
+    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
   });
 
   // code removed for brevity...
@@ -4367,10 +4290,12 @@ const start = async () => {
   app.use(navigationEndpoint, navigationRouter);
 
   // 👇 add new routes
-  app.use(permissionsEndpoint, permissionsRouter);
-  app.use(rolesEndpoint, rolesRouter);
-  app.use(usersEndpoint, usersRouter);
-  app.use(pagesEndpoint, pagesRouter);
+  app.use(config.ENDPOINT_PERMISSIONS, permissionsRouter);
+  app.use(config.ENDPOINT_ROLES, rolesRouter);
+  app.use(config.ENDPOINT_USERS, usersRouter);
+  app.use(config.ENDPOINT_PAGES, pagesRouter);
+  app.use(config.ENDPOINT_CATEGORIES, categoriesRouter);
+  app.use(config.ENDPOINT_MODULES, modulesRouter);
   // 👆 add new routes
 
   // code removed for brevity...
