@@ -2284,64 +2284,34 @@ router.get(
 
 export default router;
 ```
-Create `apps/server/.env`
-```
-HOST_URL=localhost
-HOST_PORT=3000
-CORS_URL=http://localhost:5173
-ENDPOINT_NAVIGATION=/api/navigation
-```
 
 Update the `apps/server/src/index.ts`
 ```TypeScript
 import express from "express";
 import cors from "cors";
-import path from "path";
-import dotenv from "dotenv";
+import { config } from "./config/config";
 import navigationRouter from "./routes/navigation";
-
-const env = process.env.NODE_ENV || "development";
-
-dotenv.config({ path: path.resolve(__dirname, `../../../.env.${env}`) });
-dotenv.config({ path: path.resolve(__dirname, `../.env.${env}`) });
-
-const HOST = process.env.HOST_URL || "localhost";
-const PORT = process.env.HOST_PORT ? parseInt(process.env.HOST_PORT) : 3000;
-
-if (!process.env.DATABASE) {
-  throw new Error("DATABASE environment variable is not set");
-}
-
-if (!process.env.ENDPOINT_NAVIGATION) {
-  throw new Error("ENDPOINT_NAVIGATION environment variable is not set");
-}
-
-const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
 
 const app = express();
 app.use(express.json());
 
-if (process.env.CORS_URL) {
+if (config.CORS_URL) {
   app.use(
     cors({
-      origin: `${process.env.CORS_URL}`, // or use '*' for all origins (not recommended for production)
+      origin: `${config.CORS_URL}`, // or use '*' for all origins (not recommended for production)
       credentials: true, // if you're using cookies or HTTP auth
     })
   );
 }
 
 const start = async () => {
-  app.use(navigationEndpoint, navigationRouter);
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
 
-  if (!HOST) {
-    app.listen(PORT, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  } else {
-    app.listen(PORT, HOST, () =>
-      console.log(`Server running on http://${HOST}:${PORT}`)
-    );
-  }
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
 };
 
 start();
