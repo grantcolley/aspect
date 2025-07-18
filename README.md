@@ -2661,8 +2661,10 @@ npm install --save express-oauth2-jwt-bearer
 
 Update the server's `apps/server/.env`.
 ```
+NODE_ENV=development
 HOST_URL=localhost
 HOST_PORT=3000
+DATABASE=../../../../db/aspect.sqlite
 AUTH_AUDIENCE=https://Aspect.API.com 	// 👈 add
 AUTH_ISSUER_BASE_URL=https:		// 👈 add
 AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
@@ -2675,16 +2677,10 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
-import { auth } from "express-oauth2-jwt-bearer";
+import { auth } from "express-oauth2-jwt-bearer"; // 👈 import
+import { config } from "./config/config";
 import { errorHandler } from "./middleware/errorHandler";
 import navigationRouter from "./routes/navigation";
-
-// code removed for brevity
-
-const navigationEndpoint = process.env.ENDPOINT_NAVIGATION;
-const authAudience = process.env.AUTH_AUDIENCE;	// 👈 add
-const authIssuerBaseURL = process.env.AUTH_ISSUER_BASE_URL;	// 👈 add
-const authTokenSigningAlg = process.env.AUTH_TOKEN_SIGNING_ALGORITHM;	// 👈 add
 
 // code removed for brevity
 
@@ -2693,9 +2689,9 @@ const start = async () => {
 // 👇 new code
 
   const jwtCheck = auth({
-    audience: authAudience,
-    issuerBaseURL: authIssuerBaseURL,
-    tokenSigningAlg: authTokenSigningAlg,
+    audience: config.AUTH_AUDIENCE,
+    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
+    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
   });
 
   // enforce on all endpoints
