@@ -962,17 +962,18 @@ In `App.css` change the `max-width` and `padding`.
 ```
 
 In `main.tsx` wrap the `<App />` component with `<BrowserRouter>`.
-```TypeScript
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from "react-router-dom"; // 👈 add
-import './index.css'
-import App from './App.tsx'
+```JSX
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";  // 👈 add
+import "./index.css";
+import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>  // 👈 add
+    <BrowserRouter> // 👈 add
       <App />
-    </BrowserRouter> // 👈 add
+    </BrowserRouter>   // 👈 add
   </StrictMode>
 );
 ```
@@ -1121,7 +1122,7 @@ npx shadcn@latest add tooltip
 ```
 
 Create the `theme-provider.tsx`.
-```TypeScript
+```TSX
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -1253,42 +1254,28 @@ export function ThemeToggle() {
 }
 ```
 
-Wrap your root layout in `App.tsx`.
-```TypeScript
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarHeader } from "@/components/layout/sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { ThemeProvider } from "@/components/layout/theme-provider";  // 👈 add import
-import "./App.css";
+In `main.tsx` wrap `App` with `<ThemeProvider>`.
+```TSX
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add
+import "./index.css";
+import App from "./App.tsx";
 
-function App() {
-  return (
-    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">  // 👈 add ThemeProvider
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <SidebarHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2"></div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </ThemeProvider>
-  );
-}
-
-export default App;
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">   // 👈 add
+        <App />
+      </ThemeProvider>   // 👈 add
+    </BrowserRouter>
+  </StrictMode>
+);
 ```
 
 Add `ThemeToggle` to `sidebar-header.tsx`.
-```TypeScript
+```TSX
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -1466,6 +1453,7 @@ Configure the `auth0-provider-with-navigate.tsx` component in `main.tsx`.
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx";
 import "./index.css";
 import App from "./App.tsx";
@@ -1474,7 +1462,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Auth0ProviderWithNavigate> // 👈 inside <BrowserRouter><BrowserRouter />
-        <App />
+        <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
+          <App />
+        </ThemeProvider>
       </Auth0ProviderWithNavigate>
     </BrowserRouter>
   </StrictMode>
