@@ -1253,38 +1253,20 @@ export function ThemeToggle() {
 }
 ```
 
-Wrap your root layout in `App.tsx`.
-```TypeScript
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarHeader } from "@/components/layout/sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { ThemeProvider } from "@/components/layout/theme-provider";  // 👈 add import
-import "./App.css";
+In `main.tsx` wrap `App` with `<ThemeProvider>`.
+```
+import { createRoot } from 'react-dom/client'
+import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add
+import './index.css'
+import App from './App.tsx'
 
-function App() {
-  return (
-    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">  // 👈 add ThemeProvider
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <SidebarHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2"></div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </ThemeProvider>
-  );
-}
-
-export default App;
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">  // 👈 add
+      <App />
+    </ThemeProvider> // 👈 add
+  </StrictMode>
+);
 ```
 
 Add `ThemeToggle` to `sidebar-header.tsx`.
