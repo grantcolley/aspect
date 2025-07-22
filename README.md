@@ -1121,7 +1121,7 @@ npx shadcn@latest add tooltip
 ```
 
 Create the `theme-provider.tsx`.
-```TypeScript
+```TSX
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -1254,7 +1254,7 @@ export function ThemeToggle() {
 ```
 
 In `main.tsx` wrap `App` with `<ThemeProvider>`.
-```TypeScript
+```TSX
 import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add
 import './index.css'
@@ -1270,7 +1270,7 @@ createRoot(document.getElementById("root")!).render(
 ```
 
 Add `ThemeToggle` to `sidebar-header.tsx`.
-```TypeScript
+```TSX
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
