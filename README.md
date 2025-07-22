@@ -961,23 +961,6 @@ In `App.css` change the `max-width` and `padding`.
 }
 ```
 
-In `main.tsx` wrap the `<App />` component with `<BrowserRouter>`.
-```JSX
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";  // 👈 add
-import "./index.css";
-import App from "./App.tsx";
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BrowserRouter> // 👈 add
-      <App />
-    </BrowserRouter>   // 👈 add
-  </StrictMode>
-);
-```
-
 Install the `sidebar` components.
 ```bash
 npx shadcn@latest add sidebar
@@ -1082,29 +1065,32 @@ export function AppSidebarHeader() {
 
 Change the `App.tsx`.
 ```TypeScript
-import { AppSidebar } from "@/components/app-sidebar";
-import { AppSidebarHeader } from "@/components/app-sidebar-header";
+import { BrowserRouter } from "react-router-dom";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import "./App.css";
 
 function App() {
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <AppSidebarHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2"></div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <BrowserRouter>
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <AppSidebarHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2"></div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </BrowserRouter>
   );
 }
 
@@ -1254,24 +1240,41 @@ export function ThemeToggle() {
 }
 ```
 
-In `main.tsx` wrap `App` with `<ThemeProvider>`.
+In `App.tsx` wrap `<SidebarProvider>` with `<ThemeProvider>`.
 ```TSX
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add
-import "./index.css";
-import App from "./App.tsx";
+import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add import
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import "./App.css";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+function App() {
+  return (
     <BrowserRouter>
-      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">   // 👈 add
-        <App />
-      </ThemeProvider>   // 👈 add
+      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme"> // 👈 
+        <SidebarProvider
+          style={
+            {
+              "--sidebar-width": "calc(var(--spacing) * 72)",
+              "--header-height": "calc(var(--spacing) * 12)",
+            } as React.CSSProperties
+          }
+        >
+          <AppSidebar variant="inset" />
+          <SidebarInset>
+            <AppSidebarHeader />
+            <div className="flex flex-1 flex-col">
+              <div className="@container/main flex flex-1 flex-col gap-2"></div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </ThemeProvider> // 👈 
     </BrowserRouter>
-  </StrictMode>
-);
+  );
+}
+
+export default App;
 ```
 
 Add `ThemeToggle` to `sidebar-header.tsx`.
@@ -1448,27 +1451,44 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
 export default Auth0ProviderWithNavigate;
 ```
 
-Configure the `auth0-provider-with-navigate.tsx` component in `main.tsx`.
+Configure the `<Auth0ProviderWithNavigate>` component in `App.tsx`.
 ```TypeScript
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx";
-import "./index.css";
-import App from "./App.tsx";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx"; // 👈 import
+import "./App.css";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+function App() {
+  return (
     <BrowserRouter>
-      <Auth0ProviderWithNavigate> // 👈 inside <BrowserRouter><BrowserRouter />
+      <Auth0ProviderWithNavigate>  // 👈 inside <BrowserRouter><BrowserRouter />
         <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
-          <App />
+          <SidebarProvider
+            style={
+              {
+                "--sidebar-width": "calc(var(--spacing) * 72)",
+                "--header-height": "calc(var(--spacing) * 12)",
+              } as React.CSSProperties
+            }
+          >
+            <AppSidebar variant="inset" />
+            <SidebarInset>
+              <AppSidebarHeader />
+              <div className="flex flex-1 flex-col">
+                <div className="@container/main flex flex-1 flex-col gap-2"></div>
+              </div>
+            </SidebarInset>
+          </SidebarProvider>
         </ThemeProvider>
       </Auth0ProviderWithNavigate>
     </BrowserRouter>
-  </StrictMode>
-);
+  );
+}
+
+export default App;
 ```
 
 Create the `login.tsx` component.
