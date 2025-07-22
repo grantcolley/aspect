@@ -963,19 +963,17 @@ In `App.css` change the `max-width` and `padding`.
 
 In `main.tsx` wrap the `<App />` component with `<BrowserRouter>`.
 ```JSX
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from "react-router-dom"; // 👈 add
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";  // 👈 add
+import "./index.css";
+import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>  { // 👈 add }
-      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
-        <App />
-      </ThemeProvider>
-    </BrowserRouter> { // 👈 add }
+    <BrowserRouter> // 👈 add
+      <App />
+    </BrowserRouter>   // 👈 add
   </StrictMode>
 );
 ```
@@ -1258,16 +1256,20 @@ export function ThemeToggle() {
 
 In `main.tsx` wrap `App` with `<ThemeProvider>`.
 ```TSX
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add
-import './index.css'
-import App from './App.tsx'
+import "./index.css";
+import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">  // 👈 add
-      <App />
-    </ThemeProvider> // 👈 add
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">   // 👈 add
+        <App />
+      </ThemeProvider>   // 👈 add
+    </BrowserRouter>
   </StrictMode>
 );
 ```
@@ -1451,6 +1453,7 @@ Configure the `auth0-provider-with-navigate.tsx` component in `main.tsx`.
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx";
 import "./index.css";
 import App from "./App.tsx";
@@ -1459,7 +1462,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Auth0ProviderWithNavigate> // 👈 inside <BrowserRouter><BrowserRouter />
-        <App />
+        <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
+          <App />
+        </ThemeProvider>
       </Auth0ProviderWithNavigate>
     </BrowserRouter>
   </StrictMode>
