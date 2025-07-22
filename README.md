@@ -1254,7 +1254,7 @@ export function ThemeToggle() {
 ```
 
 In `main.tsx` wrap `App` with `<ThemeProvider>`.
-```
+```TypeScript
 import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add
 import './index.css'
