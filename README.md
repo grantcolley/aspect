@@ -962,17 +962,20 @@ In `App.css` change the `max-width` and `padding`.
 ```
 
 In `main.tsx` wrap the `<App />` component with `<BrowserRouter>`.
-```TypeScript
+```JSX
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from "react-router-dom"; // 👈 add
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import './index.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>  // 👈 add
-      <App />
-    </BrowserRouter> // 👈 add
+    <BrowserRouter>  { // 👈 add }
+      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
+        <App />
+      </ThemeProvider>
+    </BrowserRouter> { // 👈 add }
   </StrictMode>
 );
 ```
