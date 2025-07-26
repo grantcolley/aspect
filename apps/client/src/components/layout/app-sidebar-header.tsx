@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import Authentication from "./authentication";
+import Authentication from "../../auth/authentication";
 
 export function AppSidebarHeader() {
   const { isAuthenticated } = useAuth0();
