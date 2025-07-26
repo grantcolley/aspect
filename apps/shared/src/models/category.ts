@@ -7,7 +7,6 @@ export class Category implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   pages: Page[];
 
@@ -16,7 +15,6 @@ export class Category implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     pages: Page[] = []
   ) {
@@ -24,7 +22,6 @@ export class Category implements Permissionable, Editability {
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.pages = pages;
   }

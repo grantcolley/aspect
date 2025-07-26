@@ -7,7 +7,6 @@ export class User implements Permissionable, Editability {
   name: string;
   email: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   roles: Role[];
 
@@ -16,7 +15,6 @@ export class User implements Permissionable, Editability {
     name: string,
     email: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     roles: Role[] = []
   ) {
@@ -24,7 +22,6 @@ export class User implements Permissionable, Editability {
     this.name = name;
     this.email = email;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.roles = roles;
   }

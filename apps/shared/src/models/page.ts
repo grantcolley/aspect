@@ -6,8 +6,8 @@ export class Page implements Permissionable, Editability {
   name: string;
   icon: string;
   url: string;
+  component: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
 
   constructor(
@@ -15,16 +15,16 @@ export class Page implements Permissionable, Editability {
     name: string,
     icon: string,
     url: string,
+    component: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false
   ) {
     this.pageId = pageId;
     this.name = name;
     this.icon = icon;
     this.url = url;
+    this.component = component;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
   }
 }

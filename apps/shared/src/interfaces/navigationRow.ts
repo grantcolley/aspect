@@ -11,5 +11,6 @@ export interface NavigationRow {
   pName: string;
   pIcon: string;
   pUrl: string;
+  pComponent: string;
   pPermission: string;
 }

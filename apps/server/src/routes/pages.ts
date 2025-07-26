@@ -15,7 +15,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
-      SELECT    pageId, name, icon, url, permission  
+      SELECT    pageId, name, icon, url, component, permission  
       FROM 	    pages
     `);
 
@@ -29,7 +29,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
       `
-      SELECT    pageId, name, icon, url, permission  
+      SELECT    pageId, name, icon, url, component, permission  
       FROM 	    pages
       WHERE     pageId = ?
     `,
@@ -57,7 +57,7 @@ router.post(
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO pages (name, icon, url, permission) VALUES (?, ?, ?, ?)",
+      "INSERT INTO pages (name, icon, url, component, permission) VALUES (?, ?, ?, ?, ?)",
       [name, icon, url, permission]
     );
 
@@ -78,19 +78,26 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, url, permission } = parsed.data;
+    const { name, icon, url, component, permission } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE pages SET name = ?, icon = ?, url = ?, permission = ? WHERE pageId = ?",
-      [name, icon, url, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, url = ?, component = ?, permission = ? WHERE pageId = ?",
+      [name, icon, url, component, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
       return res.status(404).json({ error: "Page not found" });
     }
 
-    res.json({ pageId: _req.params.id, name, icon, url, permission });
+    res.json({
+      pageId: _req.params.id,
+      name,
+      icon,
+      url,
+      component,
+      permission,
+    });
   })
 );
 
