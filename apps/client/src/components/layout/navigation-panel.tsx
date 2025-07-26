@@ -1,7 +1,7 @@
+import { Link } from "react-router-dom";
 import { IconChevronRight } from "@tabler/icons-react";
 import IconLoader from "@/components/icons/IconLoader";
 import { Module } from "shared/src/models/module";
-import type { Visibility } from "shared/src/interfaces/visibility";
 import {
   Collapsible,
   CollapsibleContent,
@@ -22,21 +22,17 @@ type Props = {
   modules: Module[];
 };
 
-const isVisible = (visibility: Visibility) => {
-  return visibility.isVisible;
-};
-
 export function NavigationPanel({ modules }: Props) {
   return (
     <>
-      {modules.filter(isVisible).map((module) => (
+      {modules.map((module) => (
         <SidebarGroup key={module.moduleId}>
           <SidebarGroupLabel>
             <IconLoader name={module.icon} />
             <span>&nbsp;{module.name}</span>
           </SidebarGroupLabel>
           <SidebarMenu>
-            {module.categories.filter(isVisible).map((category) => (
+            {module.categories.map((category) => (
               <Collapsible
                 key={category.categoryId}
                 asChild
@@ -52,13 +48,13 @@ export function NavigationPanel({ modules }: Props) {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {category.pages?.filter(isVisible).map((page) => (
+                      {category.pages?.map((page) => (
                         <SidebarMenuSubItem key={page.pageId}>
                           <SidebarMenuSubButton asChild>
-                            <a href={page.url}>
+                            <Link to={page.url}>
                               <IconLoader name={page.icon} />
                               <span>{page.name}</span>
-                            </a>
+                            </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
