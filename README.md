@@ -1046,35 +1046,92 @@ export function AppSidebarHeader() {
 }
 ```
 
-Change the `App.tsx`.
+Create `apps/client/src/components/layout/main-layout.tsx`.
 ```TypeScript
-import { BrowserRouter } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+
+export const MainLayout = () => {
+  return (
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <AppSidebarHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <Outlet />
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+};
+```
+
+Create page `apps/client/src/pages/not-found.tsx`.
+```TypeScript
+const NotFound = () => (
+  <>
+    <h4 className="scroll-m-20 text-xl font-semibold tracking-tight mt-20">
+      Oops!
+    </h4>
+    <p className="text-muted-foreground text-xl">Nothing to see here...</p>
+    <p className="text-muted-foreground text-sm">404 - Not Found</p>
+  </>
+);
+export default NotFound;
+```
+
+Change the `App.tsx`.
+```TypeScript
+import { useEffect, useState } from "react";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  type RouteObject,
+} from "react-router-dom";
+import { MainLayout } from "@/components/layout/main-layout";
+import NotFound from "./pages/NotFound";
 import "./App.css";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <AppSidebarHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2"></div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </BrowserRouter>
-  );
+  const [router, setRouter] = useState<ReturnType<
+    typeof createBrowserRouter
+  > | null>(null);
+
+  useEffect(() => {
+    const setupRoutes = async () => {
+      let routes: RouteObject[] = [];
+      let children: RouteObject[] = [];
+
+      children.push({ path: "*", element: <NotFound /> });
+
+      routes = [
+        {
+          path: "/",
+          element: <MainLayout />,
+          children,
+        },
+      ];
+
+      setRouter(createBrowserRouter(routes));
+    };
+
+    setupRoutes();
+  }, []);
+
+  if (!router) return <></>;
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;
