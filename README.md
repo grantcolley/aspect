@@ -2175,34 +2175,12 @@ export const dbConnection = async (dbFile: string) => {
 };
 ```
 
-Create data interface `apps/server/src/interfaces/navigationRow.ts` for extracting the rows from the database.
-```TypeScript
-export interface NavigationRow {
-  moduleId: number;
-  mName: string;
-  mIcon: string;
-  mPermission: string;
-
-  categoryId: number;
-  cName: string;
-  cIcon: string;
-  cPermission: string;
-
-  pageId: number;
-  pName: string;
-  pIcon: string;
-  pUrl: string;
-  pPermission: string;
-}
-```
-
 Create the route `apps/server/src/route/navigation.ts`.
 ```TypeScript
 import path from "path";
-import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
-import { NavigationRow } from "../interfaces/navigationRow";
+import { NavigationRow } from "shared/src/interfaces/navigationRow";
 import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
@@ -2220,7 +2198,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.url pUrl, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -2248,11 +2226,9 @@ router.get(
       if (!category) {
         category = new Category(
           row.categoryId,
-          row.moduleId,
           row.cName,
           row.cIcon,
-          row.cPermission,
-          true
+          row.cPermission
         );
         categoriesMap.set(row.categoryId, category);
       }
@@ -2266,12 +2242,11 @@ router.get(
 
       const page = new Page(
         row.pageId,
-        row.categoryId,
         row.pName,
         row.pIcon,
-        row.pUrl,
-        row.pPermission,
-        true
+        row.pPath,
+        row.pComponent,
+        row.pPermission
       );
 
       if (!category.pages.some((p) => p.pageId === page.pageId)) {
@@ -2346,83 +2321,148 @@ export const config = {
 };
 ```
 
-Update `app-sidebar.tsx` to fetch module data from the web API's navigation route.
+Create page `apps/client/src/pages/generic-grid.tsx` for the target path for pages in the navigation panel.
 ```TypeScript
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { IconWorld } from "@tabler/icons-react";
-import { NavigationPanel } from "@/components/layout/navigation-panel";
-import { Module } from "shared/src/models/module";
-import { config } from "@/config/config"; // 👈 import config
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { useLocation, type Location } from "react-router-dom";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [modules, setModules] = useState<Module[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;  // 👈 consume config
-
-  useEffect(() => {
-    const fetchModules = async () => {
-      try {
-        const response = await fetch(navigationUrl);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data: Module[] = await response.json();
-
-        setModules(data);
-      } catch (err) {
-        setError("Failed to fetch modules");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchModules();
-  }, []); // 👈 empty array means "run only on first render"
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
-
+function GenericGrid() {
+  const location: Location = useLocation();
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <IconWorld className="!size-5" />
-                <span className="text-base font-semibold">Aspect</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavigationPanel modules={modules}></NavigationPanel>
-      </SidebarContent>
-      <SidebarFooter></SidebarFooter>
-    </Sidebar>
+    <div className="text-red-500">GenericGrid for {location.pathname}</div>
   );
 }
+
+export default GenericGrid;
 ```
 
+Create page `apps/client/src/pages/not-found.tsx` for the fallback if the target path doesn't find the intended page.
+```TypeScript
+const NotFound = () => (
+  <>
+    <h4 className="scroll-m-20 text-xl font-semibold tracking-tight mt-20">
+      Oops!
+    </h4>
+    <p className="text-muted-foreground text-xl">Nothing to see here...</p>
+    <p className="text-muted-foreground text-sm">404 - Not Found</p>
+  </>
+);
+export default NotFound;
+```
+
+Create utility function `apps/client/src/utils/fetch-lazy-components.ts` for `fetchLazyComponents` to handle deferred loading of target route components.
+```TypeScript
+import React from "react";
+
+interface LazyComponentMap {
+  [key: string]: React.LazyExoticComponent<React.FC>;
+}
+
+export const fetchLazyComponents: () => LazyComponentMap =
+  (): LazyComponentMap => ({
+    GenericGrid: React.lazy(() => import("../pages/generic-grid")),
+  });
+```
+
+Create request function `apps/client/src/utils/fetch-modules.ts` for `fetchModules` to handle the request to the API.
+```TypeScript
+import { config } from "@/config/config";
+import { Module } from "shared/src/models/module";
+
+export const fetchModules = async (token: string) => {
+  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
+
+  const response = await fetch(navigationUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data: Module[] = await response.json();
+
+  return data;
+};
+```
+
+Finally, update `App.tsx` to fetch the modules and dynamically load the `routes` using the response.
+```TypeScript
+import { useEffect, useState, Suspense } from "react";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  type RouteObject,
+} from "react-router-dom";
+import { MainLayout } from "@/components/layout/main-layout";
+import { AuthenticationRoute } from "@/auth/authentication-route";
+import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
+import { fetchModules } from "@/requests/fetch-modules";
+import { useAuth0 } from "@auth0/auth0-react";
+import NotFound from "./pages/not-found";
+import "./App.css";
+
+const lazyComponents = fetchLazyComponents();
+
+function App() {
+  const { isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0();
+  const [router, setRouter] = useState<ReturnType<
+    typeof createBrowserRouter
+  > | null>(null);
+
+  useEffect(() => {
+    const setupRoutes = async () => {
+      let routes: RouteObject[] = [];
+      let children: RouteObject[] = [];
+
+      const token = await getAccessTokenSilently();
+
+      const modules = await fetchModules(token);
+
+      const pages = modules.flatMap((module) =>
+        module.categories.flatMap((category) => category.pages)
+      );
+
+      children = pages.map((p) => {
+        const LazyComp = lazyComponents[p.component] ?? NotFound;
+        const element = (
+          <Suspense fallback={<div>Loading...</div>}>
+            <AuthenticationRoute>
+              <LazyComp />
+            </AuthenticationRoute>
+          </Suspense>
+        );
+
+        return {
+          path: p.path,
+          element,
+        };
+      });
+
+      children.push({ path: "*", element: <NotFound /> });
+
+      routes = [
+        {
+          path: "/",
+          element: <MainLayout modules={modules ?? []} />,
+          children,
+        },
+      ];
+
+      setRouter(createBrowserRouter(routes));
+    };
+
+    if (isAuthenticated) setupRoutes();
+  }, [isAuthenticated]);
+
+  if (isLoading || !router) return <></>;
+
+  return <RouterProvider router={router} />;
+}
+
+export default App;
+```
 # Add Structured Error Handling to the Node.js Server
 Create folder `apps/server/src/errors` and inside a custom error class `apps/server/src/errors/aspectError.ts`.
 ```TypeScript
