@@ -1709,7 +1709,7 @@ npx shadcn@latest add collapsible
 Create an `icons` folder at `apps/client/src/components/icons`.
 \
 \
-In the `apps/client/src/components/icons` folder create `iconsMap.ts`.
+Create `apps/client/src/components/icons/iconsMap.ts`.
 ```TypeScript
 import {
   IconHome,
@@ -1736,7 +1736,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
 };
 ```
 
-In the `apps/client/src/components/icons` folder create `iconLoader.tsx`.
+Create `apps/client/src/components/icons/iconLoader.tsx`.
 ```TypeScript
 import React from "react";
 import { IconPhotoExclamation } from "@tabler/icons-react";
@@ -1759,12 +1759,12 @@ const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
 export default IconLoader;
 ```
 
-In the `apps/client/src/components/layout` folder create `navigation-panel.tsx`.
+Create `apps/client/src/components/layout/navigation-panel.tsx`.
 ```TypeScript
+import { Link } from "react-router-dom";
 import { IconChevronRight } from "@tabler/icons-react";
 import IconLoader from "@/components/icons/IconLoader";
 import { Module } from "shared/src/models/module";
-import type { Visibility } from "shared/src/interfaces/visibility";
 import {
   Collapsible,
   CollapsibleContent,
@@ -1785,21 +1785,17 @@ type Props = {
   modules: Module[];
 };
 
-const isVisible = (visibility: Visibility) => {
-  return visibility.isVisible;
-};
-
 export function NavigationPanel({ modules }: Props) {
   return (
     <>
-      {modules.filter(isVisible).map((module) => (
+      {modules.map((module) => (
         <SidebarGroup key={module.moduleId}>
           <SidebarGroupLabel>
             <IconLoader name={module.icon} />
             <span>&nbsp;{module.name}</span>
           </SidebarGroupLabel>
           <SidebarMenu>
-            {module.categories.filter(isVisible).map((category) => (
+            {module.categories.map((category) => (
               <Collapsible
                 key={category.categoryId}
                 asChild
@@ -1815,13 +1811,13 @@ export function NavigationPanel({ modules }: Props) {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {category.pages?.filter(isVisible).map((page) => (
+                      {category.pages?.map((page) => (
                         <SidebarMenuSubItem key={page.pageId}>
                           <SidebarMenuSubButton asChild>
-                            <a href={page.url}>
+                            <Link to={page.path}>
                               <IconLoader name={page.icon} />
                               <span>{page.name}</span>
-                            </a>
+                            </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
@@ -1841,9 +1837,10 @@ export function NavigationPanel({ modules }: Props) {
 Update `app-sidebar.tsx` to add `NavigationPanel` and pass dummy data into it.
 ```TypeScript
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { IconWorld } from "@tabler/icons-react";
-import { NavigationPanel } from "@/components/layout/navigation-panel"; // 👈 import the NavigationPanel
-import { Module } from "shared/src/models/module"; // 👈 import Module
+import { NavigationPanel } from "@/components/layout/navigation-panel";  // 👈 import
+import { Module } from "shared/src/models/module";  // 👈 import
 import {
   Sidebar,
   SidebarContent,
@@ -1854,85 +1851,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = [	// 👈 create the dummy data
-  {
-    moduleId: 1,
-    name: "Administration",
-    icon: "settings",
-    permission: "admin_ro|admin_rw",
-    isVisible: true,
-    categories: [
-      {
-        categoryId: 1,
-        name: "Authorisation",
-        icon: "authorisation",
-        permission: "auth_ro|auth_rw",
-        isVisible: true,
-        pages: [
-          {
-            pageId: 1,
-            name: "Users",
-            icon: "users",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 2,
-            name: "Roles",
-            icon: "roles",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 3,
-            name: "Permissions",
-            icon: "permissions",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-        ],
-      },
-      {
-        categoryId: 2,
-        name: "Applications",
-        icon: "applications",
-        permission: "apps_ro|apps_rw",
-        isVisible: true,
-        pages: [
-          {
-            pageId: 4,
-            name: "Modules",
-            icon: "modules",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 5,
-            name: "Categories",
-            icon: "categories",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 6,
-            name: "Pages",
-            icon: "pages",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-        ],
-      },
-    ],
-  },
-] as Module[];
+type Props = {  // 👈 add
+  modules: Module[];
+} & React.ComponentProps<typeof Sidebar>;
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ modules, ...props }: Props) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -1942,16 +1865,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link to="/">
                 <IconWorld className="!size-5" />
                 <span className="text-base font-semibold">Aspect</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavigationPanel modules={data}></NavigationPanel> // 👈 add NavigationPanel, passing dummy data into it
+        <NavigationPanel modules={modules}></NavigationPanel>  // 👈 add
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
     </Sidebar>
