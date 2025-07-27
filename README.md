@@ -1147,7 +1147,7 @@ npx shadcn@latest add dropdown-menu
 npx shadcn@latest add tooltip
 ```
 
-Create the `theme-provider.tsx`.
+Create the `apps/client/src/components/layout/theme-provider.tsx`.
 ```TSX
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -1224,7 +1224,7 @@ export const useTheme = () => {
 };
 ```
 
-Create the `theme-toggle.tsx`.
+Create the `apps/client/src/components/layout/theme-toggle.tsx`.
 ```TypeScript
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
@@ -1437,7 +1437,7 @@ Install the Auth0 React SDK
 npm install @auth0/auth0-react
 ```
 
-Create `auth0-provider-with-navigate.tsx`.
+Create `apps/client/src/auth/auth0-provider-with-navigate.tsx`.
 ```TypeScript
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
@@ -1471,14 +1471,45 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
 export default Auth0ProviderWithNavigate;
 ```
 
-Configure the `<Auth0ProviderWithNavigate>` component in `App.tsx`.
+Configure the `<Auth0ProviderWithNavigate>` in `main-layout.tsx`.
 ```TypeScript
+import { Outlet } from "react-router-dom";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import Auth0ProviderWithNavigate from "@/auth/auth0-provider-with-navigate"; // 👈 import
+
+export const MainLayout = () => {
+  return (
+    <Auth0ProviderWithNavigate> // 👈 inside <App>'s <RouteProvider /> for history to work
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <AppSidebarHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              <Outlet />
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </Auth0ProviderWithNavigate>
+  );
+};
+
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx"; // 👈 import
+import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx"; 
 import "./App.css";
 
 function App() {
@@ -1511,7 +1542,7 @@ function App() {
 export default App;
 ```
 
-Create the `login.tsx` component.
+Create the `apps/client/src/auth/login.tsx` component.
 ```TypeScript
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
@@ -1548,7 +1579,7 @@ const Login = () => {
 export default Login;
 ```
 
-Create the `logout.tsx` component.
+Create the `apps/client/src/auth/logout.tsx` component.
 ```TypeScript
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
@@ -1587,7 +1618,7 @@ const Logout = () => {
 export default Logout;
 ```
 
-Create the `authentication.tsx` component.
+Create the `apps/client/src/auth/authentication.tsx` component.
 ```TypeScript
 import { useAuth0 } from "@auth0/auth0-react";
 import Login from "./login";
@@ -1615,24 +1646,33 @@ export default Authentication;
 
 Add the `authentication.tsx` component to the `app-sidebar-header.tsx`.
 ```TypeScript
+import { useAuth0 } from "@auth0/auth0-react"; // 👈 import
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import Authentication from "./authentication"; // 👈 import Authentication
+import Authentication from "../../auth/authentication"; // 👈 import
 
 export function AppSidebarHeader() {
+  const { isAuthenticated } = useAuth0(); // 👈
+
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mx-2 data-[orientation=vertical]:h-4"
-        />
+        {isAuthenticated ? ( // 👈
+          <>
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mx-2 data-[orientation=vertical]:h-4"
+            />
+          </>
+        ) : (
+          <></>
+        )}
         <h1 className="text-base font-medium">Home</h1>
         <div className="ml-auto flex items-center gap-2">
-          <Authentication /> // 👈 add authentication
+          <Authentication /> // 👈
           <ThemeToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
