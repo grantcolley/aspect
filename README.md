@@ -972,9 +972,10 @@ To fix this go to the top of `components/ui/sidebar.tsx`, and add `type` in fron
 import { cva, type VariantProps } from "class-variance-authority"
 ```
 
-Create `app-sidebar.tsx` in `apps/client/src/components`.
+Create `apps/client/src/components/layout/app-sidebar.tsx`.
 ```TypeScript
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { IconWorld } from "@tabler/icons-react";
 import {
   Sidebar,
@@ -996,10 +997,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link to="/">
                 <IconWorld className="!size-5" />
                 <span className="text-base font-semibold">Aspect</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -1011,7 +1012,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 ```
 
-Create `app-sidebar-header.tsx` in `apps/client/src/components`.
+Create `apps/client/src/components/layout/app-sidebar-header.tsx`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
