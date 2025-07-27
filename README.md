@@ -551,7 +551,6 @@ export interface Editability {
 `apps/shared/src/interfaces/permissionable.ts`
 ```TypeScript
 export interface Permissionable {
-  isVisible: boolean;
   permission: string;
 }
 ```
@@ -597,7 +596,8 @@ export interface NavigationRow {
   pageId: number;
   pName: string;
   pIcon: string;
-  pUrl: string;
+  pPath: string;
+  pComponent: string;
   pPermission: string;
 }
 ```
@@ -615,26 +615,26 @@ export class Page implements Permissionable, Editability {
   pageId: number;
   name: string;
   icon: string;
-  url: string;
+  path: string;
+  component: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
 
   constructor(
     pageId: number,
     name: string,
     icon: string,
-    url: string,
+    path: string,
+    component: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false
   ) {
     this.pageId = pageId;
     this.name = name;
     this.icon = icon;
-    this.url = url;
+    this.path = path;
+    this.component = component;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
   }
 }
@@ -650,7 +650,6 @@ export class Category implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   pages: Page[];
 
@@ -659,7 +658,6 @@ export class Category implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     pages: Page[] = []
   ) {
@@ -667,7 +665,6 @@ export class Category implements Permissionable, Editability {
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.pages = pages;
   }
@@ -694,7 +691,6 @@ export class Module implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   categories: Category[];
 
@@ -703,7 +699,6 @@ export class Module implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     categories: Category[] = []
   ) {
@@ -711,7 +706,6 @@ export class Module implements Permissionable, Editability {
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.categories = categories;
   }
@@ -741,20 +735,17 @@ export class Permission implements Permissionable, Editability {
   permissionId: number;
   name: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
 
   constructor(
     permissionId: number,
     name: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false
   ) {
     this.permissionId = permissionId;
     this.name = name;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
   }
 }
@@ -769,7 +760,6 @@ export class Role implements Permissionable, Editability {
   roleId: number;
   name: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   permissions: Permission[];
 
@@ -777,14 +767,12 @@ export class Role implements Permissionable, Editability {
     roleId: number,
     name: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     permissions: Permission[] = []
   ) {
     this.roleId = roleId;
     this.name = name;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.permissions = permissions;
   }
@@ -815,7 +803,6 @@ export class User implements Permissionable, Editability {
   name: string;
   email: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   roles: Role[];
 
@@ -824,7 +811,6 @@ export class User implements Permissionable, Editability {
     name: string,
     email: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     roles: Role[] = []
   ) {
@@ -832,7 +818,6 @@ export class User implements Permissionable, Editability {
     this.name = name;
     this.email = email;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.roles = roles;
   }
@@ -858,13 +843,10 @@ Create the navigation validation schema `moduleSchema`, `categorySchema` and `pa
 import { z } from "zod";
 
 export const pageSchema = z.object({
-  categoryId: z
-    .number()
-    .int()
-    .positive("Category ID must be a positive integer"),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
-  url: z.string().min(1, "URL is required"),
+  path: z.string().min(1, "Path is required"),
+  component: z.string().min(1, "Component is required"),
   permission: z.string().min(1, "Permission is required"),
 });
 
@@ -990,9 +972,10 @@ To fix this go to the top of `components/ui/sidebar.tsx`, and add `type` in fron
 import { cva, type VariantProps } from "class-variance-authority"
 ```
 
-Create `app-sidebar.tsx` in `apps/client/src/components`.
+Create `apps/client/src/components/layout/app-sidebar.tsx`.
 ```TypeScript
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { IconWorld } from "@tabler/icons-react";
 import {
   Sidebar,
@@ -1014,10 +997,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link to="/">
                 <IconWorld className="!size-5" />
                 <span className="text-base font-semibold">Aspect</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -1029,7 +1012,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 ```
 
-Create `app-sidebar-header.tsx` in `apps/client/src/components`.
+Create `apps/client/src/components/layout/app-sidebar-header.tsx`.
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -1063,35 +1046,92 @@ export function AppSidebarHeader() {
 }
 ```
 
-Change the `App.tsx`.
+Create `apps/client/src/components/layout/main-layout.tsx`.
 ```TypeScript
-import { BrowserRouter } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+
+export const MainLayout = () => {
+  return (
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <AppSidebarHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <Outlet />
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+};
+```
+
+Create page `apps/client/src/pages/not-found.tsx`.
+```TypeScript
+const NotFound = () => (
+  <>
+    <h4 className="scroll-m-20 text-xl font-semibold tracking-tight mt-20">
+      Oops!
+    </h4>
+    <p className="text-muted-foreground text-xl">Nothing to see here...</p>
+    <p className="text-muted-foreground text-sm">404 - Not Found</p>
+  </>
+);
+export default NotFound;
+```
+
+Change the `App.tsx`.
+```TypeScript
+import { useEffect, useState } from "react";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  type RouteObject,
+} from "react-router-dom";
+import { MainLayout } from "@/components/layout/main-layout";
+import NotFound from "./pages/NotFound";
 import "./App.css";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <AppSidebarHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2"></div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </BrowserRouter>
-  );
+  const [router, setRouter] = useState<ReturnType<
+    typeof createBrowserRouter
+  > | null>(null);
+
+  useEffect(() => {
+    const setupRoutes = async () => {
+      let routes: RouteObject[] = [];
+      let children: RouteObject[] = [];
+
+      children.push({ path: "*", element: <NotFound /> });
+
+      routes = [
+        {
+          path: "/",
+          element: <MainLayout />,
+          children,
+        },
+      ];
+
+      setRouter(createBrowserRouter(routes));
+    };
+
+    setupRoutes();
+  }, []);
+
+  if (!router) return <></>;
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;
@@ -1107,7 +1147,7 @@ npx shadcn@latest add dropdown-menu
 npx shadcn@latest add tooltip
 ```
 
-Create the `theme-provider.tsx`.
+Create the `apps/client/src/components/layout/theme-provider.tsx`.
 ```TSX
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -1184,7 +1224,7 @@ export const useTheme = () => {
 };
 ```
 
-Create the `theme-toggle.tsx`.
+Create the `apps/client/src/components/layout/theme-toggle.tsx`.
 ```TypeScript
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
@@ -1240,41 +1280,21 @@ export function ThemeToggle() {
 }
 ```
 
-In `App.tsx` wrap `<SidebarProvider>` with `<ThemeProvider>`.
+In `main.tsx` wrap `<App>` with `<ThemeProvider>`.
 ```TSX
-import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add import
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import "./App.css";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { ThemeProvider } from "@/components/layout/theme-provider";  // 👈 add import
+import "./index.css";
+import App from "./App.tsx";
 
-function App() {
-  return (
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme"> // 👈 
-        <SidebarProvider
-          style={
-            {
-              "--sidebar-width": "calc(var(--spacing) * 72)",
-              "--header-height": "calc(var(--spacing) * 12)",
-            } as React.CSSProperties
-          }
-        >
-          <AppSidebar variant="inset" />
-          <SidebarInset>
-            <AppSidebarHeader />
-            <div className="flex flex-1 flex-col">
-              <div className="@container/main flex flex-1 flex-col gap-2"></div>
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </ThemeProvider> // 👈 
-    </BrowserRouter>
-  );
-}
-
-export default App;
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme"> // 👈 
+      <App />
+    </ThemeProvider> // 👈 
+  </StrictMode>
+);
 ```
 
 Add `ThemeToggle` to `sidebar-header.tsx`.
@@ -1417,7 +1437,7 @@ Install the Auth0 React SDK
 npm install @auth0/auth0-react
 ```
 
-Create `auth0-provider-with-navigate.tsx`.
+Create `apps/client/src/auth/auth0-provider-with-navigate.tsx`.
 ```TypeScript
 import { useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
@@ -1451,14 +1471,45 @@ const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
 export default Auth0ProviderWithNavigate;
 ```
 
-Configure the `<Auth0ProviderWithNavigate>` component in `App.tsx`.
-```TypeScript
+Configure the `<Auth0ProviderWithNavigate>` in `main-layout.tsx`.
+```TSX
+import { Outlet } from "react-router-dom";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import Auth0ProviderWithNavigate from "@/auth/auth0-provider-with-navigate"; // 👈 import
+
+export const MainLayout = () => {
+  return (
+    <Auth0ProviderWithNavigate> // 👈 inside <App>'s <RouteProvider /> for history to work
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <AppSidebarHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              <Outlet />
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </Auth0ProviderWithNavigate>
+  );
+};
+
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx"; // 👈 import
+import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx"; 
 import "./App.css";
 
 function App() {
@@ -1491,8 +1542,8 @@ function App() {
 export default App;
 ```
 
-Create the `login.tsx` component.
-```TypeScript
+Create the `apps/client/src/auth/login.tsx` component.
+```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
 import { IconLogin2 } from "@tabler/icons-react";
@@ -1528,8 +1579,8 @@ const Login = () => {
 export default Login;
 ```
 
-Create the `logout.tsx` component.
-```TypeScript
+Create the `apps/client/src/auth/logout.tsx` component.
+```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
 import { IconLogout } from "@tabler/icons-react";
@@ -1567,8 +1618,8 @@ const Logout = () => {
 export default Logout;
 ```
 
-Create the `authentication.tsx` component.
-```TypeScript
+Create the `apps/client/src/auth/authentication.tsx` component.
+```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import Login from "./login";
 import Logout from "./logout";
@@ -1594,25 +1645,34 @@ export default Authentication;
 ```
 
 Add the `authentication.tsx` component to the `app-sidebar-header.tsx`.
-```TypeScript
+```TSX
+import { useAuth0 } from "@auth0/auth0-react"; // 👈 import
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import Authentication from "./authentication"; // 👈 import Authentication
+import Authentication from "../../auth/authentication"; // 👈 import
 
 export function AppSidebarHeader() {
+  const { isAuthenticated } = useAuth0(); // 👈
+
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mx-2 data-[orientation=vertical]:h-4"
-        />
+        {isAuthenticated ? ( // 👈
+          <>
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mx-2 data-[orientation=vertical]:h-4"
+            />
+          </>
+        ) : (
+          <></>
+        )}
         <h1 className="text-base font-medium">Home</h1>
         <div className="ml-auto flex items-center gap-2">
-          <Authentication /> // 👈 add authentication
+          <Authentication /> // 👈
           <ThemeToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
@@ -1649,7 +1709,7 @@ npx shadcn@latest add collapsible
 Create an `icons` folder at `apps/client/src/components/icons`.
 \
 \
-In the `apps/client/src/components/icons` folder create `iconsMap.ts`.
+Create `apps/client/src/components/icons/iconsMap.ts`.
 ```TypeScript
 import {
   IconHome,
@@ -1676,7 +1736,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
 };
 ```
 
-In the `apps/client/src/components/icons` folder create `iconLoader.tsx`.
+Create `apps/client/src/components/icons/iconLoader.tsx`.
 ```TypeScript
 import React from "react";
 import { IconPhotoExclamation } from "@tabler/icons-react";
@@ -1699,12 +1759,12 @@ const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
 export default IconLoader;
 ```
 
-In the `apps/client/src/components/layout` folder create `navigation-panel.tsx`.
+Create `apps/client/src/components/layout/navigation-panel.tsx`.
 ```TypeScript
+import { Link } from "react-router-dom";
 import { IconChevronRight } from "@tabler/icons-react";
 import IconLoader from "@/components/icons/IconLoader";
 import { Module } from "shared/src/models/module";
-import type { Visibility } from "shared/src/interfaces/visibility";
 import {
   Collapsible,
   CollapsibleContent,
@@ -1725,21 +1785,17 @@ type Props = {
   modules: Module[];
 };
 
-const isVisible = (visibility: Visibility) => {
-  return visibility.isVisible;
-};
-
 export function NavigationPanel({ modules }: Props) {
   return (
     <>
-      {modules.filter(isVisible).map((module) => (
+      {modules.map((module) => (
         <SidebarGroup key={module.moduleId}>
           <SidebarGroupLabel>
             <IconLoader name={module.icon} />
             <span>&nbsp;{module.name}</span>
           </SidebarGroupLabel>
           <SidebarMenu>
-            {module.categories.filter(isVisible).map((category) => (
+            {module.categories.map((category) => (
               <Collapsible
                 key={category.categoryId}
                 asChild
@@ -1755,13 +1811,13 @@ export function NavigationPanel({ modules }: Props) {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {category.pages?.filter(isVisible).map((page) => (
+                      {category.pages?.map((page) => (
                         <SidebarMenuSubItem key={page.pageId}>
                           <SidebarMenuSubButton asChild>
-                            <a href={page.url}>
+                            <Link to={page.path}>
                               <IconLoader name={page.icon} />
                               <span>{page.name}</span>
-                            </a>
+                            </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
@@ -1781,9 +1837,10 @@ export function NavigationPanel({ modules }: Props) {
 Update `app-sidebar.tsx` to add `NavigationPanel` and pass dummy data into it.
 ```TypeScript
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { IconWorld } from "@tabler/icons-react";
-import { NavigationPanel } from "@/components/layout/navigation-panel"; // 👈 import the NavigationPanel
-import { Module } from "shared/src/models/module"; // 👈 import Module
+import { NavigationPanel } from "@/components/layout/navigation-panel";  // 👈 import
+import { Module } from "shared/src/models/module";  // 👈 import
 import {
   Sidebar,
   SidebarContent,
@@ -1794,85 +1851,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = [	// 👈 create the dummy data
-  {
-    moduleId: 1,
-    name: "Administration",
-    icon: "settings",
-    permission: "admin_ro|admin_rw",
-    isVisible: true,
-    categories: [
-      {
-        categoryId: 1,
-        name: "Authorisation",
-        icon: "authorisation",
-        permission: "auth_ro|auth_rw",
-        isVisible: true,
-        pages: [
-          {
-            pageId: 1,
-            name: "Users",
-            icon: "users",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 2,
-            name: "Roles",
-            icon: "roles",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 3,
-            name: "Permissions",
-            icon: "permissions",
-            url: "#",
-            permission: "auth_ro|auth_rw",
-            isVisible: true,
-          },
-        ],
-      },
-      {
-        categoryId: 2,
-        name: "Applications",
-        icon: "applications",
-        permission: "apps_ro|apps_rw",
-        isVisible: true,
-        pages: [
-          {
-            pageId: 4,
-            name: "Modules",
-            icon: "modules",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 5,
-            name: "Categories",
-            icon: "categories",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-          {
-            pageId: 6,
-            name: "Pages",
-            icon: "pages",
-            url: "#",
-            permission: "apps_ro|apps_rw",
-            isVisible: true,
-          },
-        ],
-      },
-    ],
-  },
-] as Module[];
+type Props = {  // 👈 add
+  modules: Module[];
+} & React.ComponentProps<typeof Sidebar>;
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ modules, ...props }: Props) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -1882,16 +1865,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link to="/">
                 <IconWorld className="!size-5" />
                 <span className="text-base font-semibold">Aspect</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavigationPanel modules={data}></NavigationPanel> // 👈 add NavigationPanel, passing dummy data into it
+        <NavigationPanel modules={modules}></NavigationPanel>  // 👈 add
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
     </Sidebar>
@@ -1957,21 +1940,24 @@ export function getModules() {
               pageId: 1,
               name: "Users",
               icon: "users",
-              url: "api/users",
+              path: "users",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 2,
               name: "Roles",
               icon: "roles",
-              url: "api/roles",
+              path: "roles",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 3,
               name: "Permissions",
               icon: "permissions",
-              url: "api/permissions",
+              path: "permissions",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -1986,21 +1972,24 @@ export function getModules() {
               pageId: 4,
               name: "Modules",
               icon: "modules",
-              url: "api/modules",
+              path: "modules",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 5,
               name: "Categories",
               icon: "categories",
-              url: "api/categories",
+              path: "categories",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 6,
               name: "Pages",
               icon: "pages",
-              url: "api/pages",
+              path: "pages",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -2040,7 +2029,8 @@ export async function seedModules(db: Database, modules: Module[]) {
       pageId INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       icon TEXT NOT NULL,
-      url TEXT NOT NULL,
+      path TEXT NOT NULL,
+      component TEXT NOT NULL,
       permission TEXT NOT NULL
     );
   `);
@@ -2074,7 +2064,7 @@ export async function seedModules(db: Database, modules: Module[]) {
   );
 
   const pageStatement = await db.prepare(
-    "INSERT INTO pages (pageId, name, icon, url, permission) VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO pages (pageId, name, icon, path, component, permission) VALUES (?, ?, ?, ?, ?, ?)"
   );
 
   const moduleCategoriesStatement = await db.prepare(
@@ -2113,7 +2103,8 @@ export async function seedModules(db: Database, modules: Module[]) {
           page.pageId,
           page.name,
           page.icon,
-          page.url,
+          page.path,
+          page.component,
           page.permission
         );
         console.log(`Inserted: ${page.name}`);
@@ -2184,34 +2175,12 @@ export const dbConnection = async (dbFile: string) => {
 };
 ```
 
-Create data interface `apps/server/src/interfaces/navigationRow.ts` for extracting the rows from the database.
-```TypeScript
-export interface NavigationRow {
-  moduleId: number;
-  mName: string;
-  mIcon: string;
-  mPermission: string;
-
-  categoryId: number;
-  cName: string;
-  cIcon: string;
-  cPermission: string;
-
-  pageId: number;
-  pName: string;
-  pIcon: string;
-  pUrl: string;
-  pPermission: string;
-}
-```
-
 Create the route `apps/server/src/route/navigation.ts`.
 ```TypeScript
 import path from "path";
-import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
-import { NavigationRow } from "../interfaces/navigationRow";
+import { NavigationRow } from "shared/src/interfaces/navigationRow";
 import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
@@ -2229,7 +2198,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.url pUrl, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -2257,11 +2226,9 @@ router.get(
       if (!category) {
         category = new Category(
           row.categoryId,
-          row.moduleId,
           row.cName,
           row.cIcon,
-          row.cPermission,
-          true
+          row.cPermission
         );
         categoriesMap.set(row.categoryId, category);
       }
@@ -2275,12 +2242,11 @@ router.get(
 
       const page = new Page(
         row.pageId,
-        row.categoryId,
         row.pName,
         row.pIcon,
-        row.pUrl,
-        row.pPermission,
-        true
+        row.pPath,
+        row.pComponent,
+        row.pPermission
       );
 
       if (!category.pages.some((p) => p.pageId === page.pageId)) {
@@ -2355,83 +2321,148 @@ export const config = {
 };
 ```
 
-Update `app-sidebar.tsx` to fetch module data from the web API's navigation route.
+Create page `apps/client/src/pages/generic-grid.tsx` for the target path for pages in the navigation panel.
 ```TypeScript
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { IconWorld } from "@tabler/icons-react";
-import { NavigationPanel } from "@/components/layout/navigation-panel";
-import { Module } from "shared/src/models/module";
-import { config } from "@/config/config"; // 👈 import config
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { useLocation, type Location } from "react-router-dom";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [modules, setModules] = useState<Module[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;  // 👈 consume config
-
-  useEffect(() => {
-    const fetchModules = async () => {
-      try {
-        const response = await fetch(navigationUrl);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data: Module[] = await response.json();
-
-        setModules(data);
-      } catch (err) {
-        setError("Failed to fetch modules");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchModules();
-  }, []); // 👈 empty array means "run only on first render"
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
-
+function GenericGrid() {
+  const location: Location = useLocation();
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <IconWorld className="!size-5" />
-                <span className="text-base font-semibold">Aspect</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavigationPanel modules={modules}></NavigationPanel>
-      </SidebarContent>
-      <SidebarFooter></SidebarFooter>
-    </Sidebar>
+    <div className="text-red-500">GenericGrid for {location.pathname}</div>
   );
 }
+
+export default GenericGrid;
 ```
 
+Create page `apps/client/src/pages/not-found.tsx` for the fallback if the target path doesn't find the intended page.
+```TypeScript
+const NotFound = () => (
+  <>
+    <h4 className="scroll-m-20 text-xl font-semibold tracking-tight mt-20">
+      Oops!
+    </h4>
+    <p className="text-muted-foreground text-xl">Nothing to see here...</p>
+    <p className="text-muted-foreground text-sm">404 - Not Found</p>
+  </>
+);
+export default NotFound;
+```
+
+Create utility function `apps/client/src/utils/fetch-lazy-components.ts` for `fetchLazyComponents` to handle deferred loading of target route components.
+```TypeScript
+import React from "react";
+
+interface LazyComponentMap {
+  [key: string]: React.LazyExoticComponent<React.FC>;
+}
+
+export const fetchLazyComponents: () => LazyComponentMap =
+  (): LazyComponentMap => ({
+    GenericGrid: React.lazy(() => import("../pages/generic-grid")),
+  });
+```
+
+Create request function `apps/client/src/utils/fetch-modules.ts` for `fetchModules` to handle the request to the API.
+```TypeScript
+import { config } from "@/config/config";
+import { Module } from "shared/src/models/module";
+
+export const fetchModules = async (token: string) => {
+  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
+
+  const response = await fetch(navigationUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data: Module[] = await response.json();
+
+  return data;
+};
+```
+
+Finally, update `App.tsx` to fetch the modules and dynamically load the `routes` using the response.
+```TypeScript
+import { useEffect, useState, Suspense } from "react";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  type RouteObject,
+} from "react-router-dom";
+import { MainLayout } from "@/components/layout/main-layout";
+import { AuthenticationRoute } from "@/auth/authentication-route";
+import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
+import { fetchModules } from "@/requests/fetch-modules";
+import { useAuth0 } from "@auth0/auth0-react";
+import NotFound from "./pages/not-found";
+import "./App.css";
+
+const lazyComponents = fetchLazyComponents();
+
+function App() {
+  const { isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0();
+  const [router, setRouter] = useState<ReturnType<
+    typeof createBrowserRouter
+  > | null>(null);
+
+  useEffect(() => {
+    const setupRoutes = async () => {
+      let routes: RouteObject[] = [];
+      let children: RouteObject[] = [];
+
+      const token = await getAccessTokenSilently();
+
+      const modules = await fetchModules(token);
+
+      const pages = modules.flatMap((module) =>
+        module.categories.flatMap((category) => category.pages)
+      );
+
+      children = pages.map((p) => {
+        const LazyComp = lazyComponents[p.component] ?? NotFound;
+        const element = (
+          <Suspense fallback={<div>Loading...</div>}>
+            <AuthenticationRoute>
+              <LazyComp />
+            </AuthenticationRoute>
+          </Suspense>
+        );
+
+        return {
+          path: p.path,
+          element,
+        };
+      });
+
+      children.push({ path: "*", element: <NotFound /> });
+
+      routes = [
+        {
+          path: "/",
+          element: <MainLayout modules={modules ?? []} />,
+          children,
+        },
+      ];
+
+      setRouter(createBrowserRouter(routes));
+    };
+
+    if (isAuthenticated) setupRoutes();
+  }, [isAuthenticated]);
+
+  if (isLoading || !router) return <></>;
+
+  return <RouterProvider router={router} />;
+}
+
+export default App;
+```
 # Add Structured Error Handling to the Node.js Server
 Create folder `apps/server/src/errors` and inside a custom error class `apps/server/src/errors/aspectError.ts`.
 ```TypeScript
