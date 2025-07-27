@@ -1280,41 +1280,21 @@ export function ThemeToggle() {
 }
 ```
 
-In `App.tsx` wrap `<SidebarProvider>` with `<ThemeProvider>`.
+In `main.tsx` wrap `<App>` with `<ThemeProvider>`.
 ```TSX
-import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@/components/layout/theme-provider"; // 👈 add import
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import "./App.css";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { ThemeProvider } from "@/components/layout/theme-provider";  // 👈 add import
+import "./index.css";
+import App from "./App.tsx";
 
-function App() {
-  return (
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme"> // 👈 
-        <SidebarProvider
-          style={
-            {
-              "--sidebar-width": "calc(var(--spacing) * 72)",
-              "--header-height": "calc(var(--spacing) * 12)",
-            } as React.CSSProperties
-          }
-        >
-          <AppSidebar variant="inset" />
-          <SidebarInset>
-            <AppSidebarHeader />
-            <div className="flex flex-1 flex-col">
-              <div className="@container/main flex flex-1 flex-col gap-2"></div>
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </ThemeProvider> // 👈 
-    </BrowserRouter>
-  );
-}
-
-export default App;
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme"> // 👈 
+      <App />
+    </ThemeProvider> // 👈 
+  </StrictMode>
+);
 ```
 
 Add `ThemeToggle` to `sidebar-header.tsx`.
