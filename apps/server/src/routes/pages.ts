@@ -15,7 +15,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
-      SELECT    pageId, name, icon, url, component, permission  
+      SELECT    pageId, name, icon, path, component, permission  
       FROM 	    pages
     `);
 
@@ -29,7 +29,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
       `
-      SELECT    pageId, name, icon, url, component, permission  
+      SELECT    pageId, name, icon, path, component, permission  
       FROM 	    pages
       WHERE     pageId = ?
     `,
@@ -53,17 +53,17 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, url, permission } = parsed.data;
+    const { name, icon, path, permission } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO pages (name, icon, url, component, permission) VALUES (?, ?, ?, ?, ?)",
-      [name, icon, url, permission]
+      "INSERT INTO pages (name, icon, path, component, permission) VALUES (?, ?, ?, ?, ?)",
+      [name, icon, path, permission]
     );
 
     res
       .status(201)
-      .json({ pageId: result.lastID, name, icon, url, permission });
+      .json({ pageId: result.lastID, name, icon, path, permission });
   })
 );
 
@@ -78,12 +78,12 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, url, component, permission } = parsed.data;
+    const { name, icon, path, component, permission } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE pages SET name = ?, icon = ?, url = ?, component = ?, permission = ? WHERE pageId = ?",
-      [name, icon, url, component, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, path = ?, component = ?, permission = ? WHERE pageId = ?",
+      [name, icon, path, component, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -94,7 +94,7 @@ router.put(
       pageId: _req.params.id,
       name,
       icon,
-      url,
+      path,
       component,
       permission,
     });

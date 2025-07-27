@@ -10,7 +10,7 @@ export interface NavigationRow {
   pageId: number;
   pName: string;
   pIcon: string;
-  pUrl: string;
+  pPath: string;
   pComponent: string;
   pPermission: string;
 }
