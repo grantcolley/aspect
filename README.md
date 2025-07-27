@@ -551,7 +551,6 @@ export interface Editability {
 `apps/shared/src/interfaces/permissionable.ts`
 ```TypeScript
 export interface Permissionable {
-  isVisible: boolean;
   permission: string;
 }
 ```
@@ -597,7 +596,8 @@ export interface NavigationRow {
   pageId: number;
   pName: string;
   pIcon: string;
-  pUrl: string;
+  pPath: string;
+  pComponent: string;
   pPermission: string;
 }
 ```
@@ -615,26 +615,26 @@ export class Page implements Permissionable, Editability {
   pageId: number;
   name: string;
   icon: string;
-  url: string;
+  path: string;
+  component: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
 
   constructor(
     pageId: number,
     name: string,
     icon: string,
-    url: string,
+    path: string,
+    component: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false
   ) {
     this.pageId = pageId;
     this.name = name;
     this.icon = icon;
-    this.url = url;
+    this.path = path;
+    this.component = component;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
   }
 }
@@ -650,7 +650,6 @@ export class Category implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   pages: Page[];
 
@@ -659,7 +658,6 @@ export class Category implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     pages: Page[] = []
   ) {
@@ -667,7 +665,6 @@ export class Category implements Permissionable, Editability {
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.pages = pages;
   }
@@ -694,7 +691,6 @@ export class Module implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   categories: Category[];
 
@@ -703,7 +699,6 @@ export class Module implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     categories: Category[] = []
   ) {
@@ -711,7 +706,6 @@ export class Module implements Permissionable, Editability {
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.categories = categories;
   }
@@ -741,20 +735,17 @@ export class Permission implements Permissionable, Editability {
   permissionId: number;
   name: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
 
   constructor(
     permissionId: number,
     name: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false
   ) {
     this.permissionId = permissionId;
     this.name = name;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
   }
 }
@@ -769,7 +760,6 @@ export class Role implements Permissionable, Editability {
   roleId: number;
   name: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   permissions: Permission[];
 
@@ -777,14 +767,12 @@ export class Role implements Permissionable, Editability {
     roleId: number,
     name: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     permissions: Permission[] = []
   ) {
     this.roleId = roleId;
     this.name = name;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.permissions = permissions;
   }
@@ -815,7 +803,6 @@ export class User implements Permissionable, Editability {
   name: string;
   email: string;
   permission: string;
-  isVisible: boolean;
   isReadonlOnly: boolean;
   roles: Role[];
 
@@ -824,7 +811,6 @@ export class User implements Permissionable, Editability {
     name: string,
     email: string,
     permission: string,
-    isVisible: boolean = false,
     isReadonlOnly: boolean = false,
     roles: Role[] = []
   ) {
@@ -832,7 +818,6 @@ export class User implements Permissionable, Editability {
     this.name = name;
     this.email = email;
     this.permission = permission;
-    this.isVisible = isVisible;
     this.isReadonlOnly = isReadonlOnly;
     this.roles = roles;
   }
@@ -858,13 +843,10 @@ Create the navigation validation schema `moduleSchema`, `categorySchema` and `pa
 import { z } from "zod";
 
 export const pageSchema = z.object({
-  categoryId: z
-    .number()
-    .int()
-    .positive("Category ID must be a positive integer"),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
-  url: z.string().min(1, "URL is required"),
+  path: z.string().min(1, "Path is required"),
+  component: z.string().min(1, "Component is required"),
   permission: z.string().min(1, "Permission is required"),
 });
 
