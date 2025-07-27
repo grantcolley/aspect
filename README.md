@@ -1472,7 +1472,7 @@ export default Auth0ProviderWithNavigate;
 ```
 
 Configure the `<Auth0ProviderWithNavigate>` in `main-layout.tsx`.
-```TypeScript
+```TSX
 import { Outlet } from "react-router-dom";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
@@ -1543,7 +1543,7 @@ export default App;
 ```
 
 Create the `apps/client/src/auth/login.tsx` component.
-```TypeScript
+```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
 import { IconLogin2 } from "@tabler/icons-react";
@@ -1580,7 +1580,7 @@ export default Login;
 ```
 
 Create the `apps/client/src/auth/logout.tsx` component.
-```TypeScript
+```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
 import { IconLogout } from "@tabler/icons-react";
@@ -1619,7 +1619,7 @@ export default Logout;
 ```
 
 Create the `apps/client/src/auth/authentication.tsx` component.
-```TypeScript
+```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import Login from "./login";
 import Logout from "./logout";
@@ -1645,7 +1645,7 @@ export default Authentication;
 ```
 
 Add the `authentication.tsx` component to the `app-sidebar-header.tsx`.
-```TypeScript
+```TSX
 import { useAuth0 } from "@auth0/auth0-react"; // 👈 import
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
