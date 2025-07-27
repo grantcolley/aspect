@@ -51,7 +51,7 @@ export function NavigationPanel({ modules }: Props) {
                       {category.pages?.map((page) => (
                         <SidebarMenuSubItem key={page.pageId}>
                           <SidebarMenuSubButton asChild>
-                            <Link to={page.url}>
+                            <Link to={page.path}>
                               <IconLoader name={page.icon} />
                               <span>{page.name}</span>
                             </Link>
