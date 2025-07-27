@@ -1940,21 +1940,24 @@ export function getModules() {
               pageId: 1,
               name: "Users",
               icon: "users",
-              url: "api/users",
+              path: "users",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 2,
               name: "Roles",
               icon: "roles",
-              url: "api/roles",
+              path: "roles",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 3,
               name: "Permissions",
               icon: "permissions",
-              url: "api/permissions",
+              path: "permissions",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -1969,21 +1972,24 @@ export function getModules() {
               pageId: 4,
               name: "Modules",
               icon: "modules",
-              url: "api/modules",
+              path: "modules",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 5,
               name: "Categories",
               icon: "categories",
-              url: "api/categories",
+              path: "categories",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
             {
               pageId: 6,
               name: "Pages",
               icon: "pages",
-              url: "api/pages",
+              path: "pages",
+              component: "GenericGrid",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -2023,7 +2029,8 @@ export async function seedModules(db: Database, modules: Module[]) {
       pageId INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       icon TEXT NOT NULL,
-      url TEXT NOT NULL,
+      path TEXT NOT NULL,
+      component TEXT NOT NULL,
       permission TEXT NOT NULL
     );
   `);
@@ -2057,7 +2064,7 @@ export async function seedModules(db: Database, modules: Module[]) {
   );
 
   const pageStatement = await db.prepare(
-    "INSERT INTO pages (pageId, name, icon, url, permission) VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO pages (pageId, name, icon, path, component, permission) VALUES (?, ?, ?, ?, ?, ?)"
   );
 
   const moduleCategoriesStatement = await db.prepare(
@@ -2096,7 +2103,8 @@ export async function seedModules(db: Database, modules: Module[]) {
           page.pageId,
           page.name,
           page.icon,
-          page.url,
+          page.path,
+          page.component,
           page.permission
         );
         console.log(`Inserted: ${page.name}`);
