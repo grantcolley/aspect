@@ -1,36 +1,73 @@
-import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx";
+import { useEffect, useState, Suspense } from "react";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  type RouteObject,
+} from "react-router-dom";
+import { MainLayout } from "@/components/layout/main-layout";
+import { AuthenticationRoute } from "@/auth/authentication-route";
+import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
+import { fetchModules } from "@/requests/fetch-modules";
+import { useAuth0 } from "@auth0/auth0-react";
+import NotFound from "./pages/not-found";
 import "./App.css";
 
+const lazyComponents = fetchLazyComponents();
+
 function App() {
-  return (
-    <BrowserRouter>
-      <Auth0ProviderWithNavigate>
-        <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
-          <SidebarProvider
-            style={
-              {
-                "--sidebar-width": "calc(var(--spacing) * 72)",
-                "--header-height": "calc(var(--spacing) * 12)",
-              } as React.CSSProperties
-            }
-          >
-            <AppSidebar variant="inset" />
-            <SidebarInset>
-              <AppSidebarHeader />
-              <div className="flex flex-1 flex-col">
-                <div className="@container/main flex flex-1 flex-col gap-2"></div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </ThemeProvider>
-      </Auth0ProviderWithNavigate>
-    </BrowserRouter>
-  );
+  const { isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0();
+  const [router, setRouter] = useState<ReturnType<
+    typeof createBrowserRouter
+  > | null>(null);
+
+  useEffect(() => {
+    const setupRoutes = async () => {
+      let routes: RouteObject[] = [];
+      let children: RouteObject[] = [];
+
+      const token = await getAccessTokenSilently();
+
+      const modules = await fetchModules(token);
+
+      const pages = modules.flatMap((module) =>
+        module.categories.flatMap((category) => category.pages)
+      );
+
+      children = pages.map((p) => {
+        const LazyComp = lazyComponents[p.component] ?? NotFound;
+        const element = (
+          <Suspense fallback={<div>Loading...</div>}>
+            <AuthenticationRoute>
+              <LazyComp />
+            </AuthenticationRoute>
+          </Suspense>
+        );
+
+        return {
+          path: p.path,
+          element,
+        };
+      });
+
+      children.push({ path: "*", element: <NotFound /> });
+
+      routes = [
+        {
+          path: "/",
+          element: <MainLayout modules={modules ?? []} />,
+          children,
+        },
+      ];
+
+      setRouter(createBrowserRouter(routes));
+    };
+
+    if (isAuthenticated) setupRoutes();
+  }, [isAuthenticated]);
+
+  if (isLoading || !router) return <></>;
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;
