@@ -2608,6 +2608,9 @@ function App() {
 
 export default App;
 ```
+Client: `http://localhost:5173/`
+![Alt text](/readme-images/client-navigation.png?raw=true "Client")
+
 # Add Structured Error Handling to the Node.js Server
 Create folder `apps/server/src/errors` and inside a custom error class `apps/server/src/errors/aspectError.ts`.
 ```TypeScript
