@@ -54,6 +54,7 @@ aspect
 	* [Client `config.ts`](#client-configts)
 	* [Server `config.ts`](#server-configts)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+* [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
 * [Seed the Modules data](#seed-the-modules-data)
@@ -61,7 +62,6 @@ aspect
 * [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
 * [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
 * [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
-* [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
 	* [Create Endpoint Variables in `.env` File](#create-endpoint-variables-in-env-file)
@@ -1700,6 +1700,153 @@ Athenticate
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
+# Add Auth0 Authentication to the Server
+> [!TIP]
+>
+> Review the Auth0 instructions for setting up and configuring authentication.
+>
+> [Node (Express) API: Authorization](https://auth0.com/docs/quickstart/backend/nodejs/01-authorization)
+
+Install the Auth0 SDK in the server.
+```
+npm install --save express-oauth2-jwt-bearer
+```
+
+Update the server's `apps/server/.env`.
+```
+NODE_ENV=development
+HOST_URL=localhost
+HOST_PORT=3000
+DATABASE=../../../../db/aspect.sqlite
+AUTH_AUDIENCE=https://Aspect.API.com 	// 👈 add
+AUTH_ISSUER_BASE_URL=https:		// 👈 add
+AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
+CORS_URL=http://localhost:5173
+ENDPOINT_NAVIGATION=/api/navigation
+```
+Update the server's `apps/server/src/index.ts`
+```TypeScript
+import express from "express";
+import cors from "cors";
+import path from "path";
+import dotenv from "dotenv";
+import { auth } from "express-oauth2-jwt-bearer"; // 👈 import
+import { config } from "./config/config";
+import { errorHandler } from "./middleware/errorHandler";
+import navigationRouter from "./routes/navigation";
+
+// code removed for brevity
+
+const start = async () => {
+
+// 👇 new code
+
+  const jwtCheck = auth({
+    audience: config.AUTH_AUDIENCE,
+    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
+    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
+  });
+
+  // enforce on all endpoints
+  app.use(jwtCheck);
+
+// 👆 new code
+
+  app.use(navigationEndpoint, navigationRouter);
+
+  app.use(errorHandler);
+
+// code removed for brevity
+
+};
+
+start();
+```
+
+Update the client's `apps/client/.env`
+```
+VITE_REACT_APP_AUTH0_DOMAIN=
+VITE_REACT_APP_AUTH0_CLIENT_ID=
+VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add the audience
+VITE_REACT_API_URL=http://localhost:3000
+VITE_REACT_API_NAVIGATION_URL=api/navigation
+```
+Update `apps/client/src/config/config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+  VITE_REACT_APP_AUTH0_AUDIENCE: z.string().min(1), // 👈 add the audience
+  VITE_REACT_API_URL: z.string().min(1),
+  VITE_REACT_API_NAVIGATION_URL: z.string().min(1),
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+  AUTH0_AUDIENCE: env.VITE_REACT_APP_AUTH0_AUDIENCE, // 👈 add the audience
+  API_URL: env.VITE_REACT_API_URL,
+  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL,
+};
+```
+
+Update `Update `apps/client/src/components/layout/app-sidebar.tsx`.
+```TypeScript
+import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import Authentication from "./authentication";
+
+export function AppSidebarHeader() {
+  const { isAuthenticated } = useAuth0();
+
+  return (
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+
+	// 👇 new code
+
+        {isAuthenticated ? (
+          <>
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mx-2 data-[orientation=vertical]:h-4"
+            />
+          </>
+        ) : (
+          <></>
+        )}
+
+	// 👆 new code
+
+	<h1 className="text-base font-medium">Home</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <Authentication />
+          <ThemeToggle />
+          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+            <a
+              href="https://github.com/grantcolley/aspect"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="dark:text-foreground"
+            >
+              GitHub
+            </a>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
 # Adding Navigation to the Sidebar
 Install the `collapsible` component.
 ```bash
@@ -2683,252 +2830,6 @@ sqlite3.exe
 *-audit.json   // 👈 add
 *.log   // 👈 add
 *.log.gz   // 👈 add
-```
-
-# Add Auth0 Authentication to the Server
-> [!TIP]
->
-> Review the Auth0 instructions for setting up and configuring authentication.
->
-> [Node (Express) API: Authorization](https://auth0.com/docs/quickstart/backend/nodejs/01-authorization)
-
-Install the Auth0 SDK in the server.
-```
-npm install --save express-oauth2-jwt-bearer
-```
-
-Update the server's `apps/server/.env`.
-```
-NODE_ENV=development
-HOST_URL=localhost
-HOST_PORT=3000
-DATABASE=../../../../db/aspect.sqlite
-AUTH_AUDIENCE=https://Aspect.API.com 	// 👈 add
-AUTH_ISSUER_BASE_URL=https:		// 👈 add
-AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
-CORS_URL=http://localhost:5173
-ENDPOINT_NAVIGATION=/api/navigation
-```
-Update the server's `apps/server/src/index.ts`
-```TypeScript
-import express from "express";
-import cors from "cors";
-import path from "path";
-import dotenv from "dotenv";
-import { auth } from "express-oauth2-jwt-bearer"; // 👈 import
-import { config } from "./config/config";
-import { errorHandler } from "./middleware/errorHandler";
-import navigationRouter from "./routes/navigation";
-
-// code removed for brevity
-
-const start = async () => {
-
-// 👇 new code
-
-  const jwtCheck = auth({
-    audience: config.AUTH_AUDIENCE,
-    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
-    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
-  });
-
-  // enforce on all endpoints
-  app.use(jwtCheck);
-
-// 👆 new code
-
-  app.use(navigationEndpoint, navigationRouter);
-
-  app.use(errorHandler);
-
-// code removed for brevity
-
-};
-
-start();
-```
-
-Update the client's `apps/client/.env`
-```
-VITE_REACT_APP_AUTH0_DOMAIN=
-VITE_REACT_APP_AUTH0_CLIENT_ID=
-VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add the audience
-VITE_REACT_API_URL=http://localhost:3000
-VITE_REACT_API_NAVIGATION_URL=api/navigation
-```
-Update `apps/client/src/config/config.ts`
-```TypeScript
-import { z } from "zod";
-
-const envSchema = z.object({
-  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
-  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
-  VITE_REACT_APP_AUTH0_AUDIENCE: z.string().min(1), // 👈 add the audience
-  VITE_REACT_API_URL: z.string().min(1),
-  VITE_REACT_API_NAVIGATION_URL: z.string().min(1),
-});
-
-const env = envSchema.parse(import.meta.env);
-
-export const config = {
-  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
-  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
-  AUTH0_AUDIENCE: env.VITE_REACT_APP_AUTH0_AUDIENCE, // 👈 add the audience
-  API_URL: env.VITE_REACT_API_URL,
-  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL,
-};
-```
-
-Add Authorizatrion Parameters to `Auth0Provider` in `apps/client/src/components/layout/auth0-provider-with-navigate.tsx`
-```TypeScript
-import { useNavigate } from "react-router-dom";
-import { Auth0Provider } from "@auth0/auth0-react";
-import { config } from "@/config/config";
-
-const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
-  children,
-}) => {
-  const navigate = useNavigate();
-
-  interface AppState {
-    returnTo?: string;
-  }
-
-  const onRedirectCallback = (appState?: AppState) => {
-    navigate(appState?.returnTo || window.location.pathname);
-  };
-
-  return (
-    <Auth0Provider
-      domain={config.AUTH0_DOMAIN}
-      clientId={config.AUTH0_CLIENT_ID}
-      authorizationParams={{
-        redirect_uri: window.location.origin,
-        audience: config.AUTH0_AUDIENCE || undefined, // 👈 add the audience
-      }}
-      onRedirectCallback={onRedirectCallback}
-    >
-      {children}
-    </Auth0Provider>
-  );
-};
-
-export default Auth0ProviderWithNavigate;
-```
-
-Update `apps/client/src/components/layout/app-sidebar.tsx`
-```TypeScript
-import * as React from "react";
-import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
-import { useEffect, useState } from "react";
-
-// code removed for brevity
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [modules, setModules] = useState<Module[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0(); // 👈 add
-
- const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
-
-  useEffect(() => {
-    if (!isAuthenticated) {  // 👈 add
-      return;
-    }
-
-    const fetchModules = async () => {
-      try {
-
-	// 👇 new code
-        const token = await getAccessTokenSilently();
-
-        const response = await fetch(navigationUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-	// 👆 new code
-
-	if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data: Module[] = await response.json();
-
-        setModules(data);
-      } catch (err) {
-        setError("Failed to fetch modules");
-        console.error(err);
-      }
-    };
-
-    fetchModules();
-  }, [isAuthenticated, getAccessTokenSilently]); // 👈 add
-
-  if (!isAuthenticated) return <></>; // 👈 add
-  if (error) return <p>{error}</p>;
-
-  return (
-    <Sidebar collapsible="icon" {...props}>
-
-    // code removed for brevity
-
-    </Sidebar>
-  );
-}
-```
-
-Update `Update `apps/client/src/components/layout/app-sidebar.tsx`.
-```TypeScript
-import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import Authentication from "./authentication";
-
-export function AppSidebarHeader() {
-  const { isAuthenticated } = useAuth0();
-
-  return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
-      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-
-	// 👇 new code
-
-        {isAuthenticated ? (
-          <>
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mx-2 data-[orientation=vertical]:h-4"
-            />
-          </>
-        ) : (
-          <></>
-        )}
-
-	// 👆 new code
-
-	<h1 className="text-base font-medium">Home</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <Authentication />
-          <ThemeToggle />
-          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
-            <a
-              href="https://github.com/grantcolley/aspect"
-              rel="noopener noreferrer"
-              target="_blank"
-              className="dark:text-foreground"
-            >
-              GitHub
-            </a>
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-}
 ```
 
 # Seed the Authorisation data
