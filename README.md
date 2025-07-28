@@ -56,10 +56,10 @@ aspect
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
 * [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
-* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
-* [Seed the Modules data](#seed-the-modules-data)
 * [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
-* [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
+* [Seed the Modules data](#seed-the-modules-data)
+* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
+* [Call the API from the Client](#call-the-api-from-the-client)
 * [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
 * [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
 * [Seed the Authorisation data](#seed-the-authorisation-data)
@@ -1879,190 +1879,141 @@ app.listen(port, () => {
 });
 ```
 
-# Adding Navigation to the Sidebar
-Install the `collapsible` component.
-```bash
-npx shadcn@latest add collapsible
-```
-
-Create an `icons` folder at `apps/client/src/components/icons`.
-\
-\
-Create `apps/client/src/components/icons/iconsMap.ts`.
+# Add the Navigation Route to the Server
+In the Server project, create the `apps/server/src/data/db.ts` for connecting to the database.
 ```TypeScript
-import {
-  IconHome,
-  IconUser,
-  IconSettings,
-  IconSearch,
-  IconShieldCog,
-  IconUsersGroup,
-  IconUserCircle,
-  IconShieldLock,
-  IconAppsFilled,
-} from "@tabler/icons-react";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
 
-export const iconsMap: Record<string, React.FC<any>> = {
-  home: IconHome,
-  user: IconUser,
-  search: IconSearch,
-  settings: IconSettings,
-  authorisation: IconShieldCog,
-  users: IconUsersGroup,
-  roles: IconUserCircle,
-  permissions: IconShieldLock,
-  applications: IconAppsFilled,
+export const dbConnection = async (dbFile: string) => {
+  const db = await open({
+    filename: dbFile,
+    driver: sqlite3.Database,
+  });
+
+  return db;
 };
 ```
 
-Create `apps/client/src/components/icons/iconLoader.tsx`.
+Create the route `apps/server/src/route/navigation.ts`.
 ```TypeScript
-import React from "react";
-import { IconPhotoExclamation } from "@tabler/icons-react";
-import { iconsMap } from "./iconsMap";
-
-type IconLoaderProps = {
-  name: keyof typeof iconsMap;
-};
-
-const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
-  const IconComponent = iconsMap[name];
-
-  if (!IconComponent) {
-    return <IconPhotoExclamation />;
-  }
-
-  return <IconComponent />;
-};
-
-export default IconLoader;
-```
-
-Create `apps/client/src/components/layout/navigation-panel.tsx`.
-```TypeScript
-import { Link } from "react-router-dom";
-import { IconChevronRight } from "@tabler/icons-react";
-import IconLoader from "@/components/icons/IconLoader";
+import path from "path";
+import { Router, Request, Response, RequestHandler } from "express";
+import { dbConnection } from "../data/db";
+import { NavigationRow } from "shared/src/interfaces/navigationRow";
 import { Module } from "shared/src/models/module";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "@/components/ui/sidebar";
+import { Category } from "shared/src/models/category";
+import { Page } from "shared/src/models/page";
+import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
 
-type Props = {
-  modules: Module[];
-};
+const dbFile = path.resolve(__dirname, config.DATABASE);
 
-export function NavigationPanel({ modules }: Props) {
-  return (
-    <>
-      {modules.map((module) => (
-        <SidebarGroup key={module.moduleId}>
-          <SidebarGroupLabel>
-            <IconLoader name={module.icon} />
-            <span>&nbsp;{module.name}</span>
-          </SidebarGroupLabel>
-          <SidebarMenu>
-            {module.categories.map((category) => (
-              <Collapsible
-                key={category.categoryId}
-                asChild
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={category.name}>
-                      <IconLoader name={category.icon} />
-                      <span>{category.name}</span>
-                      <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {category.pages?.map((page) => (
-                        <SidebarMenuSubItem key={page.pageId}>
-                          <SidebarMenuSubButton asChild>
-                            <Link to={page.path}>
-                              <IconLoader name={page.icon} />
-                              <span>{page.name}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-      ))}
-    </>
-  );
-}
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const rows: NavigationRow[] = await db.all(`
+      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
+              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
+      FROM 	modules m
+      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
+      INNER JOIN categories c ON mc.categoryId = c.categoryId
+      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
+      INNER JOIN pages p ON cp.pageId = p.pageId;
+    `);
+
+    const modulesMap = new Map<number, Module>();
+    const categoriesMap = new Map<number, Category>();
+
+    for (const row of rows) {
+      let module = modulesMap.get(row.moduleId);
+      if (!module) {
+        module = new Module(
+          row.moduleId,
+          row.mName,
+          row.mIcon,
+          row.mPermission,
+          true
+        );
+        modulesMap.set(row.moduleId, module);
+      }
+
+      let category = categoriesMap.get(row.categoryId);
+      if (!category) {
+        category = new Category(
+          row.categoryId,
+          row.cName,
+          row.cIcon,
+          row.cPermission
+        );
+        categoriesMap.set(row.categoryId, category);
+      }
+
+      const moduleCategory = module.categories.some(
+        (category) => category.categoryId === row.categoryId
+      );
+      if (!moduleCategory) {
+        module.addCategory(category);
+      }
+
+      const page = new Page(
+        row.pageId,
+        row.pName,
+        row.pIcon,
+        row.pPath,
+        row.pComponent,
+        row.pPermission
+      );
+
+      if (!category.pages.some((p) => p.pageId === page.pageId)) {
+        category.addPage(page);
+      }
+    }
+
+    res.json(Array.from(modulesMap.values()));
+  })
+);
+
+export default router;
 ```
 
-Update `app-sidebar.tsx` to add `NavigationPanel` to pass `module` data into it.
+Update the `apps/server/src/index.ts`
 ```TypeScript
-import * as React from "react";
-import { Link } from "react-router-dom";
-import { IconWorld } from "@tabler/icons-react";
-import { NavigationPanel } from "@/components/layout/navigation-panel";  // 👈 import
-import { Module } from "shared/src/models/module";  // 👈 import
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import express from "express";
+import cors from "cors";
+import { config } from "./config/config";
+import navigationRouter from "./routes/navigation";
 
-type Props = {  // 👈 add
-  modules: Module[];
-} & React.ComponentProps<typeof Sidebar>;
+const app = express();
+app.use(express.json());
 
-export function AppSidebar({ modules, ...props }: Props) {
-  return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <Link to="/">
-                <IconWorld className="!size-5" />
-                <span className="text-base font-semibold">Aspect</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavigationPanel modules={modules}></NavigationPanel>  // 👈 add
-      </SidebarContent>
-      <SidebarFooter></SidebarFooter>
-    </Sidebar>
+if (config.CORS_URL) {
+  app.use(
+    cors({
+      origin: `${config.CORS_URL}`, // or use '*' for all origins (not recommended for production)
+      credentials: true, // if you're using cookies or HTTP auth
+    })
   );
 }
+
+const start = async () => {
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
+
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
+};
+
+start();
 ```
 
 # Seed the Modules data
-
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
 import { Module } from "../../../apps/shared/src/models/module";
@@ -2304,140 +2255,189 @@ const fs = require("fs");
 > npm --workspace db run seed
 > ```
 
-# Add the Navigation Route to the Server
-In the Server project, create the `apps/server/src/data/db.ts` for connecting to the database.
+# Adding Navigation to the Sidebar
+Install the `collapsible` component.
+```bash
+npx shadcn@latest add collapsible
+```
+
+Create an `icons` folder at `apps/client/src/components/icons`.
+\
+\
+Create `apps/client/src/components/icons/iconsMap.ts`.
 ```TypeScript
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
+import {
+  IconHome,
+  IconUser,
+  IconSettings,
+  IconSearch,
+  IconShieldCog,
+  IconUsersGroup,
+  IconUserCircle,
+  IconShieldLock,
+  IconAppsFilled,
+} from "@tabler/icons-react";
 
-export const dbConnection = async (dbFile: string) => {
-  const db = await open({
-    filename: dbFile,
-    driver: sqlite3.Database,
-  });
-
-  return db;
+export const iconsMap: Record<string, React.FC<any>> = {
+  home: IconHome,
+  user: IconUser,
+  search: IconSearch,
+  settings: IconSettings,
+  authorisation: IconShieldCog,
+  users: IconUsersGroup,
+  roles: IconUserCircle,
+  permissions: IconShieldLock,
+  applications: IconAppsFilled,
 };
 ```
 
-Create the route `apps/server/src/route/navigation.ts`.
+Create `apps/client/src/components/icons/iconLoader.tsx`.
 ```TypeScript
-import path from "path";
-import { Router, Request, Response, RequestHandler } from "express";
-import { dbConnection } from "../data/db";
-import { NavigationRow } from "shared/src/interfaces/navigationRow";
-import { Module } from "shared/src/models/module";
-import { Category } from "shared/src/models/category";
-import { Page } from "shared/src/models/page";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { config } from "../config/config";
+import React from "react";
+import { IconPhotoExclamation } from "@tabler/icons-react";
+import { iconsMap } from "./iconsMap";
 
-const dbFile = path.resolve(__dirname, config.DATABASE);
+type IconLoaderProps = {
+  name: keyof typeof iconsMap;
+};
 
-const router = Router();
+const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
+  const IconComponent = iconsMap[name];
 
-router.get(
-  "/",
-  asyncHandler(async (_req: Request, res: Response) => {
-    const db = await dbConnection(dbFile);
-    const rows: NavigationRow[] = await db.all(`
-      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
-              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
-      FROM 	modules m
-      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
-      INNER JOIN categories c ON mc.categoryId = c.categoryId
-      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
-      INNER JOIN pages p ON cp.pageId = p.pageId;
-    `);
+  if (!IconComponent) {
+    return <IconPhotoExclamation />;
+  }
 
-    const modulesMap = new Map<number, Module>();
-    const categoriesMap = new Map<number, Category>();
+  return <IconComponent />;
+};
 
-    for (const row of rows) {
-      let module = modulesMap.get(row.moduleId);
-      if (!module) {
-        module = new Module(
-          row.moduleId,
-          row.mName,
-          row.mIcon,
-          row.mPermission,
-          true
-        );
-        modulesMap.set(row.moduleId, module);
-      }
-
-      let category = categoriesMap.get(row.categoryId);
-      if (!category) {
-        category = new Category(
-          row.categoryId,
-          row.cName,
-          row.cIcon,
-          row.cPermission
-        );
-        categoriesMap.set(row.categoryId, category);
-      }
-
-      const moduleCategory = module.categories.some(
-        (category) => category.categoryId === row.categoryId
-      );
-      if (!moduleCategory) {
-        module.addCategory(category);
-      }
-
-      const page = new Page(
-        row.pageId,
-        row.pName,
-        row.pIcon,
-        row.pPath,
-        row.pComponent,
-        row.pPermission
-      );
-
-      if (!category.pages.some((p) => p.pageId === page.pageId)) {
-        category.addPage(page);
-      }
-    }
-
-    res.json(Array.from(modulesMap.values()));
-  })
-);
-
-export default router;
+export default IconLoader;
 ```
 
-Update the `apps/server/src/index.ts`
+Create `apps/client/src/components/layout/navigation-panel.tsx`.
 ```TypeScript
-import express from "express";
-import cors from "cors";
-import { config } from "./config/config";
-import navigationRouter from "./routes/navigation";
+import { Link } from "react-router-dom";
+import { IconChevronRight } from "@tabler/icons-react";
+import IconLoader from "@/components/icons/IconLoader";
+import { Module } from "shared/src/models/module";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
 
-const app = express();
-app.use(express.json());
+type Props = {
+  modules: Module[];
+};
 
-if (config.CORS_URL) {
-  app.use(
-    cors({
-      origin: `${config.CORS_URL}`, // or use '*' for all origins (not recommended for production)
-      credentials: true, // if you're using cookies or HTTP auth
-    })
+export function NavigationPanel({ modules }: Props) {
+  return (
+    <>
+      {modules.map((module) => (
+        <SidebarGroup key={module.moduleId}>
+          <SidebarGroupLabel>
+            <IconLoader name={module.icon} />
+            <span>&nbsp;{module.name}</span>
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            {module.categories.map((category) => (
+              <Collapsible
+                key={category.categoryId}
+                asChild
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={category.name}>
+                      <IconLoader name={category.icon} />
+                      <span>{category.name}</span>
+                      <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {category.pages?.map((page) => (
+                        <SidebarMenuSubItem key={page.pageId}>
+                          <SidebarMenuSubButton asChild>
+                            <Link to={page.path}>
+                              <IconLoader name={page.icon} />
+                              <span>{page.name}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   );
 }
-
-const start = async () => {
-  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
-
-  app.listen(config.HOST_PORT, config.HOST_URL, () =>
-    console.log(
-      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
-    )
-  );
-};
-
-start();
 ```
-# Call the Navigation Route from the Client
+
+Update `app-sidebar.tsx` to add `NavigationPanel` to pass `module` data into it.
+```TypeScript
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { IconWorld } from "@tabler/icons-react";
+import { NavigationPanel } from "@/components/layout/navigation-panel";  // 👈 import
+import { Module } from "shared/src/models/module";  // 👈 import
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+
+type Props = {  // 👈 add
+  modules: Module[];
+} & React.ComponentProps<typeof Sidebar>;
+
+export function AppSidebar({ modules, ...props }: Props) {
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <Link to="/">
+                <IconWorld className="!size-5" />
+                <span className="text-base font-semibold">Aspect</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavigationPanel modules={modules}></NavigationPanel>  // 👈 add
+      </SidebarContent>
+      <SidebarFooter></SidebarFooter>
+    </Sidebar>
+  );
+}
+```
+
+# Call the API from the Client
 In the Client project update the the `.env` file.
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
