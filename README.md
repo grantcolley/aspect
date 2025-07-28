@@ -54,14 +54,14 @@ aspect
 	* [Client `config.ts`](#client-configts)
 	* [Server `config.ts`](#server-configts)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
-* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
+* [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
+* [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
 * [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
 * [Seed the Modules data](#seed-the-modules-data)
-* [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
-* [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
+* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
+* [Call the API from the Client](#call-the-api-from-the-client)
 * [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
 * [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
-* [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
 * [Seed the Authorisation data](#seed-the-authorisation-data)
 * [Add API Endpoints](#add-api-Endpoints)
 	* [Create Endpoint Variables in `.env` File](#create-endpoint-variables-in-env-file)
@@ -1503,43 +1503,6 @@ export const MainLayout = () => {
     </Auth0ProviderWithNavigate>
   );
 };
-
-import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx"; 
-import "./App.css";
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Auth0ProviderWithNavigate>  // 👈 inside <BrowserRouter><BrowserRouter />
-        <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
-          <SidebarProvider
-            style={
-              {
-                "--sidebar-width": "calc(var(--spacing) * 72)",
-                "--header-height": "calc(var(--spacing) * 12)",
-              } as React.CSSProperties
-            }
-          >
-            <AppSidebar variant="inset" />
-            <SidebarInset>
-              <AppSidebarHeader />
-              <div className="flex flex-1 flex-col">
-                <div className="@container/main flex flex-1 flex-col gap-2"></div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </ThemeProvider>
-      </Auth0ProviderWithNavigate>
-    </BrowserRouter>
-  );
-}
-
-export default App;
 ```
 
 Create the `apps/client/src/auth/login.tsx` component.
@@ -1700,189 +1663,276 @@ Athenticate
 Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
-# Adding Navigation to the Sidebar
-Install the `collapsible` component.
-```bash
-npx shadcn@latest add collapsible
+# Add Auth0 Authentication to the Server
+> [!TIP]
+>
+> Review the Auth0 instructions for setting up and configuring authentication.
+>
+> [Node (Express) API: Authorization](https://auth0.com/docs/quickstart/backend/nodejs/01-authorization)
+
+Install the Auth0 SDK in the server.
+```
+npm install --save express-oauth2-jwt-bearer
 ```
 
-Create an `icons` folder at `apps/client/src/components/icons`.
-\
-\
-Create `apps/client/src/components/icons/iconsMap.ts`.
+Update the server's `apps/server/.env`.
+```
+NODE_ENV=development
+HOST_URL=localhost
+HOST_PORT=3000
+DATABASE=../../../../db/aspect.sqlite
+AUTH_AUDIENCE=https://Aspect.API.com 	// 👈 add
+AUTH_ISSUER_BASE_URL=https:		// 👈 add
+AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
+CORS_URL=http://localhost:5173
+ENDPOINT_NAVIGATION=/api/navigation
+```
+Update the server's `apps/server/src/index.ts`
 ```TypeScript
-import {
-  IconHome,
-  IconUser,
-  IconSettings,
-  IconSearch,
-  IconShieldCog,
-  IconUsersGroup,
-  IconUserCircle,
-  IconShieldLock,
-  IconAppsFilled,
-} from "@tabler/icons-react";
+import express from "express";
+import cors from "cors";
+import path from "path";
+import dotenv from "dotenv";
+import { auth } from "express-oauth2-jwt-bearer"; // 👈 import
+import { config } from "./config/config";
+import { errorHandler } from "./middleware/errorHandler";
+import navigationRouter from "./routes/navigation";
 
-export const iconsMap: Record<string, React.FC<any>> = {
-  home: IconHome,
-  user: IconUser,
-  search: IconSearch,
-  settings: IconSettings,
-  authorisation: IconShieldCog,
-  users: IconUsersGroup,
-  roles: IconUserCircle,
-  permissions: IconShieldLock,
-  applications: IconAppsFilled,
+// code removed for brevity
+
+const start = async () => {
+
+// 👇 new code
+
+  const jwtCheck = auth({
+    audience: config.AUTH_AUDIENCE,
+    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
+    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
+  });
+
+  // enforce on all endpoints
+  app.use(jwtCheck);
+
+// 👆 new code
+
+  app.use(navigationEndpoint, navigationRouter);
+
+  app.use(errorHandler);
+
+// code removed for brevity
+
+};
+
+start();
+```
+
+Update the client's `apps/client/.env`
+```
+VITE_REACT_APP_AUTH0_DOMAIN=
+VITE_REACT_APP_AUTH0_CLIENT_ID=
+VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add the audience
+VITE_REACT_API_URL=http://localhost:3000
+VITE_REACT_API_NAVIGATION_URL=api/navigation
+```
+Update `apps/client/src/config/config.ts`
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+  VITE_REACT_APP_AUTH0_AUDIENCE: z.string().min(1), // 👈 add the audience
+  VITE_REACT_API_URL: z.string().min(1),
+  VITE_REACT_API_NAVIGATION_URL: z.string().min(1),
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+  AUTH0_AUDIENCE: env.VITE_REACT_APP_AUTH0_AUDIENCE, // 👈 add the audience
+  API_URL: env.VITE_REACT_API_URL,
+  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL,
 };
 ```
 
-Create `apps/client/src/components/icons/iconLoader.tsx`.
+Update `Update `apps/client/src/components/layout/app-sidebar-header.tsx`.
 ```TypeScript
-import React from "react";
-import { IconPhotoExclamation } from "@tabler/icons-react";
-import { iconsMap } from "./iconsMap";
+import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import Authentication from "./authentication";
 
-type IconLoaderProps = {
-  name: keyof typeof iconsMap;
-};
+export function AppSidebarHeader() {
+  const { isAuthenticated } = useAuth0();
 
-const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
-  const IconComponent = iconsMap[name];
-
-  if (!IconComponent) {
-    return <IconPhotoExclamation />;
-  }
-
-  return <IconComponent />;
-};
-
-export default IconLoader;
-```
-
-Create `apps/client/src/components/layout/navigation-panel.tsx`.
-```TypeScript
-import { Link } from "react-router-dom";
-import { IconChevronRight } from "@tabler/icons-react";
-import IconLoader from "@/components/icons/IconLoader";
-import { Module } from "shared/src/models/module";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "@/components/ui/sidebar";
-
-type Props = {
-  modules: Module[];
-};
-
-export function NavigationPanel({ modules }: Props) {
   return (
-    <>
-      {modules.map((module) => (
-        <SidebarGroup key={module.moduleId}>
-          <SidebarGroupLabel>
-            <IconLoader name={module.icon} />
-            <span>&nbsp;{module.name}</span>
-          </SidebarGroupLabel>
-          <SidebarMenu>
-            {module.categories.map((category) => (
-              <Collapsible
-                key={category.categoryId}
-                asChild
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={category.name}>
-                      <IconLoader name={category.icon} />
-                      <span>{category.name}</span>
-                      <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {category.pages?.map((page) => (
-                        <SidebarMenuSubItem key={page.pageId}>
-                          <SidebarMenuSubButton asChild>
-                            <Link to={page.path}>
-                              <IconLoader name={page.icon} />
-                              <span>{page.name}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-      ))}
-    </>
-  );
-}
-```
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
 
-Update `app-sidebar.tsx` to add `NavigationPanel` and pass dummy data into it.
-```TypeScript
-import * as React from "react";
-import { Link } from "react-router-dom";
-import { IconWorld } from "@tabler/icons-react";
-import { NavigationPanel } from "@/components/layout/navigation-panel";  // 👈 import
-import { Module } from "shared/src/models/module";  // 👈 import
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+	// 👇 new code
 
-type Props = {  // 👈 add
-  modules: Module[];
-} & React.ComponentProps<typeof Sidebar>;
+        {isAuthenticated ? (
+          <>
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mx-2 data-[orientation=vertical]:h-4"
+            />
+          </>
+        ) : (
+          <></>
+        )}
 
-export function AppSidebar({ modules, ...props }: Props) {
-  return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+	// 👆 new code
+
+	<h1 className="text-base font-medium">Home</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <Authentication />
+          <ThemeToggle />
+          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+            <a
+              href="https://github.com/grantcolley/aspect"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="dark:text-foreground"
             >
-              <Link to="/">
-                <IconWorld className="!size-5" />
-                <span className="text-base font-semibold">Aspect</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavigationPanel modules={modules}></NavigationPanel>  // 👈 add
-      </SidebarContent>
-      <SidebarFooter></SidebarFooter>
-    </Sidebar>
+              GitHub
+            </a>
+          </Button>
+        </div>
+      </div>
+    </header>
   );
 }
 ```
-Client: `http://localhost:5173/`
-![Alt text](/readme-images/client-navigation.png?raw=true "Client")
+
+# Add the Navigation Route to the Server
+In the Server project, create the `apps/server/src/data/db.ts` for connecting to the database.
+```TypeScript
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+
+export const dbConnection = async (dbFile: string) => {
+  const db = await open({
+    filename: dbFile,
+    driver: sqlite3.Database,
+  });
+
+  return db;
+};
+```
+
+Create the route `apps/server/src/route/navigation.ts`.
+```TypeScript
+import path from "path";
+import { Router, Request, Response, RequestHandler } from "express";
+import { dbConnection } from "../data/db";
+import { NavigationRow } from "shared/src/interfaces/navigationRow";
+import { Module } from "shared/src/models/module";
+import { Category } from "shared/src/models/category";
+import { Page } from "shared/src/models/page";
+import { asyncHandler } from "../middleware/asyncHandler";
+import { config } from "../config/config";
+
+const dbFile = path.resolve(__dirname, config.DATABASE);
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const rows: NavigationRow[] = await db.all(`
+      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
+              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
+      FROM 	modules m
+      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
+      INNER JOIN categories c ON mc.categoryId = c.categoryId
+      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
+      INNER JOIN pages p ON cp.pageId = p.pageId;
+    `);
+
+    const modulesMap = new Map<number, Module>();
+    const categoriesMap = new Map<number, Category>();
+
+    for (const row of rows) {
+      let module = modulesMap.get(row.moduleId);
+      if (!module) {
+        module = new Module(
+          row.moduleId,
+          row.mName,
+          row.mIcon,
+          row.mPermission,
+          true
+        );
+        modulesMap.set(row.moduleId, module);
+      }
+
+      let category = categoriesMap.get(row.categoryId);
+      if (!category) {
+        category = new Category(
+          row.categoryId,
+          row.cName,
+          row.cIcon,
+          row.cPermission
+        );
+        categoriesMap.set(row.categoryId, category);
+      }
+
+      const moduleCategory = module.categories.some(
+        (category) => category.categoryId === row.categoryId
+      );
+      if (!moduleCategory) {
+        module.addCategory(category);
+      }
+
+      const page = new Page(
+        row.pageId,
+        row.pName,
+        row.pIcon,
+        row.pPath,
+        row.pComponent,
+        row.pPermission
+      );
+
+      if (!category.pages.some((p) => p.pageId === page.pageId)) {
+        category.addPage(page);
+      }
+    }
+
+    res.json(Array.from(modulesMap.values()));
+  })
+);
+
+export default router;
+```
+
+Update the `apps/server/src/index.ts`
+```TypeScript
+import express from "express";
+import { config } from "./config/config";
+import navigationRouter from "./routes/navigation";
+
+const app = express();
+app.use(express.json());
+
+const start = async () => {
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
+
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
+};
+
+start();
+```
 
 # Enable CORS in the Node.js Server
 ```
@@ -1893,31 +1943,36 @@ npm install --save-dev @types/cors
 Update the `apps/server/src/index.ts` to support CORS.
 ```TypeScript
 import express from "express";
-import cors from "cors";    	// 👈 import CORS
-import { User } from "shared";
+import cors from "cors"; // 👈 import CORS
+import { config } from "./config/config";
+import navigationRouter from "./routes/navigation";
 
 const app = express();
-const port = 3000;
+app.use(express.json());
 
-app.use(	// 👈 use CORS
-  cors({
-    origin: "http://localhost:5173", // 👈 or use '*' for all origins (not recommended for production)
-    credentials: true, // if you're using cookies or HTTP auth
-  })
-);
+if (config.CORS_URL) {
+  app.use( // 👈 use CORS
+    cors({
+      origin: `${config.CORS_URL}`, // or use '*' for all origins (not recommended for production)
+      credentials: true, // if you're using cookies or HTTP auth
+    })
+  );
+}
 
-app.get("/api/user", (req, res) => {
-  const user: User = { userId: 1, name: "Alice" };
-  res.json(user);
-});
+const start = async () => {
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
+};
+
+start();
 ```
 
 # Seed the Modules data
-
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
 import { Module } from "../../../apps/shared/src/models/module";
@@ -2159,140 +2214,189 @@ const fs = require("fs");
 > npm --workspace db run seed
 > ```
 
-# Add the Navigation Route to the Server
-In the Server project, create the `apps/server/src/data/db.ts` for connecting to the database.
+# Adding Navigation to the Sidebar
+Install the `collapsible` component.
+```bash
+npx shadcn@latest add collapsible
+```
+
+Create an `icons` folder at `apps/client/src/components/icons`.
+\
+\
+Create `apps/client/src/components/icons/iconsMap.ts`.
 ```TypeScript
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
+import {
+  IconHome,
+  IconUser,
+  IconSettings,
+  IconSearch,
+  IconShieldCog,
+  IconUsersGroup,
+  IconUserCircle,
+  IconShieldLock,
+  IconAppsFilled,
+} from "@tabler/icons-react";
 
-export const dbConnection = async (dbFile: string) => {
-  const db = await open({
-    filename: dbFile,
-    driver: sqlite3.Database,
-  });
-
-  return db;
+export const iconsMap: Record<string, React.FC<any>> = {
+  home: IconHome,
+  user: IconUser,
+  search: IconSearch,
+  settings: IconSettings,
+  authorisation: IconShieldCog,
+  users: IconUsersGroup,
+  roles: IconUserCircle,
+  permissions: IconShieldLock,
+  applications: IconAppsFilled,
 };
 ```
 
-Create the route `apps/server/src/route/navigation.ts`.
+Create `apps/client/src/components/icons/iconLoader.tsx`.
 ```TypeScript
-import path from "path";
-import { Router, Request, Response, RequestHandler } from "express";
-import { dbConnection } from "../data/db";
-import { NavigationRow } from "shared/src/interfaces/navigationRow";
-import { Module } from "shared/src/models/module";
-import { Category } from "shared/src/models/category";
-import { Page } from "shared/src/models/page";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { config } from "../config/config";
+import React from "react";
+import { IconPhotoExclamation } from "@tabler/icons-react";
+import { iconsMap } from "./iconsMap";
 
-const dbFile = path.resolve(__dirname, config.DATABASE);
+type IconLoaderProps = {
+  name: keyof typeof iconsMap;
+};
 
-const router = Router();
+const IconLoader: React.FC<IconLoaderProps> = ({ name }) => {
+  const IconComponent = iconsMap[name];
 
-router.get(
-  "/",
-  asyncHandler(async (_req: Request, res: Response) => {
-    const db = await dbConnection(dbFile);
-    const rows: NavigationRow[] = await db.all(`
-      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
-              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
-      FROM 	modules m
-      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
-      INNER JOIN categories c ON mc.categoryId = c.categoryId
-      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
-      INNER JOIN pages p ON cp.pageId = p.pageId;
-    `);
+  if (!IconComponent) {
+    return <IconPhotoExclamation />;
+  }
 
-    const modulesMap = new Map<number, Module>();
-    const categoriesMap = new Map<number, Category>();
+  return <IconComponent />;
+};
 
-    for (const row of rows) {
-      let module = modulesMap.get(row.moduleId);
-      if (!module) {
-        module = new Module(
-          row.moduleId,
-          row.mName,
-          row.mIcon,
-          row.mPermission,
-          true
-        );
-        modulesMap.set(row.moduleId, module);
-      }
-
-      let category = categoriesMap.get(row.categoryId);
-      if (!category) {
-        category = new Category(
-          row.categoryId,
-          row.cName,
-          row.cIcon,
-          row.cPermission
-        );
-        categoriesMap.set(row.categoryId, category);
-      }
-
-      const moduleCategory = module.categories.some(
-        (category) => category.categoryId === row.categoryId
-      );
-      if (!moduleCategory) {
-        module.addCategory(category);
-      }
-
-      const page = new Page(
-        row.pageId,
-        row.pName,
-        row.pIcon,
-        row.pPath,
-        row.pComponent,
-        row.pPermission
-      );
-
-      if (!category.pages.some((p) => p.pageId === page.pageId)) {
-        category.addPage(page);
-      }
-    }
-
-    res.json(Array.from(modulesMap.values()));
-  })
-);
-
-export default router;
+export default IconLoader;
 ```
 
-Update the `apps/server/src/index.ts`
+Create `apps/client/src/components/layout/navigation-panel.tsx`.
 ```TypeScript
-import express from "express";
-import cors from "cors";
-import { config } from "./config/config";
-import navigationRouter from "./routes/navigation";
+import { Link } from "react-router-dom";
+import { IconChevronRight } from "@tabler/icons-react";
+import IconLoader from "@/components/icons/IconLoader";
+import { Module } from "shared/src/models/module";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
 
-const app = express();
-app.use(express.json());
+type Props = {
+  modules: Module[];
+};
 
-if (config.CORS_URL) {
-  app.use(
-    cors({
-      origin: `${config.CORS_URL}`, // or use '*' for all origins (not recommended for production)
-      credentials: true, // if you're using cookies or HTTP auth
-    })
+export function NavigationPanel({ modules }: Props) {
+  return (
+    <>
+      {modules.map((module) => (
+        <SidebarGroup key={module.moduleId}>
+          <SidebarGroupLabel>
+            <IconLoader name={module.icon} />
+            <span>&nbsp;{module.name}</span>
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            {module.categories.map((category) => (
+              <Collapsible
+                key={category.categoryId}
+                asChild
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={category.name}>
+                      <IconLoader name={category.icon} />
+                      <span>{category.name}</span>
+                      <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {category.pages?.map((page) => (
+                        <SidebarMenuSubItem key={page.pageId}>
+                          <SidebarMenuSubButton asChild>
+                            <Link to={page.path}>
+                              <IconLoader name={page.icon} />
+                              <span>{page.name}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   );
 }
-
-const start = async () => {
-  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
-
-  app.listen(config.HOST_PORT, config.HOST_URL, () =>
-    console.log(
-      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
-    )
-  );
-};
-
-start();
 ```
-# Call the Navigation Route from the Client
+
+Update `app-sidebar.tsx` to add `NavigationPanel` to pass `module` data into it.
+```TypeScript
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { IconWorld } from "@tabler/icons-react";
+import { NavigationPanel } from "@/components/layout/navigation-panel";  // 👈 import
+import { Module } from "shared/src/models/module";  // 👈 import
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+
+type Props = {  // 👈 add
+  modules: Module[];
+} & React.ComponentProps<typeof Sidebar>;
+
+export function AppSidebar({ modules, ...props }: Props) {
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <Link to="/">
+                <IconWorld className="!size-5" />
+                <span className="text-base font-semibold">Aspect</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavigationPanel modules={modules}></NavigationPanel>  // 👈 add
+      </SidebarContent>
+      <SidebarFooter></SidebarFooter>
+    </Sidebar>
+  );
+}
+```
+
+# Call the API from the Client
 In the Client project update the the `.env` file.
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
@@ -2463,6 +2567,9 @@ function App() {
 
 export default App;
 ```
+Client: `http://localhost:5173/`
+![Alt text](/readme-images/client-navigation.png?raw=true "Client")
+
 # Add Structured Error Handling to the Node.js Server
 Create folder `apps/server/src/errors` and inside a custom error class `apps/server/src/errors/aspectError.ts`.
 ```TypeScript
@@ -2683,252 +2790,6 @@ sqlite3.exe
 *-audit.json   // 👈 add
 *.log   // 👈 add
 *.log.gz   // 👈 add
-```
-
-# Add Auth0 Authentication to the Server
-> [!TIP]
->
-> Review the Auth0 instructions for setting up and configuring authentication.
->
-> [Node (Express) API: Authorization](https://auth0.com/docs/quickstart/backend/nodejs/01-authorization)
-
-Install the Auth0 SDK in the server.
-```
-npm install --save express-oauth2-jwt-bearer
-```
-
-Update the server's `apps/server/.env`.
-```
-NODE_ENV=development
-HOST_URL=localhost
-HOST_PORT=3000
-DATABASE=../../../../db/aspect.sqlite
-AUTH_AUDIENCE=https://Aspect.API.com 	// 👈 add
-AUTH_ISSUER_BASE_URL=https:		// 👈 add
-AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
-CORS_URL=http://localhost:5173
-ENDPOINT_NAVIGATION=/api/navigation
-```
-Update the server's `apps/server/src/index.ts`
-```TypeScript
-import express from "express";
-import cors from "cors";
-import path from "path";
-import dotenv from "dotenv";
-import { auth } from "express-oauth2-jwt-bearer"; // 👈 import
-import { config } from "./config/config";
-import { errorHandler } from "./middleware/errorHandler";
-import navigationRouter from "./routes/navigation";
-
-// code removed for brevity
-
-const start = async () => {
-
-// 👇 new code
-
-  const jwtCheck = auth({
-    audience: config.AUTH_AUDIENCE,
-    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
-    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
-  });
-
-  // enforce on all endpoints
-  app.use(jwtCheck);
-
-// 👆 new code
-
-  app.use(navigationEndpoint, navigationRouter);
-
-  app.use(errorHandler);
-
-// code removed for brevity
-
-};
-
-start();
-```
-
-Update the client's `apps/client/.env`
-```
-VITE_REACT_APP_AUTH0_DOMAIN=
-VITE_REACT_APP_AUTH0_CLIENT_ID=
-VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add the audience
-VITE_REACT_API_URL=http://localhost:3000
-VITE_REACT_API_NAVIGATION_URL=api/navigation
-```
-Update `apps/client/src/config/config.ts`
-```TypeScript
-import { z } from "zod";
-
-const envSchema = z.object({
-  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
-  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
-  VITE_REACT_APP_AUTH0_AUDIENCE: z.string().min(1), // 👈 add the audience
-  VITE_REACT_API_URL: z.string().min(1),
-  VITE_REACT_API_NAVIGATION_URL: z.string().min(1),
-});
-
-const env = envSchema.parse(import.meta.env);
-
-export const config = {
-  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
-  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
-  AUTH0_AUDIENCE: env.VITE_REACT_APP_AUTH0_AUDIENCE, // 👈 add the audience
-  API_URL: env.VITE_REACT_API_URL,
-  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL,
-};
-```
-
-Add Authorizatrion Parameters to `Auth0Provider` in `apps/client/src/components/layout/auth0-provider-with-navigate.tsx`
-```TypeScript
-import { useNavigate } from "react-router-dom";
-import { Auth0Provider } from "@auth0/auth0-react";
-import { config } from "@/config/config";
-
-const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
-  children,
-}) => {
-  const navigate = useNavigate();
-
-  interface AppState {
-    returnTo?: string;
-  }
-
-  const onRedirectCallback = (appState?: AppState) => {
-    navigate(appState?.returnTo || window.location.pathname);
-  };
-
-  return (
-    <Auth0Provider
-      domain={config.AUTH0_DOMAIN}
-      clientId={config.AUTH0_CLIENT_ID}
-      authorizationParams={{
-        redirect_uri: window.location.origin,
-        audience: config.AUTH0_AUDIENCE || undefined, // 👈 add the audience
-      }}
-      onRedirectCallback={onRedirectCallback}
-    >
-      {children}
-    </Auth0Provider>
-  );
-};
-
-export default Auth0ProviderWithNavigate;
-```
-
-Update `apps/client/src/components/layout/app-sidebar.tsx`
-```TypeScript
-import * as React from "react";
-import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
-import { useEffect, useState } from "react";
-
-// code removed for brevity
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [modules, setModules] = useState<Module[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0(); // 👈 add
-
- const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
-
-  useEffect(() => {
-    if (!isAuthenticated) {  // 👈 add
-      return;
-    }
-
-    const fetchModules = async () => {
-      try {
-
-	// 👇 new code
-        const token = await getAccessTokenSilently();
-
-        const response = await fetch(navigationUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-	// 👆 new code
-
-	if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data: Module[] = await response.json();
-
-        setModules(data);
-      } catch (err) {
-        setError("Failed to fetch modules");
-        console.error(err);
-      }
-    };
-
-    fetchModules();
-  }, [isAuthenticated, getAccessTokenSilently]); // 👈 add
-
-  if (!isAuthenticated) return <></>; // 👈 add
-  if (error) return <p>{error}</p>;
-
-  return (
-    <Sidebar collapsible="icon" {...props}>
-
-    // code removed for brevity
-
-    </Sidebar>
-  );
-}
-```
-
-Update `Update `apps/client/src/components/layout/app-sidebar.tsx`.
-```TypeScript
-import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import Authentication from "./authentication";
-
-export function AppSidebarHeader() {
-  const { isAuthenticated } = useAuth0();
-
-  return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
-      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-
-	// 👇 new code
-
-        {isAuthenticated ? (
-          <>
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mx-2 data-[orientation=vertical]:h-4"
-            />
-          </>
-        ) : (
-          <></>
-        )}
-
-	// 👆 new code
-
-	<h1 className="text-base font-medium">Home</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <Authentication />
-          <ThemeToggle />
-          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
-            <a
-              href="https://github.com/grantcolley/aspect"
-              rel="noopener noreferrer"
-              target="_blank"
-              className="dark:text-foreground"
-            >
-              GitHub
-            </a>
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-}
 ```
 
 # Seed the Authorisation data
