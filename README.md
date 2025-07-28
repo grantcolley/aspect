@@ -1503,43 +1503,6 @@ export const MainLayout = () => {
     </Auth0ProviderWithNavigate>
   );
 };
-
-import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Auth0ProviderWithNavigate from "@/components/layout/auth0-provider-with-navigate.tsx"; 
-import "./App.css";
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Auth0ProviderWithNavigate>  // 👈 inside <BrowserRouter><BrowserRouter />
-        <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
-          <SidebarProvider
-            style={
-              {
-                "--sidebar-width": "calc(var(--spacing) * 72)",
-                "--header-height": "calc(var(--spacing) * 12)",
-              } as React.CSSProperties
-            }
-          >
-            <AppSidebar variant="inset" />
-            <SidebarInset>
-              <AppSidebarHeader />
-              <div className="flex flex-1 flex-col">
-                <div className="@container/main flex flex-1 flex-col gap-2"></div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </ThemeProvider>
-      </Auth0ProviderWithNavigate>
-    </BrowserRouter>
-  );
-}
-
-export default App;
 ```
 
 Create the `apps/client/src/auth/login.tsx` component.
