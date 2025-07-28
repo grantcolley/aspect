@@ -55,8 +55,8 @@ aspect
 	* [Server `config.ts`](#server-configts)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
-* [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
 * [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
+* [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
 * [Seed the Modules data](#seed-the-modules-data)
 * [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [Call the API from the Client](#call-the-api-from-the-client)
@@ -1847,38 +1847,6 @@ export function AppSidebarHeader() {
 }
 ```
 
-# Enable CORS in the Node.js Server
-```
-npm install cors
-npm install --save-dev @types/cors
-```
-
-Update the `apps/server/src/index.ts` to support CORS.
-```TypeScript
-import express from "express";
-import cors from "cors";    	// 👈 import CORS
-import { User } from "shared";
-
-const app = express();
-const port = 3000;
-
-app.use(	// 👈 use CORS
-  cors({
-    origin: "http://localhost:5173", // 👈 or use '*' for all origins (not recommended for production)
-    credentials: true, // if you're using cookies or HTTP auth
-  })
-);
-
-app.get("/api/user", (req, res) => {
-  const user: User = { userId: 1, name: "Alice" };
-  res.json(user);
-});
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
-```
-
 # Add the Navigation Route to the Server
 In the Server project, create the `apps/server/src/data/db.ts` for connecting to the database.
 ```TypeScript
@@ -1984,7 +1952,35 @@ export default router;
 Update the `apps/server/src/index.ts`
 ```TypeScript
 import express from "express";
-import cors from "cors";
+import { config } from "./config/config";
+import navigationRouter from "./routes/navigation";
+
+const app = express();
+app.use(express.json());
+
+const start = async () => {
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
+
+  app.listen(config.HOST_PORT, config.HOST_URL, () =>
+    console.log(
+      `Server running on http://${config.HOST_URL}:${config.HOST_PORT}`
+    )
+  );
+};
+
+start();
+```
+
+# Enable CORS in the Node.js Server
+```
+npm install cors
+npm install --save-dev @types/cors
+```
+
+Update the `apps/server/src/index.ts` to support CORS.
+```TypeScript
+import express from "express";
+import cors from "cors"; // 👈 import CORS
 import { config } from "./config/config";
 import navigationRouter from "./routes/navigation";
 
@@ -1992,7 +1988,7 @@ const app = express();
 app.use(express.json());
 
 if (config.CORS_URL) {
-  app.use(
+  app.use( // 👈 use CORS
     cors({
       origin: `${config.CORS_URL}`, // or use '*' for all origins (not recommended for production)
       credentials: true, // if you're using cookies or HTTP auth
