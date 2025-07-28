@@ -1981,7 +1981,7 @@ export function NavigationPanel({ modules }: Props) {
 }
 ```
 
-Update `app-sidebar.tsx` to add `NavigationPanel` and pass dummy data into it.
+Update `app-sidebar.tsx` to add `NavigationPanel` to pass `module` data into it.
 ```TypeScript
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -2028,8 +2028,6 @@ export function AppSidebar({ modules, ...props }: Props) {
   );
 }
 ```
-Client: `http://localhost:5173/`
-![Alt text](/readme-images/client-navigation.png?raw=true "Client")
 
 # Enable CORS in the Node.js Server
 ```
