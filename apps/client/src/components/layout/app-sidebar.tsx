@@ -1,11 +1,8 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useState } from "react";
 import { IconWorld } from "@tabler/icons-react";
 import { NavigationPanel } from "@/components/layout/navigation-panel";
 import { Module } from "shared/src/models/module";
-import { config } from "@/config/config";
 import {
   Sidebar,
   SidebarContent,
@@ -16,47 +13,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [modules, setModules] = useState<Module[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+type Props = {
+  modules: Module[];
+} & React.ComponentProps<typeof Sidebar>;
 
-  const navigationUrl = `${config.API_URL}/${config.API_NAVIGATION_URL}`;
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
-    const fetchModules = async () => {
-      try {
-        const token = await getAccessTokenSilently();
-
-        const response = await fetch(navigationUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data: Module[] = await response.json();
-
-        setModules(data);
-      } catch (err) {
-        setError("Failed to fetch modules");
-        console.error(err);
-      }
-    };
-
-    fetchModules();
-  }, [isAuthenticated, getAccessTokenSilently]);
-
-  if (!isAuthenticated) return <></>;
-  if (error) return <p>{error}</p>;
-
+export function AppSidebar({ modules, ...props }: Props) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
