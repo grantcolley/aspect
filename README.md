@@ -55,8 +55,8 @@ aspect
 	* [Server `config.ts`](#server-configts)
 * [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
 * [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
-* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
+* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
 * [Seed the Modules data](#seed-the-modules-data)
 * [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
 * [Call the Navigation Route from the Client](#call-the-navigation-route-from-the-client)
@@ -1794,7 +1794,7 @@ export const config = {
 };
 ```
 
-Update `Update `apps/client/src/components/layout/app-sidebar.tsx`.
+Update `Update `apps/client/src/components/layout/app-sidebar-header.tsx`.
 ```TypeScript
 import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
 import { Button } from "@/components/ui/button";
@@ -1845,6 +1845,38 @@ export function AppSidebarHeader() {
     </header>
   );
 }
+```
+
+# Enable CORS in the Node.js Server
+```
+npm install cors
+npm install --save-dev @types/cors
+```
+
+Update the `apps/server/src/index.ts` to support CORS.
+```TypeScript
+import express from "express";
+import cors from "cors";    	// 👈 import CORS
+import { User } from "shared";
+
+const app = express();
+const port = 3000;
+
+app.use(	// 👈 use CORS
+  cors({
+    origin: "http://localhost:5173", // 👈 or use '*' for all origins (not recommended for production)
+    credentials: true, // if you're using cookies or HTTP auth
+  })
+);
+
+app.get("/api/user", (req, res) => {
+  const user: User = { userId: 1, name: "Alice" };
+  res.json(user);
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
 ```
 
 # Adding Navigation to the Sidebar
@@ -2027,38 +2059,6 @@ export function AppSidebar({ modules, ...props }: Props) {
     </Sidebar>
   );
 }
-```
-
-# Enable CORS in the Node.js Server
-```
-npm install cors
-npm install --save-dev @types/cors
-```
-
-Update the `apps/server/src/index.ts` to support CORS.
-```TypeScript
-import express from "express";
-import cors from "cors";    	// 👈 import CORS
-import { User } from "shared";
-
-const app = express();
-const port = 3000;
-
-app.use(	// 👈 use CORS
-  cors({
-    origin: "http://localhost:5173", // 👈 or use '*' for all origins (not recommended for production)
-    credentials: true, // if you're using cookies or HTTP auth
-  })
-);
-
-app.get("/api/user", (req, res) => {
-  const user: User = { userId: 1, name: "Alice" };
-  res.json(user);
-});
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
 ```
 
 # Seed the Modules data
