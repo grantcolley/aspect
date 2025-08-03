@@ -68,7 +68,9 @@ aspect
 	* [Add the Authorisation Endpoints](#add-the-authorisation-endpoints)
  	* [Add the Applications Endpoints](#add-the-applications-endpoints)
   	* [Update the index.ts](#update-the-indexts) 
-* [Test the Endpoints using Postman](#test-the-endpoints-using-postman) 
+* [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
+* [Create a Generic DataTable Component](#create-a-generic-datatable-component)
+ 
   
 # Scaffolding the Monorepo
 ## Setup the Workspaces
@@ -4250,3 +4252,16 @@ Go to the Authorization tab in Postman and set:
 - Token: Paste the access_token you received earlier.
 
 Send the request!
+
+# Create a Generic DataTable Component
+Combine `shadcn`'s `<Table />` component with `@tanstack/react-table` to create tables with sorting, filtering and pagination.
+
+Add the `<Table />` component and install `tanstack/react-table`.
+```
+npx shadcn@latest add table
+
+npm install @tanstack/react-table
+```
+
+Create folder `apps/client/src/components/datatable`.
+
