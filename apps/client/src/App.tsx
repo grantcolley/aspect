@@ -24,30 +24,35 @@ function App() {
     const setupRoutes = async () => {
       let routes: RouteObject[] = [];
       let children: RouteObject[] = [];
+      let modules: any[] = [];
 
-      const token = await getAccessTokenSilently();
+      if (isAuthenticated) {
+        const token = await getAccessTokenSilently();
 
-      const modules = await fetchModules(token);
+        modules = await fetchModules(token);
 
-      const pages = modules.flatMap((module) =>
-        module.categories.flatMap((category) => category.pages)
-      );
-
-      children = pages.map((p) => {
-        const LazyComp = lazyComponents[p.component] ?? NotFound;
-        const element = (
-          <Suspense fallback={<div>Loading...</div>}>
-            <AuthenticationRoute>
-              <LazyComp />
-            </AuthenticationRoute>
-          </Suspense>
+        const pages = modules.flatMap((module) =>
+          module.categories.flatMap(
+            (category: { pages: any }) => category.pages
+          )
         );
 
-        return {
-          path: p.path,
-          element,
-        };
-      });
+        children = pages.map((p) => {
+          const LazyComp = lazyComponents[p.component] ?? NotFound;
+          const element = (
+            <Suspense fallback={<div>Loading...</div>}>
+              <AuthenticationRoute>
+                <LazyComp />
+              </AuthenticationRoute>
+            </Suspense>
+          );
+
+          return {
+            path: p.path,
+            element,
+          };
+        });
+      }
 
       children.push({ path: "*", element: <NotFound /> });
 
@@ -62,7 +67,7 @@ function App() {
       setRouter(createBrowserRouter(routes));
     };
 
-    if (isAuthenticated) setupRoutes();
+    setupRoutes();
   }, [isAuthenticated]);
 
   if (isLoading || !router) return <></>;
