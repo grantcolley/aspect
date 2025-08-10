@@ -4274,5 +4274,161 @@ npm install @tanstack/react-table
 > └── apps/client/src/components/ui/table.tsx 👈 move table.tsx to here
 > ```
 
-Create folder `apps/client/src/components/datatable`.
+Create request `apps/client/src/requests/fetch-generic-record-data.ts`.
+```TypeScript
+import { config } from "@/config/config";
+
+export async function fetchGenericRecordData(
+  token: string,
+  path: string
+): Promise<Record<string, unknown>[]> {
+  const url = `${config.API_URL}/api${path}`;
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  return data;
+}
+```
+
+Create component `apps/client/src/components/table/data-table.tsx`.
+```TypeScript
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+}
+
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+}: DataTableProps<TData, TValue>) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <div className="overflow-hidden rounded-md border">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id} className="text-left">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+```
+
+Update the page `apps/client/src/pages/generic-data-table.tsx`.
+```TypeScript
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { type ColumnDef } from "@tanstack/react-table";
+import { useAuth0 } from "@auth0/auth0-react";
+import { DataTable } from "@/components/table/data-table";
+import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
+
+type RawRow = Record<string, unknown>; // We don't know the shape yet
+
+export default function GenericDataTable() {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const location = useLocation();
+  const [data, setData] = useState<RawRow[]>([]);
+  const [columns, setColumns] = useState<ColumnDef<RawRow>[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (isAuthenticated) {
+        const token = await getAccessTokenSilently();
+        const json = await fetchGenericRecordData(token, location.pathname);
+
+        // Dynamically infer column definitions from the first row
+        const keys = Object.keys(json[0] ?? {});
+
+        const inferredColumns: ColumnDef<RawRow>[] = keys.map((key) => ({
+          accessorKey: key,
+          header: key.toUpperCase(),
+          cell: (info) => String(info.getValue() ?? ""),
+        }));
+
+        setData(json);
+        setColumns(inferredColumns);
+      }
+    };
+
+    fetchData();
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="container mx-auto py-10 px-4">
+        <DataTable columns={columns} data={data} />
+      </div>
+    </div>
+  );
+}
+```
 
