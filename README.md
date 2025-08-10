@@ -1998,7 +1998,7 @@ export function getModules() {
               name: "Users",
               icon: "users",
               path: "users",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -2006,7 +2006,7 @@ export function getModules() {
               name: "Roles",
               icon: "roles",
               path: "roles",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -2014,7 +2014,7 @@ export function getModules() {
               name: "Permissions",
               icon: "permissions",
               path: "permissions",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -2030,7 +2030,7 @@ export function getModules() {
               name: "Modules",
               icon: "modules",
               path: "modules",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -2038,7 +2038,7 @@ export function getModules() {
               name: "Categories",
               icon: "categories",
               path: "categories",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -2046,7 +2046,7 @@ export function getModules() {
               name: "Pages",
               icon: "pages",
               path: "pages",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -2427,18 +2427,18 @@ export const config = {
 };
 ```
 
-Create page `apps/client/src/pages/generic-grid.tsx` for the target path for pages in the navigation panel.
+Create page `apps/client/src/pages/generic-data-table.tsx` for the target path for pages in the navigation panel.
 ```TypeScript
 import { useLocation, type Location } from "react-router-dom";
 
-function GenericGrid() {
+function GenericDataTable() {
   const location: Location = useLocation();
   return (
-    <div className="text-red-500">GenericGrid for {location.pathname}</div>
+    <div className="text-red-500">GenericDataTable for {location.pathname}</div>
   );
 }
 
-export default GenericGrid;
+export default GenericDataTable;
 ```
 
 Create page `apps/client/src/pages/not-found.tsx` for the fallback if the target path doesn't find the intended page.
@@ -2465,7 +2465,7 @@ interface LazyComponentMap {
 
 export const fetchLazyComponents: () => LazyComponentMap =
   (): LazyComponentMap => ({
-    GenericGrid: React.lazy(() => import("../pages/generic-grid")),
+    GenericDataTable: React.lazy(() => import("../pages/generic-data-table")),
   });
 ```
 
@@ -4262,6 +4262,17 @@ npx shadcn@latest add table
 
 npm install @tanstack/react-table
 ```
+
+> [!Caution]
+> 
+> Installing the shadcn/ui table came with two unexpected issues that needed to be resolved.
+> 
+> ```
+> aspect/
+> ├── src/components/ui/table.tsx   👈 move table.tsx into apps/client/src/components/ui then delete this
+> │   
+> └── apps/client/src/components/ui/table.tsx 👈 move table.tsx to here
+> ```
 
 Create folder `apps/client/src/components/datatable`.
 
