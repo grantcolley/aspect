@@ -4263,5 +4263,16 @@ npx shadcn@latest add table
 npm install @tanstack/react-table
 ```
 
+> [!Caution]
+> 
+> Installing the shadcn/ui sidebar came with two unexpected issues that needed to be resolved.
+> 
+> ```
+> aspect/
+> ├── src/components/ui/table.tsx   👈 move table.tsx into apps/client/src/components/ui then delete this
+> │   
+> └── apps/client/src/components/ui/table.tsx 👈 move table.tsx to here
+> ```
+
 Create folder `apps/client/src/components/datatable`.
 
