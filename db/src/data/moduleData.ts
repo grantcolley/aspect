@@ -19,7 +19,7 @@ export function getModules() {
               name: "Users",
               icon: "users",
               path: "users",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -27,7 +27,7 @@ export function getModules() {
               name: "Roles",
               icon: "roles",
               path: "roles",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -35,7 +35,7 @@ export function getModules() {
               name: "Permissions",
               icon: "permissions",
               path: "permissions",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -51,7 +51,7 @@ export function getModules() {
               name: "Modules",
               icon: "modules",
               path: "modules",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -59,7 +59,7 @@ export function getModules() {
               name: "Categories",
               icon: "categories",
               path: "categories",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -67,7 +67,7 @@ export function getModules() {
               name: "Pages",
               icon: "pages",
               path: "pages",
-              component: "GenericGrid",
+              component: "GenericDataTable",
               permission: "admin_ro|admin_rw",
             },
           ],
