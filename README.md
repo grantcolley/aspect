@@ -4265,7 +4265,7 @@ npm install @tanstack/react-table
 
 > [!Caution]
 > 
-> Installing the shadcn/ui sidebar came with two unexpected issues that needed to be resolved.
+> Installing the shadcn/ui table came with two unexpected issues that needed to be resolved.
 > 
 > ```
 > aspect/
