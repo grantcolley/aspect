@@ -2502,7 +2502,7 @@ import {
   type RouteObject,
 } from "react-router-dom";
 import { MainLayout } from "@/components/layout/main-layout";
-import { AuthenticationRoute } from "@/auth/authentication-route";
+import { AuthenticatedRoute } from "@/auth/authenticated-route";
 import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
 import { fetchModules } from "@/requests/fetch-modules";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -2538,9 +2538,9 @@ function App() {
           const LazyComp = lazyComponents[p.component] ?? NotFound;
           const element = (
             <Suspense fallback={<div>Loading...</div>}>
-              <AuthenticationRoute>
+              <AuthenticatedRoute>
                 <LazyComp key={p.pageId} />
-              </AuthenticationRoute>
+              </AuthenticatedRoute>
             </Suspense>
           );
 
