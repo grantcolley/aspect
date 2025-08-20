@@ -4531,6 +4531,6 @@ export default App;
 ```
 
 **Why this works**
-- **Only one router is used `<RouterProvider>` at the root level `main.tsx`.**
+- **Only one router `<RouterProvider>` is used at the root level `main.tsx`.**
 - **The `Auth0Provider` sits above the router so all routes can access authentication context.**
 - **`Auth0Provider`'s `onRedirectCallback` uses the router’s own `navigate` to keep the SPA session history intact after login/logout redirects.**
