@@ -70,7 +70,7 @@ aspect
   	* [Update the index.ts](#update-the-indexts) 
 * [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
 * [Create a Generic DataTable Component](#create-a-generic-datatable-component)
- 
+* [Add Dynamic Route Loading](#add-dynamic-route-loading)
   
 # Scaffolding the Monorepo
 ## Setup the Workspaces
@@ -4391,3 +4391,146 @@ export default function GenericDataTable() {
 }
 ```
 
+# Add Dynamic Route Loading
+> [!WARNING]
+>
+> This section will require significant refactoring of `App.tsx`.
+
+Create the `apps/client/src/router.ts`.
+```TS
+import { createBrowserRouter } from "react-router-dom";
+import React from "react";
+import App from "./App";
+
+export const router = createBrowserRouter([
+  {
+    path: "*",
+    element: React.createElement(App),  // 👈 create the App element
+  },
+]);
+```
+
+Modify `apps/client/src/main.tsx`.
+```TypeScript
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider } from "react-router-dom"; // 👈 import RouterProvider
+import { Auth0Provider } from "@auth0/auth0-react";
+import { config } from "@/config/config";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { router } from "./router"; // 👈 import router
+import "./index.css";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
+      <Auth0Provider
+        domain={config.AUTH0_DOMAIN}
+        clientId={config.AUTH0_CLIENT_ID}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+          audience: config.AUTH0_AUDIENCE || undefined,
+        }}
+        onRedirectCallback={(appState) => { { /* 👈 onRedirectCallback uses the router’s own navigate */ }
+          router.navigate(appState?.returnTo || window.location.pathname);
+        }}
+      >
+        <RouterProvider router={router} /> { /* 👈 bring RouterProvider to root level in main.tsx */ }
+      </Auth0Provider>
+    </ThemeProvider>
+  </StrictMode>
+);
+```
+
+Refactor `apps/client/src/App.tsx`.
+```TSX
+import { Suspense, useEffect, useState } from "react";
+import { Route, Routes, type RouteObject } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import { MainLayout } from "@/components/layout/main-layout";
+import { AuthenticatedRoute } from "@/auth/authenticated-route";
+import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
+import { fetchModules } from "@/requests/fetch-modules";
+import { Module } from "shared/src/models/module";
+import NotFound from "./pages/not-found";
+import "./App.css";
+
+const lazyComponents = fetchLazyComponents();
+
+// 👇 Function to render routes based on the fetched modules
+function renderRoutes(routeObjects: RouteObject[]) {
+  return routeObjects.map((r, i) => {
+    return <Route key={i} path={r.path} element={r.element} />;
+  });
+}
+
+function App() {
+  const { getAccessTokenSilently, isAuthenticated, isLoading, user } =
+    useAuth0();
+  const [routes, setRoutes] = useState<RouteObject[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
+
+  useEffect(() => {
+    const loadRoutes = async () => {
+      let apiRoutes: RouteObject[] = [];
+      let apiModules: Module[] = [];
+
+      if (isAuthenticated && user?.sub) {
+        const token = await getAccessTokenSilently();
+
+        apiModules = await fetchModules(token);
+
+        setModules(apiModules);
+
+        const pages = apiModules.flatMap((module) =>
+          module.categories.flatMap(
+            (category: { pages: any }) => category.pages
+          )
+        );
+
+        apiRoutes = pages.map((p) => {
+          const LazyComp = lazyComponents[p.component] ?? NotFound;
+          const element = (
+            <Suspense fallback={<div>Loading...</div>}>
+              <AuthenticatedRoute>
+                <LazyComp key={p.pageId} />
+              </AuthenticatedRoute>
+            </Suspense>
+          );
+
+          return {
+            path: p.path,
+            element,
+          };
+        });
+
+        routes.push({ path: "*", element: <NotFound /> });
+
+        setRoutes(apiRoutes); // 👈 Set the routes based on fetched modules
+        setModules(apiModules); // 👈 Set the modules based on fetched data
+      } else if (!isLoading && !isAuthenticated) {
+        setRoutes([]);
+        setModules([]);
+      }
+    };
+
+    loadRoutes();
+  }, [isAuthenticated, getAccessTokenSilently, user]);
+
+  return (
+    <Routes>
+      <Route path="/" element={<MainLayout modules={modules ?? []} />}>
+        {renderRoutes(routes)}{" "}
+        {/* 👆 Render dynamic routes based on fetched modules */}
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;
+```
+
+**Why this works**
+- **Only one router `<RouterProvider>` is used at the root level `main.tsx`.**
+- **The `Auth0Provider` sits above the router so all routes can access authentication context.**
+- **`Auth0Provider`'s `onRedirectCallback` uses the router’s own `navigate` to keep the SPA session history intact after login/logout redirects.**
