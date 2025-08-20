@@ -1,49 +1,53 @@
-import { useEffect, useState, Suspense } from "react";
-import {
-  RouterProvider,
-  createBrowserRouter,
-  type RouteObject,
-} from "react-router-dom";
+import { Suspense, useEffect, useState } from "react";
+import { Route, Routes, type RouteObject } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 import { MainLayout } from "@/components/layout/main-layout";
-import { AuthenticationRoute } from "@/auth/authentication-route";
+import { AuthenticatedRoute } from "@/auth/authenticated-route";
 import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
 import { fetchModules } from "@/requests/fetch-modules";
-import { useAuth0 } from "@auth0/auth0-react";
+import { Module } from "shared/src/models/module";
 import NotFound from "./pages/not-found";
 import "./App.css";
 
 const lazyComponents = fetchLazyComponents();
 
+function renderRoutes(routeObjects: RouteObject[]) {
+  return routeObjects.map((r, i) => {
+    return <Route key={i} path={r.path} element={r.element} />;
+  });
+}
+
 function App() {
-  const { isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0();
-  const [router, setRouter] = useState<ReturnType<
-    typeof createBrowserRouter
-  > | null>(null);
+  const { getAccessTokenSilently, isAuthenticated, isLoading, user } =
+    useAuth0();
+  const [routes, setRoutes] = useState<RouteObject[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
 
   useEffect(() => {
-    const setupRoutes = async () => {
-      let routes: RouteObject[] = [];
-      let children: RouteObject[] = [];
-      let modules: any[] = [];
+    const loadRoutes = async () => {
+      let apiRoutes: RouteObject[] = [];
+      let apiModules: Module[] = [];
 
-      if (isAuthenticated) {
+      if (isAuthenticated && user?.sub) {
         const token = await getAccessTokenSilently();
 
-        modules = await fetchModules(token);
+        apiModules = await fetchModules(token);
 
-        const pages = modules.flatMap((module) =>
+        setModules(apiModules);
+
+        const pages = apiModules.flatMap((module) =>
           module.categories.flatMap(
             (category: { pages: any }) => category.pages
           )
         );
 
-        children = pages.map((p) => {
+        apiRoutes = pages.map((p) => {
           const LazyComp = lazyComponents[p.component] ?? NotFound;
           const element = (
             <Suspense fallback={<div>Loading...</div>}>
-              <AuthenticationRoute>
+              <AuthenticatedRoute>
                 <LazyComp key={p.pageId} />
-              </AuthenticationRoute>
+              </AuthenticatedRoute>
             </Suspense>
           );
 
@@ -52,27 +56,27 @@ function App() {
             element,
           };
         });
+
+        routes.push({ path: "*", element: <NotFound /> });
+
+        setRoutes(apiRoutes);
+        setModules(apiModules);
+      } else if (!isLoading && !isAuthenticated) {
+        setRoutes([]);
+        setModules([]);
       }
-
-      children.push({ path: "*", element: <NotFound /> });
-
-      routes = [
-        {
-          path: "/",
-          element: <MainLayout modules={modules ?? []} />,
-          children,
-        },
-      ];
-
-      setRouter(createBrowserRouter(routes));
     };
 
-    setupRoutes();
-  }, [isAuthenticated]);
+    loadRoutes();
+  }, [isAuthenticated, getAccessTokenSilently, user]);
 
-  if (isLoading || !router) return <></>;
-
-  return <RouterProvider router={router} />;
+  return (
+    <Routes>
+      <Route path="/" element={<MainLayout modules={modules ?? []} />}>
+        {renderRoutes(routes)}{" "}
+      </Route>
+    </Routes>
+  );
 }
 
 export default App;
