@@ -4394,7 +4394,7 @@ export default function GenericDataTable() {
 # Add Dynamic Route Loading
 > [!WARNING]
 >
-> This section will require signiricant refactoring the `App.tsx`.
+> This section will require significant refactoring of `App.tsx`.
 
 Create the `apps/client/src/router.ts`.
 ```TS
