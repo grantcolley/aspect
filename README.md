@@ -1451,7 +1451,7 @@ import "./index.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
-      <Auth0Provider   // 👈 add Auth0Provider
+      <Auth0Provider   { /* 👈 add Auth0Provider */ }
         domain={config.AUTH0_DOMAIN}
         clientId={config.AUTH0_CLIENT_ID}
         authorizationParams={{
