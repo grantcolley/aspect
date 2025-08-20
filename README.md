@@ -1439,72 +1439,31 @@ Install the Auth0 React SDK
 npm install @auth0/auth0-react
 ```
 
-Create `apps/client/src/auth/auth0-provider-with-navigate.tsx`.
+Add `<Auth0Provider>` to `main.tsx`.
 ```TypeScript
-import { useNavigate } from "react-router-dom";
-import { Auth0Provider } from "@auth0/auth0-react";
-import { config } from "@/config/config";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { Auth0Provider } from "@auth0/auth0-react"; // 👈 import Auth0Provider
+import { config } from "@/config/config"; // 👈 import config
+import "./index.css";
 
-const Auth0ProviderWithNavigate: React.FC<React.PropsWithChildren<{}>> = ({
-  children,
-}) => {
-  const navigate = useNavigate();
-
-  interface AppState {
-    returnTo?: string;
-  }
-
-  const onRedirectCallback = (appState?: AppState) => {
-    navigate(appState?.returnTo || window.location.pathname);
-  };
-
-  return (
-    <Auth0Provider
-      domain={config.AUTH0_DOMAIN}
-      clientId={config.AUTH0_CLIENT_ID}
-      authorizationParams={{ redirect_uri: window.location.origin }}
-      onRedirectCallback={onRedirectCallback}
-    >
-      {children}
-    </Auth0Provider>
-  );
-};
-
-export default Auth0ProviderWithNavigate;
-```
-
-Configure the `<Auth0ProviderWithNavigate>` in `main-layout.tsx`.
-```TSX
-import { Outlet } from "react-router-dom";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Auth0ProviderWithNavigate from "@/auth/auth0-provider-with-navigate"; // 👈 import
-
-export const MainLayout = () => {
-  return (
-    <Auth0ProviderWithNavigate> // 👈 inside <App>'s <RouteProvider /> for history to work
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
+      <Auth0Provider   // 👈 add Auth0Provider
+        domain={config.AUTH0_DOMAIN}
+        clientId={config.AUTH0_CLIENT_ID}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+          audience: config.AUTH0_AUDIENCE || undefined,
+        }}
       >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <AppSidebarHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-              <Outlet />
-            </div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </Auth0ProviderWithNavigate>
-  );
-};
+        <App />
+      </Auth0Provider>
+    </ThemeProvider>
+  </StrictMode>
+);
 ```
 
 Create the `apps/client/src/auth/login.tsx` component.
