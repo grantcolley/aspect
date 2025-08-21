@@ -547,7 +547,7 @@ Create the `Edibility` and `Permissionable` interfaces
 `apps/shared/src/interfaces/edibility.ts`
 ```TypeScript
 export interface Editability {
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
 }
 ```
 `apps/shared/src/interfaces/permissionable.ts`
@@ -620,7 +620,7 @@ export class Page implements Permissionable, Editability {
   path: string;
   component: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
 
   constructor(
     pageId: number,
@@ -629,7 +629,7 @@ export class Page implements Permissionable, Editability {
     path: string,
     component: string,
     permission: string,
-    isReadonlOnly: boolean = false
+    isReadOnly: boolean = false
   ) {
     this.pageId = pageId;
     this.name = name;
@@ -637,7 +637,7 @@ export class Page implements Permissionable, Editability {
     this.path = path;
     this.component = component;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
   }
 }
 ```
@@ -652,7 +652,7 @@ export class Category implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
   pages: Page[];
 
   constructor(
@@ -660,14 +660,14 @@ export class Category implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isReadonlOnly: boolean = false,
+    isReadOnly: boolean = false,
     pages: Page[] = []
   ) {
     this.categoryId = categoryId;
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
     this.pages = pages;
   }
 
@@ -693,7 +693,7 @@ export class Module implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
   categories: Category[];
 
   constructor(
@@ -701,14 +701,14 @@ export class Module implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isReadonlOnly: boolean = false,
+    isReadOnly: boolean = false,
     categories: Category[] = []
   ) {
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
     this.categories = categories;
   }
 
@@ -737,18 +737,18 @@ export class Permission implements Permissionable, Editability {
   permissionId: number;
   name: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
 
   constructor(
     permissionId: number,
     name: string,
     permission: string,
-    isReadonlOnly: boolean = false
+    isReadOnly: boolean = false
   ) {
     this.permissionId = permissionId;
     this.name = name;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
   }
 }
 ```
@@ -762,20 +762,20 @@ export class Role implements Permissionable, Editability {
   roleId: number;
   name: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
   permissions: Permission[];
 
   constructor(
     roleId: number,
     name: string,
     permission: string,
-    isReadonlOnly: boolean = false,
+    isReadOnly: boolean = false,
     permissions: Permission[] = []
   ) {
     this.roleId = roleId;
     this.name = name;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
     this.permissions = permissions;
   }
 
@@ -805,7 +805,7 @@ export class User implements Permissionable, Editability {
   name: string;
   email: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
   roles: Role[];
 
   constructor(
@@ -813,14 +813,14 @@ export class User implements Permissionable, Editability {
     name: string,
     email: string,
     permission: string,
-    isReadonlOnly: boolean = false,
+    isReadOnly: boolean = false,
     roles: Role[] = []
   ) {
     this.userId = userId;
     this.name = name;
     this.email = email;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
     this.roles = roles;
   }
 
