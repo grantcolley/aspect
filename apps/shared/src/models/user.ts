@@ -7,7 +7,7 @@ export class User implements Permissionable, Editability {
   name: string;
   email: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
   roles: Role[];
 
   constructor(
@@ -15,14 +15,14 @@ export class User implements Permissionable, Editability {
     name: string,
     email: string,
     permission: string,
-    isReadonlOnly: boolean = false,
+    isReadOnly: boolean = false,
     roles: Role[] = []
   ) {
     this.userId = userId;
     this.name = name;
     this.email = email;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
     this.roles = roles;
   }
 

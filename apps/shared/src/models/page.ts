@@ -8,7 +8,7 @@ export class Page implements Permissionable, Editability {
   path: string;
   component: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
 
   constructor(
     pageId: number,
@@ -17,7 +17,7 @@ export class Page implements Permissionable, Editability {
     path: string,
     component: string,
     permission: string,
-    isReadonlOnly: boolean = false
+    isReadOnly: boolean = false
   ) {
     this.pageId = pageId;
     this.name = name;
@@ -25,6 +25,6 @@ export class Page implements Permissionable, Editability {
     this.path = path;
     this.component = component;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
   }
 }

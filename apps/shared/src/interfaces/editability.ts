@@ -1,3 +1,3 @@
 export interface Editability {
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
 }

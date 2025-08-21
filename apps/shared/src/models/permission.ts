@@ -5,17 +5,17 @@ export class Permission implements Permissionable, Editability {
   permissionId: number;
   name: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
 
   constructor(
     permissionId: number,
     name: string,
     permission: string,
-    isReadonlOnly: boolean = false
+    isReadOnly: boolean = false
   ) {
     this.permissionId = permissionId;
     this.name = name;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
   }
 }

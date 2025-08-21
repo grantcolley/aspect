@@ -6,20 +6,20 @@ export class Role implements Permissionable, Editability {
   roleId: number;
   name: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
   permissions: Permission[];
 
   constructor(
     roleId: number,
     name: string,
     permission: string,
-    isReadonlOnly: boolean = false,
+    isReadOnly: boolean = false,
     permissions: Permission[] = []
   ) {
     this.roleId = roleId;
     this.name = name;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
     this.permissions = permissions;
   }
 

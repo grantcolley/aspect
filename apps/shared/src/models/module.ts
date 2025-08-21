@@ -7,7 +7,7 @@ export class Module implements Permissionable, Editability {
   name: string;
   icon: string;
   permission: string;
-  isReadonlOnly: boolean;
+  isReadOnly: boolean;
   categories: Category[];
 
   constructor(
@@ -15,14 +15,14 @@ export class Module implements Permissionable, Editability {
     name: string,
     icon: string,
     permission: string,
-    isReadonlOnly: boolean = false,
+    isReadOnly: boolean = false,
     categories: Category[] = []
   ) {
     this.moduleId = moduleId;
     this.name = name;
     this.icon = icon;
     this.permission = permission;
-    this.isReadonlOnly = isReadonlOnly;
+    this.isReadOnly = isReadOnly;
     this.categories = categories;
   }
 
