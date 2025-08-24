@@ -7,6 +7,7 @@ export class Page implements Permissionable, Editability {
   icon: string;
   path: string;
   component: string;
+  args: string;
   permission: string;
   isReadOnly: boolean;
 
@@ -16,6 +17,7 @@ export class Page implements Permissionable, Editability {
     icon: string,
     path: string,
     component: string,
+    args: string,
     permission: string,
     isReadOnly: boolean = false
   ) {
@@ -24,6 +26,7 @@ export class Page implements Permissionable, Editability {
     this.icon = icon;
     this.path = path;
     this.component = component;
+    this.args = args;
     this.permission = permission;
     this.isReadOnly = isReadOnly;
   }

@@ -20,6 +20,7 @@ export function getModules() {
               icon: "users",
               path: "users",
               component: "GenericDataTable",
+              args: "userId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -28,6 +29,7 @@ export function getModules() {
               icon: "roles",
               path: "roles",
               component: "GenericDataTable",
+              args: "roleId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -36,6 +38,7 @@ export function getModules() {
               icon: "permissions",
               path: "permissions",
               component: "GenericDataTable",
+              args: "permissionId",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -52,6 +55,7 @@ export function getModules() {
               icon: "modules",
               path: "modules",
               component: "GenericDataTable",
+              args: "moduleId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -60,6 +64,7 @@ export function getModules() {
               icon: "categories",
               path: "categories",
               component: "GenericDataTable",
+              args: "categoryId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -68,6 +73,7 @@ export function getModules() {
               icon: "pages",
               path: "pages",
               component: "GenericDataTable",
+              args: "pageId",
               permission: "admin_ro|admin_rw",
             },
           ],

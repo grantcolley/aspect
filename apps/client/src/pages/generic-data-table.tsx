@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { DataTable } from "@/components/table/data-table";
 import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
+import { Button } from "@/components/ui/button";
+
+export type GenericDataTableProps = { args: string };
 
 type RawRow = Record<string, unknown>; // We don't know the shape yet
 
-export default function GenericDataTable() {
+export default function GenericDataTable({ args }: GenericDataTableProps) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const location = useLocation();
   const [data, setData] = useState<RawRow[]>([]);
   const [columns, setColumns] = useState<ColumnDef<RawRow>[]>([]);
+
+  const identityFieldName = args;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,6 +32,19 @@ export default function GenericDataTable() {
           header: key.toUpperCase(),
           cell: (info) => String(info.getValue() ?? ""),
         }));
+
+        inferredColumns.push({
+          id: "actions",
+          header: "Edit",
+          cell: ({ row }) => {
+            const rowId = row.original[identityFieldName];
+            return (
+              <Button variant="ghost" size="icon" className="size-8">
+                <Link to={`${location.pathname}/${rowId}`}>...</Link>
+              </Button>
+            );
+          },
+        });
 
         setData(json);
         setColumns(inferredColumns);

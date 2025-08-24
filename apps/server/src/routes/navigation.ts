@@ -19,7 +19,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -67,6 +67,7 @@ router.get(
         row.pIcon,
         row.pPath,
         row.pComponent,
+        row.pArgs,
         row.pPermission
       );
 

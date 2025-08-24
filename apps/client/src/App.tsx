@@ -46,7 +46,7 @@ function App() {
           const element = (
             <Suspense fallback={<div>Loading...</div>}>
               <AuthenticatedRoute>
-                <LazyComp key={p.pageId} />
+                <LazyComp key={p.pageId} args={p.args} />
               </AuthenticatedRoute>
             </Suspense>
           );

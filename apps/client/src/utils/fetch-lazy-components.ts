@@ -1,7 +1,7 @@
 import React from "react";
 
 interface LazyComponentMap {
-  [key: string]: React.LazyExoticComponent<React.FC>;
+  [key: string]: React.LazyExoticComponent<React.FC<{ args: string }>>;
 }
 
 export const fetchLazyComponents: () => LazyComponentMap =
