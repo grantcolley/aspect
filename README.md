@@ -600,6 +600,7 @@ export interface NavigationRow {
   pIcon: string;
   pPath: string;
   pComponent: string;
+  pArgs: string;
   pPermission: string;
 }
 ```
@@ -619,6 +620,7 @@ export class Page implements Permissionable, Editability {
   icon: string;
   path: string;
   component: string;
+  args: string;
   permission: string;
   isReadOnly: boolean;
 
@@ -628,6 +630,7 @@ export class Page implements Permissionable, Editability {
     icon: string,
     path: string,
     component: string,
+	args: string,
     permission: string,
     isReadOnly: boolean = false
   ) {
@@ -636,6 +639,7 @@ export class Page implements Permissionable, Editability {
     this.icon = icon;
     this.path = path;
     this.component = component;
+    this.args = args;
     this.permission = permission;
     this.isReadOnly = isReadOnly;
   }
@@ -849,6 +853,7 @@ export const pageSchema = z.object({
   icon: z.string().min(1, "Icon is required"),
   path: z.string().min(1, "Path is required"),
   component: z.string().min(1, "Component is required"),
+  args: z.string().optional(),
   permission: z.string().min(1, "Permission is required"),
 });
 
@@ -1810,7 +1815,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -1858,6 +1863,7 @@ router.get(
         row.pIcon,
         row.pPath,
         row.pComponent,
+        row.pArgs,
         row.pPermission
       );
 
@@ -1958,6 +1964,7 @@ export function getModules() {
               icon: "users",
               path: "users",
               component: "GenericDataTable",
+              args: "userId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -1966,6 +1973,7 @@ export function getModules() {
               icon: "roles",
               path: "roles",
               component: "GenericDataTable",
+              args: "roleId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -1974,6 +1982,7 @@ export function getModules() {
               icon: "permissions",
               path: "permissions",
               component: "GenericDataTable",
+              args: "permissionId",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -1990,6 +1999,7 @@ export function getModules() {
               icon: "modules",
               path: "modules",
               component: "GenericDataTable",
+              args: "moduleId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -1998,6 +2008,7 @@ export function getModules() {
               icon: "categories",
               path: "categories",
               component: "GenericDataTable",
+              args: "categoryId",
               permission: "admin_ro|admin_rw",
             },
             {
@@ -2006,6 +2017,7 @@ export function getModules() {
               icon: "pages",
               path: "pages",
               component: "GenericDataTable",
+              args: "pageId",
               permission: "admin_ro|admin_rw",
             },
           ],
@@ -2047,6 +2059,7 @@ export async function seedModules(db: Database, modules: Module[]) {
       icon TEXT NOT NULL,
       path TEXT NOT NULL,
       component TEXT NOT NULL,
+      args TEXT,
       permission TEXT NOT NULL
     );
   `);
@@ -2080,7 +2093,7 @@ export async function seedModules(db: Database, modules: Module[]) {
   );
 
   const pageStatement = await db.prepare(
-    "INSERT INTO pages (pageId, name, icon, path, component, permission) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO pages (pageId, name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
 
   const moduleCategoriesStatement = await db.prepare(
@@ -2121,6 +2134,7 @@ export async function seedModules(db: Database, modules: Module[]) {
           page.icon,
           page.path,
           page.component,
+          page.args ?? null,
           page.permission
         );
         console.log(`Inserted: ${page.name}`);
@@ -3584,7 +3598,6 @@ export default router;
 Create the `pages` route `apps/server/src/route/pages.ts`.
 ```TypeScript
 import path from "path";
-import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Page } from "shared/src/models/page";
@@ -3601,7 +3614,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
-      SELECT    pageId, name, icon, url, permission  
+      SELECT    pageId, name, icon, path, component, args, permission  
       FROM 	    pages
     `);
 
@@ -3615,7 +3628,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
       `
-      SELECT    pageId, name, icon, url, permission  
+      SELECT    pageId, name, icon, path, component, args, permission  
       FROM 	    pages
       WHERE     pageId = ?
     `,
@@ -3639,17 +3652,23 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, url, permission } = parsed.data;
+    const { name, icon, path, component, args, permission } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO pages (name, icon, url, permission) VALUES (?, ?, ?, ?)",
-      [name, icon, url, permission]
+      "INSERT INTO pages (name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, icon, path, component, args, permission]
     );
 
-    res
-      .status(201)
-      .json({ pageId: result.lastID, name, icon, url, permission });
+    res.status(201).json({
+      pageId: result.lastID,
+      name,
+      icon,
+      path,
+      component,
+      args,
+      permission,
+    });
   })
 );
 
@@ -3664,19 +3683,27 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, url, permission } = parsed.data;
+    const { name, icon, path, component, args, permission } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE pages SET name = ?, icon = ?, url = ?, permission = ? WHERE pageId = ?",
-      [name, icon, url, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, path = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
+      [name, icon, path, component, args, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
       return res.status(404).json({ error: "Page not found" });
     }
 
-    res.json({ pageId: _req.params.id, name, icon, url, permission });
+    res.json({
+      pageId: _req.params.id,
+      name,
+      icon,
+      path,
+      component,
+      args,
+      permission,
+    });
   })
 );
 
