@@ -4344,19 +4344,24 @@ export function DataTable<TData, TValue>({
 Update the page `apps/client/src/pages/generic-data-table.tsx`.
 ```TypeScript
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { DataTable } from "@/components/table/data-table";
 import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
+import { Button } from "@/components/ui/button";
+
+export type GenericDataTableProps = { args: string };
 
 type RawRow = Record<string, unknown>; // We don't know the shape yet
 
-export default function GenericDataTable() {
+export default function GenericDataTable({ args }: GenericDataTableProps) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const location = useLocation();
   const [data, setData] = useState<RawRow[]>([]);
   const [columns, setColumns] = useState<ColumnDef<RawRow>[]>([]);
+
+  const identityFieldName = args;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -4372,6 +4377,19 @@ export default function GenericDataTable() {
           header: key.toUpperCase(),
           cell: (info) => String(info.getValue() ?? ""),
         }));
+
+        inferredColumns.push({
+          id: "actions",
+          header: "Edit",
+          cell: ({ row }) => {
+            const rowId = row.original[identityFieldName];
+            return (
+              <Button variant="ghost" size="icon" className="size-8">
+                <Link to={`${location.pathname}/${rowId}`}>...</Link>
+              </Button>
+            );
+          },
+        });
 
         setData(json);
         setColumns(inferredColumns);
@@ -4389,6 +4407,20 @@ export default function GenericDataTable() {
     </div>
   );
 }
+```
+
+Update utility function `apps/client/src/utils/fetch-lazy-components.ts`
+```TypeScript
+import React from "react";
+
+interface LazyComponentMap {
+  [key: string]: React.LazyExoticComponent<React.FC<{ args: string }>>; // 👈 add args parameter
+}
+
+export const fetchLazyComponents: () => LazyComponentMap =
+  (): LazyComponentMap => ({
+    GenericDataTable: React.lazy(() => import("../pages/generic-data-table")),
+  });
 ```
 
 # Add Dynamic Route Loading
