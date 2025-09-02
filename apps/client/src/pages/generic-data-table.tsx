@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
-import { DataTable } from "@/components/table/data-table";
+import { DataTable } from "@/components/generic/data-table";
 import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
 import { Button } from "@/components/ui/button";
 
