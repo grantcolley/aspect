@@ -4552,7 +4552,7 @@ function App() {
           const element = (
             <Suspense fallback={<div>Loading...</div>}>
               <AuthenticatedRoute>
-                <LazyComp key={p.pageId} args={p.args} /> // 👈 pass args into <GenericDataTable>
+                <LazyComp key={p.pageId} args={p.args} /> { /* 👈 pass args into <GenericDataTable> */ }
               </AuthenticatedRoute>
             </Suspense>
           );
