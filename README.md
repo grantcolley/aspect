@@ -4441,30 +4441,189 @@ export const fetchLazyComponents: () => LazyComponentMap =
 >
 > This section will require significant refactoring of `App.tsx`.
 
-Create the `apps/client/src/router.ts`.
-```TS
-import { createBrowserRouter } from "react-router-dom";
-import React from "react";
-import App from "./App";
+Create the `apps/client/src/context/routes-context.ts`.
+```TSX
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+  Suspense,
+} from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { type RouteObject } from "react-router-dom";
+import { fetchModules } from "@/requests/fetch-modules";
+import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
+import { AuthenticatedRoute } from "@/auth/authenticated-route";
+import NotFound from "@/pages/not-found";
+import { Module } from "shared/src/models/module";
 
-export const router = createBrowserRouter([
-  {
-    path: "*",
-    element: React.createElement(App),  // 👈 create the App element
+//
+// ---------- Types ----------
+//
+type AddRoutesFn = <T>(
+  items: T[],
+  parentPath: string | undefined,
+  mapFn: (item: T) => RouteObject
+) => void;
+
+type RoutesContextType = {
+  routes: RouteObject[];
+  modules: Module[];
+  addRoutes: AddRoutesFn;
+};
+
+//
+// ---------- Context ----------
+//
+const RoutesContext = createContext<RoutesContextType>({
+  routes: [],
+  modules: [],
+  addRoutes: () => {
+    throw new Error("RoutesContext not initialized");
   },
-]);
+});
+
+export function useRoutesContext() {
+  return useContext(RoutesContext);
+}
+
+const lazyComponents = fetchLazyComponents();
+
+//
+// ---------- Helpers ----------
+//
+function insertNestedRoutes(
+  baseRoutes: RouteObject[],
+  newRoutes: RouteObject[],
+  parentPath?: string
+): RouteObject[] {
+  if (!parentPath) {
+    const merged = [...baseRoutes, ...newRoutes];
+    return dedupeRoutes(merged);
+  }
+
+  const [head, ...rest] = parentPath.split("/").filter(Boolean);
+
+  return baseRoutes.map((route) => {
+    // Skip index routes (cannot have children)
+    if (route.index) return route;
+
+    if (route.path === head) {
+      if (rest.length === 0) {
+        // Found the parent
+        const children = Array.isArray(route.children) ? route.children : [];
+        const merged = [...children, ...newRoutes];
+        return { ...route, children: dedupeRoutes(merged) };
+      } else {
+        // Go deeper
+        const updatedChildren = insertNestedRoutes(
+          Array.isArray(route.children) ? route.children : [],
+          newRoutes,
+          rest.join("/")
+        );
+        return { ...route, children: updatedChildren };
+      }
+    }
+    return route;
+  });
+}
+
+function dedupeRoutes(routes: RouteObject[]): RouteObject[] {
+  return Array.from(
+    new Map(
+      routes.map((r) => [r.index ? "__index" : r.path ?? "__unknown", r])
+    ).values()
+  );
+}
+
+//
+// ---------- Provider ----------
+//
+export function RoutesProvider({ children }: { children: ReactNode }) {
+  const { getAccessTokenSilently, isAuthenticated, isLoading, user } =
+    useAuth0();
+  const [routes, setRoutes] = useState<RouteObject[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
+
+  const addRoutes: AddRoutesFn = (items, parentPath, mapFn) => {
+    const newRoutes = items.map(mapFn);
+
+    setRoutes((prev) => {
+      const updated = insertNestedRoutes(prev, newRoutes, parentPath);
+      // Always keep NotFound at the end
+      return updated.concat({ path: "*", element: <NotFound /> });
+    });
+  };
+
+  useEffect(() => {
+    const loadRoutes = async () => {
+      if (!isAuthenticated || !user?.sub) {
+        setRoutes([]);
+        setModules([]);
+        return;
+      }
+
+      const token = await getAccessTokenSilently();
+	  
+	   // 👇 fetch modules at startup to pass to sidebar
+      const apiModules = await fetchModules(token);
+      setModules(apiModules);
+
+      const pages = apiModules.flatMap((m) =>
+        m.categories.flatMap((c: { pages: any }) => c.pages)
+      );
+
+      const apiRoutes: RouteObject[] = pages.map((p) => {
+        const LazyComp = lazyComponents[p.component] ?? NotFound;
+        return {
+          path: p.path,
+          element: (
+            <Suspense fallback={<div>Loading...</div>}>
+              <AuthenticatedRoute>
+                <LazyComp key={p.pageId} args={p.args} />
+              </AuthenticatedRoute>
+            </Suspense>
+          ),
+        };
+      });
+
+      setRoutes(
+        dedupeRoutes(apiRoutes).concat({ path: "*", element: <NotFound /> })
+      );
+    };
+
+    if (!isLoading) loadRoutes();
+  }, [isAuthenticated, getAccessTokenSilently, user?.sub, isLoading]);
+
+  return (
+    <RoutesContext.Provider value={{ routes, modules, addRoutes }}>
+      {children}
+    </RoutesContext.Provider>
+  );
+}
 ```
+
 
 Modify `apps/client/src/main.tsx`.
 ```TypeScript
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { RouterProvider } from "react-router-dom"; // 👈 import RouterProvider
+import { RouterProvider, createBrowserRouter } from "react-router-dom"; // 👈 import RouterProvider and createBrowserRouter
 import { Auth0Provider } from "@auth0/auth0-react";
 import { config } from "@/config/config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import { router } from "./router"; // 👈 import router
+import { RoutesProvider } from "./context/routes-context";
+import App from "./App";
 import "./index.css";
+
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: <App />,
+  },
+]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -4480,7 +4639,9 @@ createRoot(document.getElementById("root")!).render(
           router.navigate(appState?.returnTo || window.location.pathname);
         }}
       >
-        <RouterProvider router={router} /> { /* 👈 bring RouterProvider to root level in main.tsx */ }
+        <RoutesProvider> { /* 👈 RoutesProvider manages all routes & modules */ }
+          <RouterProvider router={router} /> { /* 👈 bring RouterProvider to root level in main.tsx */ }
+        </RoutesProvider>
       </Auth0Provider>
     </ThemeProvider>
   </StrictMode>
@@ -4489,84 +4650,27 @@ createRoot(document.getElementById("root")!).render(
 
 Refactor `apps/client/src/App.tsx`.
 ```TSX
-import { Suspense, useEffect, useState } from "react";
 import { Route, Routes, type RouteObject } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
 import { MainLayout } from "@/components/layout/main-layout";
-import { AuthenticatedRoute } from "@/auth/authenticated-route";
-import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
-import { fetchModules } from "@/requests/fetch-modules";
-import { Module } from "shared/src/models/module";
-import NotFound from "./pages/not-found";
+import { useRoutesContext } from "@/context/routes-context";
 import "./App.css";
 
-const lazyComponents = fetchLazyComponents();
-
-// 👇 Function to render routes based on the fetched modules
-function renderRoutes(routeObjects: RouteObject[]) {
-  return routeObjects.map((r, i) => {
-    return <Route key={i} path={r.path} element={r.element} />;
-  });
+// 👇 Function to render nested routes
+function renderRoutes(routes: RouteObject[]) {
+  return routes.map((r, i) => (
+    <Route key={i} path={r.path} element={r.element}>
+      {r.children ? renderRoutes(r.children) : null}
+    </Route>
+  ));
 }
 
 function App() {
-  const { getAccessTokenSilently, isAuthenticated, isLoading, user } =
-    useAuth0();
-  const [routes, setRoutes] = useState<RouteObject[]>([]);
-  const [modules, setModules] = useState<Module[]>([]);
-
-  useEffect(() => {
-    const loadRoutes = async () => {
-      let apiRoutes: RouteObject[] = [];
-      let apiModules: Module[] = [];
-
-      if (isAuthenticated && user?.sub) {
-        const token = await getAccessTokenSilently();
-
-        apiModules = await fetchModules(token);
-
-        setModules(apiModules);
-
-        const pages = apiModules.flatMap((module) =>
-          module.categories.flatMap(
-            (category: { pages: any }) => category.pages
-          )
-        );
-
-        apiRoutes = pages.map((p) => {
-          const LazyComp = lazyComponents[p.component] ?? NotFound;
-          const element = (
-            <Suspense fallback={<div>Loading...</div>}>
-              <AuthenticatedRoute>
-                <LazyComp key={p.pageId} args={p.args} /> { /* 👈 pass args into <GenericDataTable> */ }
-              </AuthenticatedRoute>
-            </Suspense>
-          );
-
-          return {
-            path: p.path,
-            element,
-          };
-        });
-
-        routes.push({ path: "*", element: <NotFound /> });
-
-        setRoutes(apiRoutes); // 👈 Set the routes based on fetched modules
-        setModules(apiModules); // 👈 Set the modules based on fetched data
-      } else if (!isLoading && !isAuthenticated) {
-        setRoutes([]);
-        setModules([]);
-      }
-    };
-
-    loadRoutes();
-  }, [isAuthenticated, getAccessTokenSilently, user]);
+  const { routes, modules } = useRoutesContext();
 
   return (
     <Routes>
-      <Route path="/" element={<MainLayout modules={modules ?? []} />}>
-        {renderRoutes(routes)}{" "}
-        {/* 👆 Render dynamic routes based on fetched modules */}
+      <Route path="/" element={<MainLayout modules={modules ?? []} />}> {/* 👈 Pass modules to MainLayout */}	
+        {renderRoutes(routes)}{" "} {/* 👈 Render dynamic routes */}
       </Route>
     </Routes>
   );
@@ -4576,6 +4680,7 @@ export default App;
 ```
 
 **Why this works**
+- **`<RoutesProvider>` manages all routes & modules, including dynamically adding new routes.**
 - **Only one router `<RouterProvider>` is used at the root level `main.tsx`.**
 - **The `Auth0Provider` sits above the router so all routes can access authentication context.**
 - **`Auth0Provider`'s `onRedirectCallback` uses the router’s own `navigate` to keep the SPA session history intact after login/logout redirects.**
