@@ -4518,17 +4518,17 @@ function insertNestedRoutes(
   const [head, ...rest] = parentPath.split("/").filter(Boolean);
 
   return baseRoutes.map((route) => {
-    // 🚨 Skip index routes (cannot have children)
+    // Skip index routes (cannot have children)
     if (route.index) return route;
 
     if (route.path === head) {
       if (rest.length === 0) {
-        // ✅ Found the parent
+        // Found the parent
         const children = Array.isArray(route.children) ? route.children : [];
         const merged = [...children, ...newRoutes];
         return { ...route, children: dedupeRoutes(merged) };
       } else {
-        // ✅ Go deeper
+        // Go deeper
         const updatedChildren = insertNestedRoutes(
           Array.isArray(route.children) ? route.children : [],
           newRoutes,
