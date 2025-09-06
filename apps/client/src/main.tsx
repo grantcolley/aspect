@@ -1,11 +1,19 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { RouterProvider } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { config } from "@/config/config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import { router } from "./router";
+import { RoutesProvider } from "./context/routes-context";
+import App from "./App";
 import "./index.css";
+
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: <App />,
+  },
+]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -21,7 +29,9 @@ createRoot(document.getElementById("root")!).render(
           router.navigate(appState?.returnTo || window.location.pathname);
         }}
       >
-        <RouterProvider router={router} />
+        <RoutesProvider>
+          <RouterProvider router={router} />
+        </RoutesProvider>
       </Auth0Provider>
     </ThemeProvider>
   </StrictMode>
