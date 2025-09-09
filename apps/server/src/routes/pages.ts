@@ -2,7 +2,7 @@ import path from "path";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Page } from "shared/src/models/page";
-import { pageSchema } from "shared/src/validation/pageSchema";
+import { pageSchema } from "shared/src/validation/page-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 

@@ -4,7 +4,7 @@ import { dbConnection } from "../data/db";
 import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { ModuleCategory } from "shared/src/interfaces/moduleCategory";
-import { moduleSchema } from "shared/src/validation/moduleSchema";
+import { moduleSchema } from "shared/src/validation/module-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 

@@ -4,7 +4,7 @@ import { dbConnection } from "../data/db";
 import { User } from "shared/src/models/user";
 import { Role } from "shared/src/models/role";
 import { UserRole } from "shared/src/interfaces/userRole";
-import { userSchema } from "shared/src/validation/userSchema";
+import { userSchema } from "shared/src/validation/user-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 

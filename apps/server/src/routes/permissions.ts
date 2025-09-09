@@ -2,7 +2,7 @@ import path from "path";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Permission } from "shared/src/models/permission";
-import { permissionSchema } from "shared/src/validation/permissionSchema";
+import { permissionSchema } from "shared/src/validation/permission-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 

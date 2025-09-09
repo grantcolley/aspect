@@ -4,7 +4,7 @@ import { dbConnection } from "../data/db";
 import { Role } from "shared/src/models/role";
 import { Permission } from "shared/src/models/permission";
 import { RolePermission } from "shared/src/interfaces/rolePermission";
-import { roleSchema } from "shared/src/validation/roleSchema";
+import { roleSchema } from "shared/src/validation/role-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 
