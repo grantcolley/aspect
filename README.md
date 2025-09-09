@@ -844,7 +844,7 @@ export class User implements Permissionable, Editability {
 Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
 \
 \
-`apps/shared/src/validation/pageSchema.ts`
+`apps/shared/src/validation/page-schema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -859,7 +859,7 @@ export const pageSchema = z.object({
 
 export type PageInput = z.infer<typeof pageSchema>;
 ```
-`apps/shared/src/validation/categorySchema.ts`
+`apps/shared/src/validation/category-schema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -871,7 +871,7 @@ export const categorySchema = z.object({
 
 export type CategoryInput = z.infer<typeof categorySchema>;
 ```
-`apps/shared/src/validation/moduleSchema.ts`
+`apps/shared/src/validation/module-schema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -887,7 +887,7 @@ export type ModuleInput = z.infer<typeof moduleSchema>;
 Create the authorisation validation schema `userSchema`, `roleSchema` and `pemissionSchema`.
 \
 \
-`apps/shared/src/validation/pemissionSchema.ts`
+`apps/shared/src/validation/pemission-schema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -898,7 +898,7 @@ export const permissionSchema = z.object({
 
 export type PermissionInput = z.infer<typeof permissionSchema>;
 ```
-`apps/shared/src/validation/roleSchema.ts`
+`apps/shared/src/validation/role-schema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -909,7 +909,7 @@ export const roleSchema = z.object({
 
 export type RoleInput = z.infer<typeof roleSchema>;
 ```
-`apps/shared/src/validation/userSchema.ts`
+`apps/shared/src/validation/user-schema.ts`
 ```TypeScript
 import { z } from "zod";
 
@@ -3045,7 +3045,7 @@ import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Permission } from "shared/src/models/permission";
-import { permissionSchema } from "shared/src/validation/permissionSchema";
+import { permissionSchema } from "shared/src/validation/permission-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 
@@ -3164,7 +3164,7 @@ import { dbConnection } from "../data/db";
 import { Role } from "shared/src/models/role";
 import { Permission } from "shared/src/models/permission";
 import { RolePermission } from "shared/src/interfaces/rolePermission";
-import { roleSchema } from "shared/src/validation/roleSchema";
+import { roleSchema } from "shared/src/validation/role-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 
@@ -3384,7 +3384,7 @@ import { dbConnection } from "../data/db";
 import { User } from "shared/src/models/user";
 import { Role } from "shared/src/models/role";
 import { UserRole } from "shared/src/interfaces/userRole";
-import { userSchema } from "shared/src/validation/userSchema";
+import { userSchema } from "shared/src/validation/user-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 
@@ -3587,7 +3587,7 @@ import path from "path";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Page } from "shared/src/models/page";
-import { pageSchema } from "shared/src/validation/pageSchema";
+import { pageSchema } from "shared/src/validation/page-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 
@@ -3722,7 +3722,7 @@ import { dbConnection } from "../data/db";
 import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
 import { CategoryPage } from "shared/src/interfaces/categoryPage";
-import { categorySchema } from "shared/src/validation/categorySchema";
+import { categorySchema } from "shared/src/validation/category-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 
@@ -3934,7 +3934,7 @@ import { dbConnection } from "../data/db";
 import { Module } from "shared/src/models/module";
 import { Category } from "shared/src/models/category";
 import { ModuleCategory } from "shared/src/interfaces/moduleCategory";
-import { moduleSchema } from "shared/src/validation/moduleSchema";
+import { moduleSchema } from "shared/src/validation/module-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
 
