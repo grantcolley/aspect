@@ -4751,8 +4751,8 @@ Enable decorators by updating the root `tsconfig.base.json`.
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "experimentalDecorators": true,  
-    "emitDecoratorMetadata": true
+    "experimentalDecorators": true, 👈 add
+    "emitDecoratorMetadata": true	👈 add
   }
 }
 ```
