@@ -4479,6 +4479,7 @@ type RoutesContextType = {
   routes: RouteObject[];
   modules: Module[];
   addRoutes: AddRoutesFn<RouteObject[]>;
+  addApiPage: (page: ApiPage, parentPath?: string) => void;
   addApiPages: (pages: ApiPage[], parentPath?: string) => void;
 };
 
@@ -4489,6 +4490,9 @@ const RoutesContext = createContext<RoutesContextType>({
   routes: [],
   modules: [],
   addRoutes: () => {
+    throw new Error("RoutesContext not initialized");
+  },
+  addApiPage: () => {
     throw new Error("RoutesContext not initialized");
   },
   addApiPages: () => {
@@ -4582,6 +4586,10 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addApiPage = (page: ApiPage, parentPath?: string) => {
+    addApiPages([page], parentPath);
+  };
+
   const addApiPages = (pages: ApiPage[], parentPath?: string) => {
     addRoutes(pages, parentPath, mapApiPageToRoute);
   };
@@ -4613,7 +4621,9 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, getAccessTokenSilently, user?.sub, isLoading]);
 
   return (
-    <RoutesContext.Provider value={{ routes, modules, addRoutes, addApiPages }}>
+    <RoutesContext.Provider
+      value={{ routes, modules, addRoutes, addApiPage, addApiPages }}
+    >
       {children}
     </RoutesContext.Provider>
   );
