@@ -17,7 +17,14 @@ import { Module } from "shared/src/models/module";
 //
 // ---------- Types ----------
 //
-type AddRoutesFn = <T>(
+export type ApiPage = {
+  pageId: number;
+  path: string; // relative path, e.g. "financial"
+  component: string; // component key from lazyComponents
+  args: string; // optional args to pass to the component
+};
+
+type AddRoutesFn<TBase extends RouteObject[]> = <T>(
   items: T[],
   parentPath: string | undefined,
   mapFn: (item: T) => RouteObject
@@ -26,7 +33,9 @@ type AddRoutesFn = <T>(
 type RoutesContextType = {
   routes: RouteObject[];
   modules: Module[];
-  addRoutes: AddRoutesFn;
+  addRoutes: AddRoutesFn<RouteObject[]>;
+  addApiPage: (page: ApiPage, parentPath?: string) => void;
+  addApiPages: (pages: ApiPage[], parentPath?: string) => void;
 };
 
 //
@@ -36,6 +45,12 @@ const RoutesContext = createContext<RoutesContextType>({
   routes: [],
   modules: [],
   addRoutes: () => {
+    throw new Error("RoutesContext not initialized");
+  },
+  addApiPage: () => {
+    throw new Error("RoutesContext not initialized");
+  },
+  addApiPages: () => {
     throw new Error("RoutesContext not initialized");
   },
 });
@@ -93,6 +108,20 @@ function dedupeRoutes(routes: RouteObject[]): RouteObject[] {
   );
 }
 
+function mapApiPageToRoute(p: ApiPage): RouteObject {
+  const LazyComp = lazyComponents[p.component] ?? NotFound;
+  return {
+    path: p.path,
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AuthenticatedRoute>
+          <LazyComp key={p.pageId} args={p.args} />
+        </AuthenticatedRoute>
+      </Suspense>
+    ),
+  };
+}
+
 //
 // ---------- Provider ----------
 //
@@ -102,7 +131,7 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
   const [routes, setRoutes] = useState<RouteObject[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
 
-  const addRoutes: AddRoutesFn = (items, parentPath, mapFn) => {
+  const addRoutes: AddRoutesFn<RouteObject[]> = (items, parentPath, mapFn) => {
     const newRoutes = items.map(mapFn);
 
     setRoutes((prev) => {
@@ -110,6 +139,14 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
       // Always keep NotFound at the end
       return updated.concat({ path: "*", element: <NotFound /> });
     });
+  };
+
+  const addApiPage = (page: ApiPage, parentPath?: string) => {
+    addApiPages([page], parentPath);
+  };
+
+  const addApiPages = (pages: ApiPage[], parentPath?: string) => {
+    addRoutes(pages, parentPath, mapApiPageToRoute);
   };
 
   useEffect(() => {
@@ -125,22 +162,10 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
       setModules(apiModules);
 
       const pages = apiModules.flatMap((m) =>
-        m.categories.flatMap((c: { pages: any }) => c.pages)
+        m.categories.flatMap((c: { pages: ApiPage[] }) => c.pages)
       );
 
-      const apiRoutes: RouteObject[] = pages.map((p) => {
-        const LazyComp = lazyComponents[p.component] ?? NotFound;
-        return {
-          path: p.path,
-          element: (
-            <Suspense fallback={<div>Loading...</div>}>
-              <AuthenticatedRoute>
-                <LazyComp key={p.pageId} args={p.args} />
-              </AuthenticatedRoute>
-            </Suspense>
-          ),
-        };
-      });
+      const apiRoutes: RouteObject[] = pages.map(mapApiPageToRoute);
 
       setRoutes(
         dedupeRoutes(apiRoutes).concat({ path: "*", element: <NotFound /> })
@@ -151,7 +176,9 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, getAccessTokenSilently, user?.sub, isLoading]);
 
   return (
-    <RoutesContext.Provider value={{ routes, modules, addRoutes }}>
+    <RoutesContext.Provider
+      value={{ routes, modules, addRoutes, addApiPage, addApiPages }}
+    >
       {children}
     </RoutesContext.Provider>
   );
