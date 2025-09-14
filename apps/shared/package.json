@@ -12,6 +12,7 @@
   "license": "MIT License",
   "description": "Aspect shared code",
   "dependencies": {
+    "reflect-metadata": "^0.2.2",
     "zod": "^3.25.64"
   }
 }

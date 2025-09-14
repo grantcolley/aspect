@@ -6,6 +6,7 @@ import { config } from "@/config/config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { RoutesProvider } from "./context/routes-context";
 import App from "./App";
+import "reflect-metadata";
 import "./index.css";
 
 const router = createBrowserRouter([
