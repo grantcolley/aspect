@@ -71,7 +71,9 @@ aspect
 * [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
 * [Create a Generic DataTable Component](#create-a-generic-datatable-component)
 * [Add Dynamic Route Loading](#add-dynamic-route-loading)
-  
+* [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models)
+  	* [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
+
 # Scaffolding the Monorepo
 ## Setup the Workspaces
 Create a root folder `aspect` and a subfolder `apps`. Inside `aspect/apps` create three subfolders: `client`, `db`, `server` and `shared`.
@@ -4479,6 +4481,7 @@ type RoutesContextType = {
   routes: RouteObject[];
   modules: Module[];
   addRoutes: AddRoutesFn<RouteObject[]>;
+  addApiPage: (page: ApiPage, parentPath?: string) => void;
   addApiPages: (pages: ApiPage[], parentPath?: string) => void;
 };
 
@@ -4489,6 +4492,9 @@ const RoutesContext = createContext<RoutesContextType>({
   routes: [],
   modules: [],
   addRoutes: () => {
+    throw new Error("RoutesContext not initialized");
+  },
+  addApiPage: () => {
     throw new Error("RoutesContext not initialized");
   },
   addApiPages: () => {
@@ -4582,6 +4588,10 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addApiPage = (page: ApiPage, parentPath?: string) => {
+    addApiPages([page], parentPath);
+  };
+
   const addApiPages = (pages: ApiPage[], parentPath?: string) => {
     addRoutes(pages, parentPath, mapApiPageToRoute);
   };
@@ -4613,7 +4623,9 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, getAccessTokenSilently, user?.sub, isLoading]);
 
   return (
-    <RoutesContext.Provider value={{ routes, modules, addRoutes, addApiPages }}>
+    <RoutesContext.Provider
+      value={{ routes, modules, addRoutes, addApiPage, addApiPages }}
+    >
       {children}
     </RoutesContext.Provider>
   );
@@ -4699,3 +4711,48 @@ export default App;
 - **Only one router `<RouterProvider>` is used at the root level `main.tsx`.**
 - **The `Auth0Provider` sits above the router so all routes can access authentication context.**
 - **`Auth0Provider`'s `onRedirectCallback` uses the router’s own `navigate` to keep the SPA session history intact after login/logout redirects.**
+
+# Add a Generic Form Component for Models
+There is a lot to pack in here so we will break this down.
+
+### Install Dependencies for Generic Model Form
+Install `react-hook-form` and `zod` dependencies.
+```
+npm install react-hook-form @hookform/resolvers zod
+```
+
+Install `shadcn` components.
+```
+npx shadcn@latest add form
+npx shadcn@latest add checkbox
+npx shadcn@latest add select
+```
+
+Install `reflect-metadata` in `apps/shared`
+```
+npm install reflect-metadata
+```
+
+Import `reflect-metadata` once into the app entry point `app/client/src/main.tsx`;
+```
+import "reflect-metadata";
+```
+
+Enable decorators by updating the root `tsconfig.base.json`.
+```JSON
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "experimentalDecorators": true, 👈 add
+    "emitDecoratorMetadata": true	👈 add
+  }
+}
+```
