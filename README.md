@@ -2,7 +2,7 @@
 
 Create step-by-step a monorepo solution using npm workspaces containing a React + TypeScript web client, a TypeScript web api, and a SQLite database. 
 
-The Aspect web client is built using React, Vite, TypeScript, shadcn/ui, react-router, react-hook-form, and zod for validation. 
+The Aspect web client is built using React, Vite, TypeScript, Tailwind CSS, shadcn/ui, react-router, react-hook-form, and zod for validation. 
 
 The Aspect web API is built using Node.js, Express, TypeScript, a SQLite database and the Winston logging library.
 
@@ -11,7 +11,7 @@ Both the client and server consume the same TypeScript classes in a shared packa
 Authentication is implemented using Auth0.
 
 ##### Technology:
-###### client: React + Vite + TypeScript + shadcn/ui + react-router + react-hook-form + zod
+###### client: React + Vite + TypeScript + Tailwind CSS + shadcn/ui + react-router + react-hook-form + zod
 ###### server: Node.js + Express + TypeScript + SQLite + Winston (logging)
 ###### shared: TypeScript-only package with shared types and utilities
 
