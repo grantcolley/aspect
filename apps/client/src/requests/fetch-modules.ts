@@ -11,7 +11,9 @@ export const fetchModules = async (token: string) => {
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    throw new Error(
+      `HTTP error! status: ${response.status} ${response.statusText}`
+    );
   }
 
   const data: Module[] = await response.json();
