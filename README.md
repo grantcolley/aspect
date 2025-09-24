@@ -71,6 +71,7 @@ aspect
 * [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
 * [Create a Generic DataTable Component](#create-a-generic-datatable-component)
 * [Add Dynamic Route Loading](#add-dynamic-route-loading)
+* [Add Error Handling to the Client](#add-error-handling-to-the-client)
 * [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models)
   	* [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
 
@@ -4713,6 +4714,421 @@ export default App;
 - **Only one router `<RouterProvider>` is used at the root level `main.tsx`.**
 - **The `Auth0Provider` sits above the router so all routes can access authentication context.**
 - **`Auth0Provider`'s `onRedirectCallback` uses the router’s own `navigate` to keep the SPA session history intact after login/logout redirects.**
+
+# Add Error Handling to the Client
+Two approaches:
+- Add add `<ErrorPage>` to each routes `errorElement`.
+- Flag errors inside `<RoutesProvider />`.
+
+> [!TIP]
+> React Router’s `errorElement` is only used when a route’s own element throws during rendering, or a `loader/action` rejects, but not for exceptions in `useEffect` or inside your own `async` code.
+>
+> We have to explicitly handle exceptions inside `useEffect` or your own `async` code by catching them, flagging them using `useState`, and then re-throwing outside `useEffect` or your own `async` code.
+
+Routing errors from inside a `useEffect`. See `` below. See [].
+
+An `<ErrorBoundary />` in React is a special type of component designed to catch JavaScript errors anywhere in its child component tree, and display a fallback UI instead of crashing the entire app. It’s a safety net for rendering errors in the component hierarchy.
+
+Install `react-error-boundary`
+```
+npm install react-error-boundary
+```
+
+Create a general `error-page.tsx`.
+```TypeScript
+import { useRouteError, isRouteErrorResponse } from "react-router-dom";
+
+export default function ErrorPage() {
+  const error = useRouteError();
+
+  let message = "";
+  if (isRouteErrorResponse(error)) {
+    if (error.status === 500) {
+      message = "The server encountered an error. Please try again later.";
+    } else {
+      message = `Unexpected error (status ${error.status}).`;
+    }
+  }
+
+  return (
+    <>
+      <h4 className="scroll-m-20 text-xl font-semibold tracking-tight mt-20">
+        Oops!
+      </h4>
+      <p className="text-muted-foreground text-xl">Something went wrong.</p>
+      <p className="text-muted-foreground text-sm">{message}</p>
+    </>
+  );
+}
+```
+
+Modify `apps/client/src/main.tsx`.
+```TypeScript
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { ErrorBoundary } from "react-error-boundary"; // 👈 Import
+import { Auth0Provider } from "@auth0/auth0-react";
+import { config } from "@/config/config";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { RoutesProvider } from "./context/routes-context";
+import ErrorPage from "@/pages/error-page"; // 👈 Import
+import App from "./App";
+import "./index.css";
+
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: (
+      <ErrorBoundary FallbackComponent={ErrorPage}> { /* 👈 wrap <App /> in <ErrorBoundary /> */ }
+        <App />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />, { /* 👈 set errorElement to <ErrorPage /> */ }
+  },
+]);
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
+      <Auth0Provider
+        domain={config.AUTH0_DOMAIN}
+        clientId={config.AUTH0_CLIENT_ID}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+          audience: config.AUTH0_AUDIENCE || undefined,
+        }}
+        onRedirectCallback={(appState) => { 
+          router.navigate(appState?.returnTo || window.location.pathname);
+        }}
+      >
+        <RoutesProvider> {
+          <RouterProvider router={router} /> { /* 👈 bring RouterProvider to root level in main.tsx */ }
+        </RoutesProvider>
+      </Auth0Provider>
+    </ThemeProvider>
+  </StrictMode>
+);
+```
+
+Update `apps/client/src/context/routes-context.ts` to support handling errors.
+```TypeScript
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+  Suspense,
+} from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { type RouteObject } from "react-router-dom";
+import { fetchModules } from "@/requests/fetch-modules";
+import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
+import { AuthenticatedRoute } from "@/auth/authenticated-route";
+import NotFound from "@/pages/not-found";
+import { Module } from "shared/src/models/module";
+import ErrorPage from "@/pages/error-page"; // 👈 import
+
+//
+// ---------- Types ----------
+//
+export type ApiPage = {
+  pageId: number;
+  path: string; // relative path, e.g. "financial"
+  component: string; // component key from lazyComponents
+  args: string; // optional args to pass to the component
+};
+
+type AddRoutesFn<TBase extends RouteObject[]> = <T>(
+  items: T[],
+  parentPath: string | undefined,
+  mapFn: (item: T) => RouteObject
+) => void;
+
+type RoutesContextType = {
+  routes: RouteObject[];
+  modules: Module[];
+  hasError: boolean; // 👈 add
+  addRoutes: AddRoutesFn<RouteObject[]>;
+  addApiPage: (page: ApiPage, parentPath?: string) => void;
+  addApiPages: (pages: ApiPage[], parentPath?: string) => void;
+};
+
+//
+// ---------- Context ----------
+//
+const RoutesContext = createContext<RoutesContextType>({
+  routes: [],
+  modules: [],
+  hasError: false, // 👈 add
+  addRoutes: () => {
+    throw new Error("RoutesContext not initialized");
+  },
+  addApiPage: () => {
+    throw new Error("RoutesContext not initialized");
+  },
+  addApiPages: () => {
+    throw new Error("RoutesContext not initialized");
+  },
+});
+
+export function useRoutesContext() {
+  return useContext(RoutesContext);
+}
+
+const lazyComponents = fetchLazyComponents();
+
+//
+// ---------- Helpers ----------
+//
+function insertNestedRoutes(
+  baseRoutes: RouteObject[],
+  newRoutes: RouteObject[],
+  parentPath?: string
+): RouteObject[] {
+  if (!parentPath) {
+    const merged = [...baseRoutes, ...newRoutes];
+    return dedupeRoutes(merged);
+  }
+
+  const [head, ...rest] = parentPath.split("/").filter(Boolean);
+
+  return baseRoutes.map((route) => {
+    // Skip index routes (cannot have children)
+    if (route.index) return route;
+
+    if (route.path === head) {
+      if (rest.length === 0) {
+        // Found the parent
+        const children = Array.isArray(route.children) ? route.children : [];
+        const merged = [...children, ...newRoutes];
+        return { ...route, children: dedupeRoutes(merged) };
+      } else {
+        // Go deeper
+        const updatedChildren = insertNestedRoutes(
+          Array.isArray(route.children) ? route.children : [],
+          newRoutes,
+          rest.join("/")
+        );
+        return { ...route, children: updatedChildren };
+      }
+    }
+    return route;
+  });
+}
+
+function dedupeRoutes(routes: RouteObject[]): RouteObject[] {
+  return Array.from(
+    new Map(
+      routes.map((r) => [r.index ? "__index" : r.path ?? "__unknown", r])
+    ).values()
+  );
+}
+
+function mapApiPageToRoute(p: ApiPage): RouteObject {
+  const LazyComp = lazyComponents[p.component] ?? NotFound;
+  // Ensure path is always relative
+  const safePath = p.path.replace(/^\/+/, ""); // remove leading slashes
+  return {
+    path: safePath,
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AuthenticatedRoute>
+          <LazyComp key={p.pageId} args={p.args} />
+        </AuthenticatedRoute>
+      </Suspense>
+    ),
+    errorElement: <ErrorPage />, // 👈 add
+  };
+}
+
+//
+// ---------- Provider ----------
+//
+export function RoutesProvider({ children }: { children: ReactNode }) {
+  const { getAccessTokenSilently, isAuthenticated, isLoading, user } =
+    useAuth0();
+  const [routes, setRoutes] = useState<RouteObject[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [hasError, setHasError] = useState(false); // 👈 add
+
+  const addRoutes: AddRoutesFn<RouteObject[]> = (items, parentPath, mapFn) => {
+    const newRoutes = items.map(mapFn);
+
+    setRoutes((prev) => {
+      const updated = insertNestedRoutes(prev, newRoutes, parentPath);
+      // Always keep NotFound at the end
+      return updated.concat({ path: "*", element: <NotFound /> });
+    });
+  };
+
+  const addApiPage = (page: ApiPage, parentPath?: string) => {
+    addApiPages([page], parentPath);
+  };
+
+  const addApiPages = (pages: ApiPage[], parentPath?: string) => {
+    addRoutes(pages, parentPath, mapApiPageToRoute);
+  };
+
+  useEffect(() => {
+    const loadRoutes = async () => {
+      if (!isAuthenticated || !user?.sub) {
+        setRoutes([]);
+        setModules([]);
+        return;
+      }
+
+      try { // 👈 add try catch
+        const token = await getAccessTokenSilently();
+        const apiModules = await fetchModules(token);
+        setModules(apiModules);
+
+        const pages = apiModules.flatMap((m) =>
+          m.categories.flatMap((c: { pages: ApiPage[] }) => c.pages)
+        );
+
+        const apiRoutes: RouteObject[] = pages.map(mapApiPageToRoute);
+
+        setRoutes(
+          dedupeRoutes(apiRoutes).concat({ path: "*", element: <NotFound /> })
+        );
+
+        setHasError(false); // 👈 clear error flag
+      } catch (error) {
+        setHasError(true); // 👈 persist error flag
+        setRoutes([]);
+        setModules([]);
+      }
+    };
+
+    if (!isLoading) loadRoutes();
+  }, [isAuthenticated, getAccessTokenSilently, user?.sub, isLoading]);
+
+  return (
+    <RoutesContext.Provider
+      value={{ routes, modules, hasError, addRoutes, addApiPage, addApiPages }}
+    >
+      {children}
+    </RoutesContext.Provider>
+  );
+}
+```
+
+Update `apps/client/src/App.tsx` to `<ErrorPage />` show if an error has been registered.
+```TypeScript
+import { Route, Routes, type RouteObject } from "react-router-dom";
+import { MainLayout } from "@/components/layout/main-layout";
+import { useRoutesContext } from "@/context/routes-context";
+import ErrorPage from "@/pages/error-page"; // 👈 import
+import "./App.css";
+
+function renderRoutes(routes: RouteObject[]) {
+  return routes.map((r, i) => (
+    <Route key={i} path={r.path} element={r.element}>
+      {r.children ? renderRoutes(r.children) : null}
+    </Route>
+  ));
+}
+
+function App() {
+  const { routes, modules, hasError } = useRoutesContext();
+
+  if (hasError) { // 👈 check if an error has been recorded
+    return <ErrorPage />;
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<MainLayout modules={modules ?? []} />}>
+        {renderRoutes(routes)}{" "}
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;
+```
+
+Update the page `apps/client/src/pages/generic-data-table.tsx` to catch and handle errors.
+```TypeScript
+import { useEffect, useState } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { type ColumnDef } from "@tanstack/react-table";
+import { useAuth0 } from "@auth0/auth0-react";
+import { DataTable } from "@/components/generic/data-table";
+import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
+import { useRoutesContext } from "@/context/routes-context";
+import { Button } from "@/components/ui/button";
+
+export type GenericDataTableProps = { args: string };
+
+type RawRow = Record<string, unknown>; // We don't know the shape yet
+
+export default function GenericDataTable({ args }: GenericDataTableProps) {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const [error, setError] = useState<Error | null>(null); // 👈 add
+  const [columns, setColumns] = useState<ColumnDef<RawRow>[]>([]);
+  const [data, setData] = useState<RawRow[]>([]);
+  const location = useLocation();
+  const identityFieldName = args;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try { // 👈 add try catch
+        if (isAuthenticated) {
+          const token = await getAccessTokenSilently();
+          const json = await fetchGenericRecordData(token, location.pathname);
+
+          // Dynamically infer column definitions from the first row
+          const keys = Object.keys(json[0] ?? {});
+
+          const inferredColumns: ColumnDef<RawRow>[] = keys.map((key) => ({
+            accessorKey: key,
+            header: key.toUpperCase(),
+            cell: (info) => String(info.getValue() ?? ""),
+          }));
+
+          inferredColumns.push({
+            id: "actions",
+            header: "Edit",
+            cell: ({ row }) => {
+              const rowId = row.original[identityFieldName];
+              return (
+                <Button variant="ghost" size="icon" className="size-8">
+                  <Link to={`${location.pathname}/${rowId}`}>...</Link>
+                </Button>
+              );
+            },
+          });
+
+          setData(json);
+          setColumns(inferredColumns);
+        }
+      } catch (err) {
+        setError(err as Error); // 👈 Capture error to rethrow in render
+      }
+    };
+
+    fetchData();
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  if (error) {
+    // This makes it rethrow error from useEffect during render,
+    // which React Router will catch and show errorElement
+	// 👇 
+    throw error;
+  }
+
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="container mx-auto py-10 px-4">
+        <DataTable columns={columns} data={data} />
+      </div>
+    </div>
+  );
+}
+```
 
 # Add a Generic Form Component for Models
 There is a lot to pack in here so we will break this down.
