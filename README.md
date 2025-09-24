@@ -4557,8 +4557,10 @@ function dedupeRoutes(routes: RouteObject[]): RouteObject[] {
 
 function mapApiPageToRoute(p: ApiPage): RouteObject {
   const LazyComp = lazyComponents[p.component] ?? NotFound;
+  // Ensure path is always relative
+  const safePath = p.path.replace(/^\/+/, ""); // remove leading slashes
   return {
-    path: p.path,
+    path: safePath,
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <AuthenticatedRoute>
