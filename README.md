@@ -602,6 +602,7 @@ export interface NavigationRow {
   pName: string;
   pIcon: string;
   pPath: string;
+  pClassName: string;
   pComponent: string;
   pArgs: string;
   pPermission: string;
@@ -1804,7 +1805,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.className pClassName, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -1818,24 +1819,21 @@ router.get(
     for (const row of rows) {
       let module = modulesMap.get(row.moduleId);
       if (!module) {
-        module = new Module(
-          row.moduleId,
-          row.mName,
-          row.mIcon,
-          row.mPermission,
-          true
-        );
+        module = new Module();
+        module.moduleId = row.moduleId;
+        module.name = row.mName;
+        module.icon = row.mIcon;
+        module.permission = row.mPermission;
         modulesMap.set(row.moduleId, module);
       }
 
       let category = categoriesMap.get(row.categoryId);
       if (!category) {
-        category = new Category(
-          row.categoryId,
-          row.cName,
-          row.cIcon,
-          row.cPermission
-        );
+        category = new Category();
+        category.categoryId = row.categoryId;
+        category.name = row.cName;
+        category.icon = row.cIcon;
+        category.permission = row.cPermission;
         categoriesMap.set(row.categoryId, category);
       }
 
@@ -1846,15 +1844,15 @@ router.get(
         module.addCategory(category);
       }
 
-      const page = new Page(
-        row.pageId,
-        row.pName,
-        row.pIcon,
-        row.pPath,
-        row.pComponent,
-        row.pArgs,
-        row.pPermission
-      );
+      const page = new Page();
+      page.pageId = row.pageId;
+      page.name = row.pName;
+      page.icon = row.pIcon;
+      page.path = row.pPath;
+      page.className = row.pClassName;
+      page.component = row.pComponent;
+      page.args = row.pArgs;
+      page.permission = row.pPermission;
 
       if (!category.pages.some((p) => p.pageId === page.pageId)) {
         category.addPage(page);
@@ -3603,7 +3601,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
-      SELECT    pageId, name, icon, path, component, args, permission  
+      SELECT    pageId, name, icon, path, className, component, args, permission  
       FROM 	    pages
     `);
 
@@ -3617,7 +3615,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
       `
-      SELECT    pageId, name, icon, path, component, args, permission  
+      SELECT    pageId, name, icon, path, className, component, args, permission  
       FROM 	    pages
       WHERE     pageId = ?
     `,
@@ -3641,12 +3639,13 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, component, args, permission } = parsed.data;
+    const { name, icon, path, className, component, args, permission } =
+      parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO pages (name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?)",
-      [name, icon, path, component, args, permission]
+      "INSERT INTO pages (name, icon, path, className, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, icon, path, className, component, args, permission]
     );
 
     res.status(201).json({
@@ -3654,6 +3653,7 @@ router.post(
       name,
       icon,
       path,
+      className,
       component,
       args,
       permission,
@@ -3672,12 +3672,13 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, component, args, permission } = parsed.data;
+    const { name, icon, path, className, component, args, permission } =
+      parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE pages SET name = ?, icon = ?, path = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
-      [name, icon, path, component, args, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, path = ?, className = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
+      [name, icon, path, className, component, args, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -3689,6 +3690,7 @@ router.put(
       name,
       icon,
       path,
+      className,
       component,
       args,
       permission,
