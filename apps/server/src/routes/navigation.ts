@@ -19,7 +19,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.className pClassName, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -33,24 +33,21 @@ router.get(
     for (const row of rows) {
       let module = modulesMap.get(row.moduleId);
       if (!module) {
-        module = new Module(
-          row.moduleId,
-          row.mName,
-          row.mIcon,
-          row.mPermission,
-          true
-        );
+        module = new Module();
+        module.moduleId = row.moduleId;
+        module.name = row.mName;
+        module.icon = row.mIcon;
+        module.permission = row.mPermission;
         modulesMap.set(row.moduleId, module);
       }
 
       let category = categoriesMap.get(row.categoryId);
       if (!category) {
-        category = new Category(
-          row.categoryId,
-          row.cName,
-          row.cIcon,
-          row.cPermission
-        );
+        category = new Category();
+        category.categoryId = row.categoryId;
+        category.name = row.cName;
+        category.icon = row.cIcon;
+        category.permission = row.cPermission;
         categoriesMap.set(row.categoryId, category);
       }
 
@@ -61,15 +58,15 @@ router.get(
         module.addCategory(category);
       }
 
-      const page = new Page(
-        row.pageId,
-        row.pName,
-        row.pIcon,
-        row.pPath,
-        row.pComponent,
-        row.pArgs,
-        row.pPermission
-      );
+      const page = new Page();
+      page.pageId = row.pageId;
+      page.name = row.pName;
+      page.icon = row.pIcon;
+      page.path = row.pPath;
+      page.className = row.pClassName;
+      page.component = row.pComponent;
+      page.args = row.pArgs;
+      page.permission = row.pPermission;
 
       if (!category.pages.some((p) => p.pageId === page.pageId)) {
         category.addPage(page);

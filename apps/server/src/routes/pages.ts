@@ -15,7 +15,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
-      SELECT    pageId, name, icon, path, component, args, permission  
+      SELECT    pageId, name, icon, path, className, component, args, permission  
       FROM 	    pages
     `);
 
@@ -29,7 +29,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
       `
-      SELECT    pageId, name, icon, path, component, args, permission  
+      SELECT    pageId, name, icon, path, className, component, args, permission  
       FROM 	    pages
       WHERE     pageId = ?
     `,
@@ -53,12 +53,13 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, component, args, permission } = parsed.data;
+    const { name, icon, path, className, component, args, permission } =
+      parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO pages (name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?)",
-      [name, icon, path, component, args, permission]
+      "INSERT INTO pages (name, icon, path, className, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, icon, path, className, component, args, permission]
     );
 
     res.status(201).json({
@@ -66,6 +67,7 @@ router.post(
       name,
       icon,
       path,
+      className,
       component,
       args,
       permission,
@@ -84,12 +86,13 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, component, args, permission } = parsed.data;
+    const { name, icon, path, className, component, args, permission } =
+      parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE pages SET name = ?, icon = ?, path = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
-      [name, icon, path, component, args, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, path = ?, className = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
+      [name, icon, path, className, component, args, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -101,6 +104,7 @@ router.put(
       name,
       icon,
       path,
+      className,
       component,
       args,
       permission,
