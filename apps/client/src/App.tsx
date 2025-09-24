@@ -1,6 +1,7 @@
 import { Route, Routes, type RouteObject } from "react-router-dom";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useRoutesContext } from "@/context/routes-context";
+import ErrorPage from "@/pages/error-page";
 import "./App.css";
 
 function renderRoutes(routes: RouteObject[]) {
@@ -12,7 +13,11 @@ function renderRoutes(routes: RouteObject[]) {
 }
 
 function App() {
-  const { routes, modules } = useRoutesContext();
+  const { routes, modules, hasError } = useRoutesContext();
+
+  if (hasError) {
+    return <ErrorPage />;
+  }
 
   return (
     <Routes>

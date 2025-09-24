@@ -13,6 +13,7 @@ import { fetchLazyComponents } from "@/utils/fetch-lazy-components";
 import { AuthenticatedRoute } from "@/auth/authenticated-route";
 import NotFound from "@/pages/not-found";
 import { Module } from "shared/src/models/module";
+import ErrorPage from "@/pages/error-page";
 
 //
 // ---------- Types ----------
@@ -33,6 +34,7 @@ type AddRoutesFn<TBase extends RouteObject[]> = <T>(
 type RoutesContextType = {
   routes: RouteObject[];
   modules: Module[];
+  hasError: boolean;
   addRoutes: AddRoutesFn<RouteObject[]>;
   addApiPage: (page: ApiPage, parentPath?: string) => void;
   addApiPages: (pages: ApiPage[], parentPath?: string) => void;
@@ -44,6 +46,7 @@ type RoutesContextType = {
 const RoutesContext = createContext<RoutesContextType>({
   routes: [],
   modules: [],
+  hasError: false,
   addRoutes: () => {
     throw new Error("RoutesContext not initialized");
   },
@@ -110,8 +113,10 @@ function dedupeRoutes(routes: RouteObject[]): RouteObject[] {
 
 function mapApiPageToRoute(p: ApiPage): RouteObject {
   const LazyComp = lazyComponents[p.component] ?? NotFound;
+  // Ensure path is always relative
+  const safePath = p.path.replace(/^\/+/, ""); // remove leading slashes
   return {
-    path: p.path,
+    path: safePath,
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <AuthenticatedRoute>
@@ -119,6 +124,7 @@ function mapApiPageToRoute(p: ApiPage): RouteObject {
         </AuthenticatedRoute>
       </Suspense>
     ),
+    errorElement: <ErrorPage />,
   };
 }
 
@@ -130,6 +136,7 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
     useAuth0();
   const [routes, setRoutes] = useState<RouteObject[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
+  const [hasError, setHasError] = useState(false);
 
   const addRoutes: AddRoutesFn<RouteObject[]> = (items, parentPath, mapFn) => {
     const newRoutes = items.map(mapFn);
@@ -157,19 +164,28 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const token = await getAccessTokenSilently();
-      const apiModules = await fetchModules(token);
-      setModules(apiModules);
+      try {
+        const token = await getAccessTokenSilently();
+        const apiModules = await fetchModules(token);
+        setModules(apiModules);
 
-      const pages = apiModules.flatMap((m) =>
-        m.categories.flatMap((c: { pages: ApiPage[] }) => c.pages)
-      );
+        const pages = apiModules.flatMap((m) =>
+          m.categories.flatMap((c: { pages: ApiPage[] }) => c.pages)
+        );
 
-      const apiRoutes: RouteObject[] = pages.map(mapApiPageToRoute);
+        const apiRoutes: RouteObject[] = pages.map(mapApiPageToRoute);
 
-      setRoutes(
-        dedupeRoutes(apiRoutes).concat({ path: "*", element: <NotFound /> })
-      );
+        setRoutes(
+          dedupeRoutes(apiRoutes).concat({ path: "*", element: <NotFound /> })
+        );
+
+        setHasError(false);
+      } catch (error) {
+        console.error("Error loading modules or routes:", error);
+        setHasError(true);
+        setRoutes([]);
+        setModules([]);
+      }
     };
 
     if (!isLoading) loadRoutes();
@@ -177,7 +193,7 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
 
   return (
     <RoutesContext.Provider
-      value={{ routes, modules, addRoutes, addApiPage, addApiPages }}
+      value={{ routes, modules, hasError, addRoutes, addApiPage, addApiPages }}
     >
       {children}
     </RoutesContext.Provider>

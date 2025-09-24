@@ -1,18 +1,26 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { ErrorBoundary } from "react-error-boundary";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { config } from "@/config/config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { RoutesProvider } from "./context/routes-context";
+import ErrorPage from "@/pages/error-page";
 import App from "./App";
 import "reflect-metadata";
 import "./index.css";
+import "shared/src/decorators/index";
 
 const router = createBrowserRouter([
   {
     path: "*",
-    element: <App />,
+    element: (
+      <ErrorBoundary FallbackComponent={ErrorPage}>
+        <App />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
   },
 ]);
 
