@@ -1869,6 +1869,10 @@ export const ROLES = {
   ADMIN: "admin",
   AUTH: "auth",
 };
+
+export const COMPONENTS = {
+  GENERIC_MODEL_TABLE: "GenericModelTable",
+};
 ```
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
@@ -1899,7 +1903,7 @@ export function getModules() {
               icon: "users",
               path: "users",
               className: MODELS.USER,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "userId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1909,7 +1913,7 @@ export function getModules() {
               icon: "roles",
               path: "roles",
               className: MODELS.ROLE,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "roleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1919,7 +1923,7 @@ export function getModules() {
               icon: "permissions",
               path: "permissions",
               className: MODELS.PERMISSION,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "permissionId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1937,7 +1941,7 @@ export function getModules() {
               icon: "modules",
               path: "modules",
               className: MODELS.MODULE,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "moduleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1947,7 +1951,7 @@ export function getModules() {
               icon: "categories",
               path: "categories",
               className: MODELS.CATEGORY,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "categoryId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1957,7 +1961,7 @@ export function getModules() {
               icon: "pages",
               path: "pages",
               className: MODELS.PAGE,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "pageId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
