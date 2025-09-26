@@ -18,6 +18,6 @@ export const ROLES = {
 };
 
 export const COMPONENTS = {
-  GENERIC_DATA_TABLE: "GenericDataTable",
+  GENERIC_MODEL_TABLE: "GenericModelTable",
   GENERIC_MODEL_FORM: "GenericModelForm",
 };
