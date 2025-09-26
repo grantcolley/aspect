@@ -69,7 +69,7 @@ aspect
  	* [Add the Applications Endpoints](#add-the-applications-endpoints)
   	* [Update the index.ts](#update-the-indexts) 
 * [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
-* [Create a Generic DataTable Component](#create-a-generic-datatable-component)
+* [Create a Generic ModelTable Component](#create-a-generic-modeltable-component)
 * [Add Dynamic Route Loading](#add-dynamic-route-loading)
 * [Add Error Handling to the Client](#add-error-handling-to-the-client)
 * [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models)
@@ -1869,6 +1869,10 @@ export const ROLES = {
   ADMIN: "admin",
   AUTH: "auth",
 };
+
+export const COMPONENTS = {
+  GENERIC_MODEL_TABLE: "GenericModelTable",
+};
 ```
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
@@ -1899,7 +1903,7 @@ export function getModules() {
               icon: "users",
               path: "users",
               className: MODELS.USER,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "userId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1909,7 +1913,7 @@ export function getModules() {
               icon: "roles",
               path: "roles",
               className: MODELS.ROLE,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "roleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1919,7 +1923,7 @@ export function getModules() {
               icon: "permissions",
               path: "permissions",
               className: MODELS.PERMISSION,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "permissionId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1937,7 +1941,7 @@ export function getModules() {
               icon: "modules",
               path: "modules",
               className: MODELS.MODULE,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "moduleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1947,7 +1951,7 @@ export function getModules() {
               icon: "categories",
               path: "categories",
               className: MODELS.CATEGORY,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "categoryId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -1957,7 +1961,7 @@ export function getModules() {
               icon: "pages",
               path: "pages",
               className: MODELS.PAGE,
-              component: COMPONENTS.GENERIC_DATA_TABLE,
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "pageId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
@@ -2343,18 +2347,18 @@ export const config = {
 };
 ```
 
-Create page `apps/client/src/pages/generic-data-table.tsx` for the target path for pages in the navigation panel.
+Create page `apps/client/src/pages/generic-model-table.tsx` for the target path for pages in the navigation panel.
 ```TypeScript
 import { useLocation, type Location } from "react-router-dom";
 
-function GenericDataTable() {
+function GenericModelTable() {
   const location: Location = useLocation();
   return (
-    <div className="text-red-500">GenericDataTable for {location.pathname}</div>
+    <div className="text-red-500">GenericModelTable for {location.pathname}</div>
   );
 }
 
-export default GenericDataTable;
+export default GenericModelTable;
 ```
 
 Create page `apps/client/src/pages/not-found.tsx` for the fallback if the target path doesn't find the intended page.
@@ -2381,7 +2385,7 @@ interface LazyComponentMap {
 
 export const fetchLazyComponents: () => LazyComponentMap =
   (): LazyComponentMap => ({
-    GenericDataTable: React.lazy(() => import("../pages/generic-data-table")),
+    GenericModelTable: React.lazy(() => import("../pages/generic-model-table")),
   });
 ```
 
@@ -4190,7 +4194,7 @@ Go to the Authorization tab in Postman and set:
 
 Send the request!
 
-# Create a Generic DataTable Component
+# Create a Generic ModelTable Component
 Combine `shadcn`'s `<Table />` component with `@tanstack/react-table` to create tables with sorting, filtering and pagination.
 
 Add the `<Table />` component and install `tanstack/react-table`.
@@ -4237,7 +4241,7 @@ export async function fetchGenericRecordData(
 }
 ```
 
-Create component `apps/client/src/components/generic/data-table.tsx`.
+Create component `apps/client/src/components/generic/model-table.tsx`.
 ```TypeScript
 import {
   type ColumnDef,
@@ -4255,15 +4259,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface DataTableProps<TData, TValue> {
+interface ModelTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function ModelTable<TData, TValue>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+}: ModelTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
@@ -4319,21 +4323,21 @@ export function DataTable<TData, TValue>({
 }
 ```
 
-Update the page `apps/client/src/pages/generic-data-table.tsx`.
+Update the page `apps/client/src/pages/generic-model-table.tsx`.
 ```TypeScript
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
-import { DataTable } from "@/components/generic/data-table";
+import { ModelTable } from "@/components/generic/model-table";
 import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
 import { Button } from "@/components/ui/button";
 
-export type GenericDataTableProps = { args: string };
+export type GenericModelTableProps = { args: string };
 
 type RawRow = Record<string, unknown>; // We don't know the shape yet
 
-export default function GenericDataTable({ args }: GenericDataTableProps) {
+export default function GenericModelTable({ args }: GenericModelTableProps) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const location = useLocation();
   const [data, setData] = useState<RawRow[]>([]);
@@ -4380,7 +4384,7 @@ export default function GenericDataTable({ args }: GenericDataTableProps) {
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="container mx-auto py-10 px-4">
-        <DataTable columns={columns} data={data} />
+        <ModelTable columns={columns} data={data} />
       </div>
     </div>
   );
@@ -4397,7 +4401,7 @@ interface LazyComponentMap {
 
 export const fetchLazyComponents: () => LazyComponentMap =
   (): LazyComponentMap => ({
-    GenericDataTable: React.lazy(() => import("../pages/generic-data-table")),
+    GenericModelTable: React.lazy(() => import("../pages/generic-model-table")),
   });
 ```
 
@@ -5012,22 +5016,22 @@ function App() {
 export default App;
 ```
 
-Update the page `apps/client/src/pages/generic-data-table.tsx` to catch and handle errors.
+Update the page `apps/client/src/pages/generic-model-table.tsx` to catch and handle errors.
 ```TypeScript
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
-import { DataTable } from "@/components/generic/data-table";
+import { ModelTable } from "@/components/generic/model-table";
 import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
 import { useRoutesContext } from "@/context/routes-context";
 import { Button } from "@/components/ui/button";
 
-export type GenericDataTableProps = { args: string };
+export type GenericModelTableProps = { args: string };
 
 type RawRow = Record<string, unknown>; // We don't know the shape yet
 
-export default function GenericDataTable({ args }: GenericDataTableProps) {
+export default function GenericModelTable({ args }: GenericModelTableProps) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [error, setError] = useState<Error | null>(null); // 👈 add
   const [columns, setColumns] = useState<ColumnDef<RawRow>[]>([]);
@@ -5085,7 +5089,7 @@ export default function GenericDataTable({ args }: GenericDataTableProps) {
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="container mx-auto py-10 px-4">
-        <DataTable columns={columns} data={data} />
+        <ModelTable columns={columns} data={data} />
       </div>
     </div>
   );
