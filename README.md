@@ -165,13 +165,6 @@ export class User {
   name: string;
   email: string;
   permission: string;
-
-  constructor(userId: number, name: string, email: string, permission: string) {
-    this.userId = userId;
-    this.name = name;
-    this.email = email;
-    this.permission = permission;
-  }
 }
 ```
 ## Create the DB Seed package
@@ -192,10 +185,19 @@ Create the `apps/db/src/data/userData.ts`.
 import { User } from "../../../apps/shared/src/models/user";
 
 export function getUsers() {
-  return [
-    new User(1, "Alice", "alice@email.com", "auth_rw"),
-    new User(2, "Bob", "bob@email.com", "auth_ro"),
-  ];
+  let alice = new User();
+  alice.userId = 1;
+  alice.name = "Alice";
+  alice.email = "alice@email.com";
+  alice.permission = PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW;
+
+  let bob = new User();
+  bob.userId = 2;
+  bob.name = "Bob";
+  bob.email = "bob@email.com";
+  bob.permission = PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW;
+
+  return [ alice, bob ];
 }
 ```
 
@@ -602,6 +604,7 @@ export interface NavigationRow {
   pName: string;
   pIcon: string;
   pPath: string;
+  pClassName: string;
   pComponent: string;
   pArgs: string;
   pPermission: string;
@@ -622,30 +625,11 @@ export class Page implements Permissionable, Editability {
   name: string;
   icon: string;
   path: string;
+  className!: string;
   component: string;
   args: string;
   permission: string;
   isReadOnly: boolean;
-
-  constructor(
-    pageId: number,
-    name: string,
-    icon: string,
-    path: string,
-    component: string,
-	args: string,
-    permission: string,
-    isReadOnly: boolean = false
-  ) {
-    this.pageId = pageId;
-    this.name = name;
-    this.icon = icon;
-    this.path = path;
-    this.component = component;
-    this.args = args;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-  }
 }
 ```
 `apps/shared/src/models/category.ts`
@@ -661,22 +645,6 @@ export class Category implements Permissionable, Editability {
   permission: string;
   isReadOnly: boolean;
   pages: Page[];
-
-  constructor(
-    categoryId: number,
-    name: string,
-    icon: string,
-    permission: string,
-    isReadOnly: boolean = false,
-    pages: Page[] = []
-  ) {
-    this.categoryId = categoryId;
-    this.name = name;
-    this.icon = icon;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-    this.pages = pages;
-  }
 
   addPage(pages: Page) {
     if (!this.pages.find((p) => p.pageId === pages.pageId)) {
@@ -702,22 +670,6 @@ export class Module implements Permissionable, Editability {
   permission: string;
   isReadOnly: boolean;
   categories: Category[];
-
-  constructor(
-    moduleId: number,
-    name: string,
-    icon: string,
-    permission: string,
-    isReadOnly: boolean = false,
-    categories: Category[] = []
-  ) {
-    this.moduleId = moduleId;
-    this.name = name;
-    this.icon = icon;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-    this.categories = categories;
-  }
 
   addCategory(category: Category) {
     if (!this.categories.find((c) => c.categoryId === category.categoryId)) {
@@ -745,18 +697,6 @@ export class Permission implements Permissionable, Editability {
   name: string;
   permission: string;
   isReadOnly: boolean;
-
-  constructor(
-    permissionId: number,
-    name: string,
-    permission: string,
-    isReadOnly: boolean = false
-  ) {
-    this.permissionId = permissionId;
-    this.name = name;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-  }
 }
 ```
 `apps/shared/src/models/role.ts`
@@ -771,20 +711,6 @@ export class Role implements Permissionable, Editability {
   permission: string;
   isReadOnly: boolean;
   permissions: Permission[];
-
-  constructor(
-    roleId: number,
-    name: string,
-    permission: string,
-    isReadOnly: boolean = false,
-    permissions: Permission[] = []
-  ) {
-    this.roleId = roleId;
-    this.name = name;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-    this.permissions = permissions;
-  }
 
   addPermission(permission: Permission) {
     if (
@@ -815,22 +741,6 @@ export class User implements Permissionable, Editability {
   isReadOnly: boolean;
   roles: Role[];
 
-  constructor(
-    userId: number,
-    name: string,
-    email: string,
-    permission: string,
-    isReadOnly: boolean = false,
-    roles: Role[] = []
-  ) {
-    this.userId = userId;
-    this.name = name;
-    this.email = email;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-    this.roles = roles;
-  }
-
   addRole(role: Role) {
     if (!this.roles.find((r) => r.roleId === role.roleId)) {
       this.roles.push(role);
@@ -852,12 +762,15 @@ Create the navigation validation schema `moduleSchema`, `categorySchema` and `pa
 import { z } from "zod";
 
 export const pageSchema = z.object({
+  pageId: z.number(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   path: z.string().min(1, "Path is required"),
+  className: z.string().min(1, "Class name is required"),
   component: z.string().min(1, "Component is required"),
   args: z.string().optional(),
   permission: z.string().min(1, "Permission is required"),
+  isReadOnly: z.boolean().optional(),
 });
 
 export type PageInput = z.infer<typeof pageSchema>;
@@ -867,9 +780,11 @@ export type PageInput = z.infer<typeof pageSchema>;
 import { z } from "zod";
 
 export const categorySchema = z.object({
+  categoryId: z.number(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   permission: z.string().min(1, "Permission is required"),
+  isReadOnly: z.boolean().optional(),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
@@ -879,9 +794,11 @@ export type CategoryInput = z.infer<typeof categorySchema>;
 import { z } from "zod";
 
 export const moduleSchema = z.object({
+  moduleId: z.number(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   permission: z.string().min(1, "Permission is required"),
+  isReadOnly: z.boolean().optional(),
 });
 
 export type ModuleInput = z.infer<typeof moduleSchema>;
@@ -895,8 +812,10 @@ Create the authorisation validation schema `userSchema`, `roleSchema` and `pemis
 import { z } from "zod";
 
 export const permissionSchema = z.object({
+  permissionId: z.number(),
   name: z.string().min(1, "Name is required"),
   permission: z.string().min(1, "Permission is required"),
+  isReadOnly: z.boolean().optional(),
 });
 
 export type PermissionInput = z.infer<typeof permissionSchema>;
@@ -906,8 +825,10 @@ export type PermissionInput = z.infer<typeof permissionSchema>;
 import { z } from "zod";
 
 export const roleSchema = z.object({
+  roleId: z.number(),
   name: z.string().min(1, "Name is required"),
   permission: z.string().min(1, "Permission is required"),
+  isReadOnly: z.boolean().optional(),
 });
 
 export type RoleInput = z.infer<typeof roleSchema>;
@@ -917,9 +838,11 @@ export type RoleInput = z.infer<typeof roleSchema>;
 import { z } from "zod";
 
 export const userSchema = z.object({
+  userId: z.number(),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   permission: z.string().min(1, "Permission is required"),
+  isReadOnly: z.boolean().optional(),
 });
 
 export type UserInput = z.infer<typeof userSchema>;
@@ -1804,7 +1727,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.className pClassName, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -1818,24 +1741,21 @@ router.get(
     for (const row of rows) {
       let module = modulesMap.get(row.moduleId);
       if (!module) {
-        module = new Module(
-          row.moduleId,
-          row.mName,
-          row.mIcon,
-          row.mPermission,
-          true
-        );
+        module = new Module();
+        module.moduleId = row.moduleId;
+        module.name = row.mName;
+        module.icon = row.mIcon;
+        module.permission = row.mPermission;
         modulesMap.set(row.moduleId, module);
       }
 
       let category = categoriesMap.get(row.categoryId);
       if (!category) {
-        category = new Category(
-          row.categoryId,
-          row.cName,
-          row.cIcon,
-          row.cPermission
-        );
+        category = new Category();
+        category.categoryId = row.categoryId;
+        category.name = row.cName;
+        category.icon = row.cIcon;
+        category.permission = row.cPermission;
         categoriesMap.set(row.categoryId, category);
       }
 
@@ -1846,15 +1766,15 @@ router.get(
         module.addCategory(category);
       }
 
-      const page = new Page(
-        row.pageId,
-        row.pName,
-        row.pIcon,
-        row.pPath,
-        row.pComponent,
-        row.pArgs,
-        row.pPermission
-      );
+      const page = new Page();
+      page.pageId = row.pageId;
+      page.name = row.pName;
+      page.icon = row.pIcon;
+      page.path = row.pPath;
+      page.className = row.pClassName;
+      page.component = row.pComponent;
+      page.args = row.pArgs;
+      page.permission = row.pPermission;
 
       if (!category.pages.some((p) => p.pageId === page.pageId)) {
         category.addPage(page);
@@ -1932,6 +1852,11 @@ start();
 Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
 import { Module } from "../../../apps/shared/src/models/module";
+import {
+  COMPONENTS,
+  MODELS,
+  PERMISSIONS,
+} from "../../../apps/shared/src/constants/constants";
 
 export function getModules() {
   return [
@@ -1939,40 +1864,43 @@ export function getModules() {
       moduleId: 1,
       name: "Administration",
       icon: "settings",
-      permission: "admin_ro|admin_rw",
+      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
       categories: [
         {
           categoryId: 1,
           name: "Authorisation",
           icon: "authorisation",
-          permission: "admin_ro|admin_rw",
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
           pages: [
             {
               pageId: 1,
               name: "Users",
               icon: "users",
               path: "users",
-              component: "GenericDataTable",
+              className: MODELS.USER,
+              component: COMPONENTS.GENERIC_DATA_TABLE,
               args: "userId",
-              permission: "admin_ro|admin_rw",
+              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
               pageId: 2,
               name: "Roles",
               icon: "roles",
               path: "roles",
-              component: "GenericDataTable",
+              className: MODELS.ROLE,
+              component: COMPONENTS.GENERIC_DATA_TABLE,
               args: "roleId",
-              permission: "admin_ro|admin_rw",
+              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
               pageId: 3,
               name: "Permissions",
               icon: "permissions",
               path: "permissions",
-              component: "GenericDataTable",
+              className: MODELS.PERMISSION,
+              component: COMPONENTS.GENERIC_DATA_TABLE,
               args: "permissionId",
-              permission: "admin_ro|admin_rw",
+              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
           ],
         },
@@ -1980,34 +1908,37 @@ export function getModules() {
           categoryId: 2,
           name: "Applications",
           icon: "applications",
-          permission: "admin_ro|admin_rw",
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
           pages: [
             {
               pageId: 4,
               name: "Modules",
               icon: "modules",
               path: "modules",
-              component: "GenericDataTable",
+              className: MODELS.MODULE,
+              component: COMPONENTS.GENERIC_DATA_TABLE,
               args: "moduleId",
-              permission: "admin_ro|admin_rw",
+              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
               pageId: 5,
               name: "Categories",
               icon: "categories",
               path: "categories",
-              component: "GenericDataTable",
+              className: MODELS.CATEGORY,
+              component: COMPONENTS.GENERIC_DATA_TABLE,
               args: "categoryId",
-              permission: "admin_ro|admin_rw",
+              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
               pageId: 6,
               name: "Pages",
               icon: "pages",
               path: "pages",
-              component: "GenericDataTable",
+              className: MODELS.PAGE,
+              component: COMPONENTS.GENERIC_DATA_TABLE,
               args: "pageId",
-              permission: "admin_ro|admin_rw",
+              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
           ],
         },
@@ -2047,6 +1978,7 @@ export async function seedModules(db: Database, modules: Module[]) {
       name TEXT NOT NULL,
       icon TEXT NOT NULL,
       path TEXT NOT NULL,
+      className TEXT NOT NULL,
       component TEXT NOT NULL,
       args TEXT,
       permission TEXT NOT NULL
@@ -2082,7 +2014,7 @@ export async function seedModules(db: Database, modules: Module[]) {
   );
 
   const pageStatement = await db.prepare(
-    "INSERT INTO pages (pageId, name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO pages (pageId, name, icon, path, className, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
   const moduleCategoriesStatement = await db.prepare(
@@ -2122,6 +2054,7 @@ export async function seedModules(db: Database, modules: Module[]) {
           page.name,
           page.icon,
           page.path,
+          page.className,
           page.component,
           page.args ?? null,
           page.permission
@@ -3603,7 +3536,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
-      SELECT    pageId, name, icon, path, component, args, permission  
+      SELECT    pageId, name, icon, path, className, component, args, permission  
       FROM 	    pages
     `);
 
@@ -3617,7 +3550,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
       `
-      SELECT    pageId, name, icon, path, component, args, permission  
+      SELECT    pageId, name, icon, path, className, component, args, permission  
       FROM 	    pages
       WHERE     pageId = ?
     `,
@@ -3641,12 +3574,13 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, component, args, permission } = parsed.data;
+    const { name, icon, path, className, component, args, permission } =
+      parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO pages (name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?)",
-      [name, icon, path, component, args, permission]
+      "INSERT INTO pages (name, icon, path, className, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, icon, path, className, component, args, permission]
     );
 
     res.status(201).json({
@@ -3654,6 +3588,7 @@ router.post(
       name,
       icon,
       path,
+      className,
       component,
       args,
       permission,
@@ -3672,12 +3607,13 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, component, args, permission } = parsed.data;
+    const { name, icon, path, className, component, args, permission } =
+      parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE pages SET name = ?, icon = ?, path = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
-      [name, icon, path, component, args, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, path = ?, className = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
+      [name, icon, path, className, component, args, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -3689,6 +3625,7 @@ router.put(
       name,
       icon,
       path,
+      className,
       component,
       args,
       permission,
