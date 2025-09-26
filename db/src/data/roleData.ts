@@ -1,48 +1,52 @@
 import { Role } from "../../../apps/shared/src/models/role";
+import {
+  PERMISSIONS,
+  ROLES,
+} from "../../../apps/shared/src/constants/constants";
 
 export function getRoles() {
   return [
     {
       roleId: 1,
-      name: "admin",
-      permission: "admin_ro|admin_rw",
+      name: ROLES.ADMIN,
+      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
       permissions: [
         {
           permissionId: 1,
-          name: "admin_ro",
-          permission: "admin_ro|admin_rw",
+          name: PERMISSIONS.ADMIN_RO,
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 2,
-          name: "admin_rw",
-          permission: "admin_ro|admin_rw",
+          name: PERMISSIONS.ADMIN_RW,
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 3,
-          name: "auth_rw",
-          permission: "admin_ro|admin_rw",
+          name: PERMISSIONS.ADMIN_RW,
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 4,
-          name: "auth_ro",
-          permission: "admin_ro|admin_rw",
+          name: PERMISSIONS.ADMIN_RO,
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
       ],
     },
     {
       roleId: 2,
-      name: "auth",
-      permission: "admin_ro|admin_rw",
+      name: ROLES.AUTH,
+      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
       permissions: [
         {
           permissionId: 3,
-          name: "auth_rw",
-          permission: "admin_ro|admin_rw",
+          name: PERMISSIONS.ADMIN_RW,
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 4,
-          name: "auth_ro",
-          permission: "admin_ro|admin_rw",
+          name: PERMISSIONS.ADMIN_RO,
+          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
       ],
     },
