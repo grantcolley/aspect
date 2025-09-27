@@ -2008,9 +2008,10 @@ Create `db/src/data/moduleData.ts` for the seed modules data.
 ```TypeScript
 import { Module } from "../../../apps/shared/src/models/module";
 import {
-  COMPONENTS,
   MODELS,
   PERMISSIONS,
+  COMPONENTS,
+  COMPONENT_ARGS,
 } from "../../../apps/shared/src/constants/constants";
 
 export function getModules() {
@@ -2033,7 +2034,13 @@ export function getModules() {
               icon: "users",
               path: "users",
               component: COMPONENTS.GENERIC_MODEL_TABLE,
-              args: "userId",
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.USER +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=userId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
@@ -2042,7 +2049,13 @@ export function getModules() {
               icon: "roles",
               path: "roles",
               component: COMPONENTS.GENERIC_MODEL_TABLE,
-              args: "roleId",
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.ROLE +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=roleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
@@ -2051,7 +2064,13 @@ export function getModules() {
               icon: "permissions",
               path: "permissions",
               component: COMPONENTS.GENERIC_MODEL_TABLE,
-              args: "permissionId",
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.PERMISSION +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=permissionId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
           ],
@@ -2068,7 +2087,13 @@ export function getModules() {
               icon: "modules",
               path: "modules",
               component: COMPONENTS.GENERIC_MODEL_TABLE,
-              args: "moduleId",
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.MODULE +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=moduleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
@@ -2077,7 +2102,13 @@ export function getModules() {
               icon: "categories",
               path: "categories",
               component: COMPONENTS.GENERIC_MODEL_TABLE,
-              args: "categoryId",
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.CATEGORY +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=categoryIdId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
@@ -2086,7 +2117,13 @@ export function getModules() {
               icon: "pages",
               path: "pages",
               component: COMPONENTS.GENERIC_MODEL_TABLE,
-              args: "pageId",
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.PAGE +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=pageId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
           ],
