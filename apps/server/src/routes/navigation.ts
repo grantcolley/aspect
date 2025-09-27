@@ -19,7 +19,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.className pClassName, p.component pComponent, p.args pArgs, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -63,7 +63,6 @@ router.get(
       page.name = row.pName;
       page.icon = row.pIcon;
       page.path = row.pPath;
-      page.className = row.pClassName;
       page.component = row.pComponent;
       page.args = row.pArgs;
       page.permission = row.pPermission;

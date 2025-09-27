@@ -1,8 +1,8 @@
 # aspect
 
-Create step-by-step a monorepo solution using npm workspaces containing a React + TypeScript web client, a TypeScript web api, and a SQLite database. 
+Create step-by-step a monorepo solution using npm workspaces containing a React + TypeScript web client, a TypeScript web api, and a SQLite database.
 
-The Aspect web client is built using React, Vite, TypeScript, Tailwind CSS, shadcn/ui, react-router, react-hook-form, and zod for validation. 
+The Aspect web client is built using React, Vite, TypeScript, Tailwind CSS, shadcn/ui, react-router, react-hook-form, and zod for validation.
 
 The Aspect web API is built using Node.js, Express, TypeScript, a SQLite database and the Winston logging library.
 
@@ -11,11 +11,15 @@ Both the client and server consume the same TypeScript classes in a shared packa
 Authentication is implemented using Auth0.
 
 ##### Technology:
+
 ###### client: React + Vite + TypeScript + Tailwind CSS + shadcn/ui + react-router + react-hook-form + zod
+
 ###### server: Node.js + Express + TypeScript + SQLite + Winston (logging)
+
 ###### shared: TypeScript-only package with shared types and utilities
 
 The project structure looks something like this:
+
 ```
 aspect
 ├── package.json
@@ -37,67 +41,69 @@ aspect
 ```
 
 ### Table of contents
-* [Scaffolding the Monorepo](#scaffolding-the-monorepo)
-	* [Setup the Workspaces](#setup-the-workspaces)
-	* [Initialise the Shared Package](#initialise-the-shared-package)
- 	* [Create the DB Seed package](#create-the-db-seed-package)
-	* [Client Setup](#client-setup)	
-	* [Server Setup](#server-setup)
-	* [Run & Build](#run--build)
- 	* [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces) 
-* [Create Interfaces in the Shared Package](#create-interfaces-in-the-shared-package)
-* [Create Models in the Shared Package](#create-models-in-the-shared-package)
-* [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
-* [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
-* [Support Dark/Light Theme](#support-darklight-theme)
-* [Centralize Access to `env` Variables in a `config.ts` Module](#centralize-access-to-env-variables-in-a-configts-module)
-	* [Client `config.ts`](#client-configts)
-	* [Server `config.ts`](#server-configts)
-* [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
-* [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
-* [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
-* [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
-* [Seed the Modules data](#seed-the-modules-data)
-* [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
-* [Call the API from the Client](#call-the-api-from-the-client)
-* [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
-* [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
-* [Seed the Authorisation data](#seed-the-authorisation-data)
-* [Add API Endpoints](#add-api-Endpoints)
-	* [Create Endpoint Variables in `.env` File](#create-endpoint-variables-in-env-file)
-	* [Add the Authorisation Endpoints](#add-the-authorisation-endpoints)
- 	* [Add the Applications Endpoints](#add-the-applications-endpoints)
-  	* [Update the index.ts](#update-the-indexts) 
-* [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
-* [Create a Generic ModelTable Component](#create-a-generic-modeltable-component)
-* [Add Dynamic Route Loading](#add-dynamic-route-loading)
-* [Add Error Handling to the Client](#add-error-handling-to-the-client)
-* [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models)
-  	* [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
+
+- [Scaffolding the Monorepo](#scaffolding-the-monorepo)
+  - [Setup the Workspaces](#setup-the-workspaces)
+  - [Initialise the Shared Package](#initialise-the-shared-package)
+  - [Create the DB Seed package](#create-the-db-seed-package)
+  - [Client Setup](#client-setup)
+  - [Server Setup](#server-setup)
+  - [Run & Build](#run--build)
+  - [Create Monorepo Debug Configuration using `npm` Workspaces](#create-monorepo-debug-configuration-using-npm-workspaces)
+- [Create Interfaces in the Shared Package](#create-interfaces-in-the-shared-package)
+- [Create Models in the Shared Package](#create-models-in-the-shared-package)
+- [Create Validation using `zod` in the Shared Package](#create-validation-using-zod-in-the-shared-package)
+- [Create Main Layout with Sidebar in the Client](#create-main-layout-with-sidebar-in-the-client)
+- [Support Dark/Light Theme](#support-darklight-theme)
+- [Centralize Access to `env` Variables in a `config.ts` Module](#centralize-access-to-env-variables-in-a-configts-module)
+  - [Client `config.ts`](#client-configts)
+  - [Server `config.ts`](#server-configts)
+- [Add Auth0 Authentication to the Client](#add-auth0-authentication-to-the-client)
+- [Add Auth0 Authentication to the Server](#add-auth0-authentication-to-the-server)
+- [Add the Navigation Route to the Server](#add-the-navigation-route-to-the-server)
+- [Enable CORS in the Node.js Server](#enable-cors-in-the-nodejs-server)
+- [Seed the Modules data](#seed-the-modules-data)
+- [Adding Navigation to the Sidebar](#adding-navigation-to-the-sidebar)
+- [Call the API from the Client](#call-the-api-from-the-client)
+- [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
+- [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
+- [Seed the Authorisation data](#seed-the-authorisation-data)
+- [Add API Endpoints](#add-api-Endpoints)
+  - [Create Endpoint Variables in `.env` File](#create-endpoint-variables-in-env-file)
+  - [Add the Authorisation Endpoints](#add-the-authorisation-endpoints)
+  - [Add the Applications Endpoints](#add-the-applications-endpoints)
+    - [Update the index.ts](#update-the-indexts)
+- [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
+- [Create a Generic ModelTable Component](#create-a-generic-modeltable-component)
+- [Add Dynamic Route Loading](#add-dynamic-route-loading)
+- [Add Error Handling to the Client](#add-error-handling-to-the-client)
+- [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models) \* [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
 
 # Scaffolding the Monorepo
+
 ## Setup the Workspaces
+
 Create a root folder `aspect` and a subfolder `apps`. Inside `aspect/apps` create three subfolders: `client`, `db`, `server` and `shared`.
 
 Inside the root `aspect` folder:
+
 ```bash
 npm init -y
 ```
 
 Configure the root `package.json`.
+
 ```json
 {
   "name": "aspect",
   "version": "1.0.0",
   "description": "Aspect",
-  "workspaces": [
-    "apps/*",
-    "db"
-  ]
+  "workspaces": ["apps/*", "db"]
 }
 ```
 
 Create a root `tsconfig.base.json`.
+
 ```json
 {
   "compilerOptions": {
@@ -115,6 +121,7 @@ Create a root `tsconfig.base.json`.
 ```
 
 Replace the content of `.gitignore` with:
+
 ```nginx
 node_modules
 dist
@@ -123,17 +130,21 @@ dist
 ```
 
 ## Initialise the Shared Package
+
 Inside the `apps/shared` folder:
+
 ```bash
 npm init -y
 ```
 
 Install `zod` for model validation.
+
 ```bash
 npm install zod
 ```
 
 Configure the `apps/shared/package.json`.
+
 ```json
 {
   "name": "shared",
@@ -141,12 +152,13 @@ Configure the `apps/shared/package.json`.
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc"
   }
 }
 ```
 
 Create `apps/shared/tsconfig.json`.
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -159,6 +171,7 @@ Create `apps/shared/tsconfig.json`.
 ```
 
 Create subfolder `apps/shared/src/models`, and inside it create the shared `User` class `apps/shared/src/models/user.ts`.
+
 ```TypeScript
 export class User {
   userId: number;
@@ -167,13 +180,17 @@ export class User {
   permission: string;
 }
 ```
+
 ## Create the DB Seed package
+
 Install `dotenv`.
+
 ```
 npm install dotenv
 ```
 
 Inside the `apps/db` folder create `apps/db/.env` file.
+
 ```
 DATABASE=./aspect.sqlite
 ```
@@ -181,6 +198,7 @@ DATABASE=./aspect.sqlite
 Inside the `apps/db` folder create subfolder `apps/db/src/data`.
 
 Create the `apps/db/src/data/userData.ts`.
+
 ```TypeScript
 import { User } from "../../../apps/shared/src/models/user";
 
@@ -202,6 +220,7 @@ export function getUsers() {
 ```
 
 Create the `apps/db/src/seedUsers.ts`.
+
 ```TypeScript
 import { Database } from "sqlite";
 import { User } from "../../apps/shared/src/models/user";
@@ -231,6 +250,7 @@ export async function seedUsers(db: Database, users: User[]) {
 ```
 
 Create the `apps/db/src/seed.ts`.
+
 ```TypeScript
 import fs from "fs";
 import path from "path";
@@ -276,6 +296,7 @@ seed().catch((err) => {
 ```
 
 Configure the `apps/db/package.json`.
+
 ```json
 {
   "name": "db",
@@ -296,6 +317,7 @@ Configure the `apps/db/package.json`.
 ```
 
 Create `apps/db/tsconfig.json`.
+
 ```json
 {
   "extends": "../tsconfig.base.json",
@@ -308,12 +330,15 @@ Create `apps/db/tsconfig.json`.
 ```
 
 ### Client Setup
+
 In the root `aspect` folder run:
+
 ```bash
 npm create vite@latest client -- --template react-ts
 ```
 
 In the `client` folder run:
+
 ```bash
 cd client
 npm install
@@ -323,21 +348,23 @@ npm install -D @types/node
 ```
 
 Replace everything in `apps/client/src/index.css` with the following:
+
 ```css
 @import "tailwindcss";
 ```
 
 Configure the `apps/client/package.json`.
+
 ```json
 {
 
-  ... removed for brevity	
+  ... removed for brevity
 
   "dependencies": {
     "shared": "*",    👈 add shared
 
     ... removed for brevity
-  
+
   },
 
   ... removed for brevity
@@ -345,9 +372,10 @@ Configure the `apps/client/package.json`.
 ```
 
 Add the following code to the `tsconfig.json` file to resolve paths.
+
 ```json
   "extends": "../../tsconfig.base.json",  👈 add extends ../tsconfig.base.json
-  
+
   ... removed for brevity
 
   "compilerOptions": {  👈 add compilerOptions...
@@ -355,26 +383,28 @@ Add the following code to the `tsconfig.json` file to resolve paths.
       "@/*": ["./src/*"]
     }
   }
-  
+
   ... removed for brevity
 ```
 
 Add the following code to the `tsconfig.app.json` file to resolve paths.
+
 ```json
 {
   "compilerOptions": {
     ... removed for brevity
-    
+
     "paths": {  👈 add paths to compilerOptions...
       "@/*": ["./src/*"]
     }
-	
+
     ... removed for brevity
   }
 }
 ```
 
 Add the following code to the `vite.config.ts` so your app can resolve paths without error:
+
 ```TypeScript
 import path from "path";  /* 👈 add */
 import tailwindcss from "@tailwindcss/vite";  /* 👈 add */
@@ -393,27 +423,33 @@ export default defineConfig({
 ```
 
 Install [`shadcn/ui`](https://ui.shadcn.com/):
+
 ```bash
 npx shadcn@latest init
 ```
 
 Install [tabler icons](https://tabler.io/icons).
+
 ```bash
 npm install @tabler/icons-react
 ```
+
 Set `iconLibrary` in `components.js` to `tabler`.
+
 ```json
 {
   "$schema": "https://ui.shadcn.com/schema.json",
 
   // other options...
-  
+
   "iconLibrary": "tabler"
 }
 ```
 
 ## Server Setup
+
 In the `server` folder run:
+
 ```bash
 npm init -y
 npm install express sqlite sqlite3
@@ -422,6 +458,7 @@ npm install zod
 ```
 
 Configure the `apps/server/package.json`.
+
 ```json
 {
   "name": "server",
@@ -440,6 +477,7 @@ Configure the `apps/server/package.json`.
 ```
 
 Create `apps/server/tsconfig.json`.
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -455,6 +493,7 @@ Create `apps/server/tsconfig.json`.
 ```
 
 Create subfolder `apps/server/src`, and create a `apps/server/src/index.ts`.
+
 ```TypeScript
 import express from "express";
 import { User } from "shared";
@@ -473,6 +512,7 @@ app.listen(port, () => {
 ```
 
 ## Run & Build
+
 ```bash
 # Run shared build first if used by others
 npm run --workspace shared build
@@ -496,14 +536,17 @@ Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-initial.png?raw=true "Client")
 
 ## Create Monorepo Debug Configuration using `npm` Workspaces
+
 To debug a monorepo using npm workspaces in VS Code set up multi-target debugging in a single `launch.json`.
 
 To create the Debug Configuration
+
 - Click the Run and Debug icon in the sidebar (or press Ctrl+Shift+D).
 - Click “create a launch.json file”.
 - Choose Node.js.
 
 VS Code creates a `.vscode/launch.json` file which can be modified as follows:
+
 ```json
 {
   "version": "0.2.0",
@@ -539,57 +582,72 @@ VS Code creates a `.vscode/launch.json` file which can be modified as follows:
   ]
 }
 ```
+
 > [!TIP]
 >
 > Start debugging but hitting `F5` or click the green ▶️ in the debug panel.
 
 # Create Interfaces in the Shared Package
+
 Create subfolder `apps/shared/src/interfaces`.
 
-Create the `Edibility` and `Permissionable` interfaces 
+Create the `Edibility` and `Permissionable` interfaces
 \
 \
 `apps/shared/src/interfaces/edibility.ts`
+
 ```TypeScript
 export interface Editability {
   isReadOnly: boolean;
 }
 ```
+
 `apps/shared/src/interfaces/permissionable.ts`
+
 ```TypeScript
 export interface Permissionable {
   permission: string;
 }
 ```
+
 `apps/shared/src/interfaces/categoryPage.ts`
+
 ```TypeScript
 export interface CategoryPage {
   categoryId: number;
   pageId: number;
 }
 ```
+
 `apps/shared/src/interfaces/moduleCategory.ts`
+
 ```TypeScript
 export interface ModuleCategory {
   moduleId: number;
   categoryId: number;
 }
 ```
+
 `apps/shared/src/interfaces/rolePermission.ts`
+
 ```TypeScript
 export interface RolePermission {
   roleId: number;
   permissionId: number;
 }
 ```
+
 `apps/shared/src/interfaces/userRole.ts`
+
 ```TypeScript
 export interface UserRole {
   userId: number;
   roleId: number;
 }
 ```
+
 `apps/shared/src/interfaces/navigationRow.ts`
+
 ```TypeScript
 export interface NavigationRow {
   moduleId: number;
@@ -604,7 +662,6 @@ export interface NavigationRow {
   pName: string;
   pIcon: string;
   pPath: string;
-  pClassName: string;
   pComponent: string;
   pArgs: string;
   pPermission: string;
@@ -612,10 +669,12 @@ export interface NavigationRow {
 ```
 
 # Create Models in the Shared Package
+
 Create the navigation models `Module`, `Category` and `Page` classes.
 \
 \
 `apps/shared/src/models/page.ts`
+
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -625,14 +684,15 @@ export class Page implements Permissionable, Editability {
   name: string;
   icon: string;
   path: string;
-  className!: string;
   component: string;
   args: string;
   permission: string;
   isReadOnly: boolean;
 }
 ```
+
 `apps/shared/src/models/category.ts`
+
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -657,7 +717,9 @@ export class Category implements Permissionable, Editability {
   }
 }
 ```
+
 `apps/shared/src/models/module.ts`
+
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -684,10 +746,12 @@ export class Module implements Permissionable, Editability {
   }
 }
 ```
+
 Create the authorisation models `User`, `Role` and `Permission` classes.
 \
 \
 `apps/shared/src/models/permission.ts`
+
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -699,7 +763,9 @@ export class Permission implements Permissionable, Editability {
   isReadOnly: boolean;
 }
 ```
+
 `apps/shared/src/models/role.ts`
+
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -727,7 +793,9 @@ export class Role implements Permissionable, Editability {
   }
 }
 ```
+
 Update the `User` at `apps/shared/src/models/user.ts`
+
 ```TypeScript
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
@@ -754,10 +822,12 @@ export class User implements Permissionable, Editability {
 ```
 
 # Create Validation using `zod` in the Shared Package
+
 Create the navigation validation schema `moduleSchema`, `categorySchema` and `pageSchema`.
 \
 \
 `apps/shared/src/validation/page-schema.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -766,7 +836,6 @@ export const pageSchema = z.object({
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   path: z.string().min(1, "Path is required"),
-  className: z.string().min(1, "Class name is required"),
   component: z.string().min(1, "Component is required"),
   args: z.string().optional(),
   permission: z.string().min(1, "Permission is required"),
@@ -775,7 +844,9 @@ export const pageSchema = z.object({
 
 export type PageInput = z.infer<typeof pageSchema>;
 ```
+
 `apps/shared/src/validation/category-schema.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -789,7 +860,9 @@ export const categorySchema = z.object({
 
 export type CategoryInput = z.infer<typeof categorySchema>;
 ```
+
 `apps/shared/src/validation/module-schema.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -808,6 +881,7 @@ Create the authorisation validation schema `userSchema`, `roleSchema` and `pemis
 \
 \
 `apps/shared/src/validation/pemission-schema.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -820,7 +894,9 @@ export const permissionSchema = z.object({
 
 export type PermissionInput = z.infer<typeof permissionSchema>;
 ```
+
 `apps/shared/src/validation/role-schema.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -833,7 +909,9 @@ export const roleSchema = z.object({
 
 export type RoleInput = z.infer<typeof roleSchema>;
 ```
+
 `apps/shared/src/validation/user-schema.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -849,15 +927,19 @@ export type UserInput = z.infer<typeof userSchema>;
 ```
 
 # Create Main Layout with Sidebar in the Client
+
 First, change the browser tab's title and icon in `index.html`.
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/atlas.png" /> <!-- 👈 change icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="/atlas.png" />
+    <!-- 👈 change icon -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aspect</title> <!-- 👈 change title -->
+    <title>Aspect</title>
+    <!-- 👈 change title -->
   </head>
   <body>
     <div id="root"></div>
@@ -867,6 +949,7 @@ First, change the browser tab's title and icon in `index.html`.
 ```
 
 In `App.css` change the `max-width` and `padding`.
+
 ```css
 #root {
   max-width: 100%;
@@ -877,6 +960,7 @@ In `App.css` change the `max-width` and `padding`.
 ```
 
 Install the `sidebar` components.
+
 ```bash
 npx shadcn@latest add sidebar
 ```
@@ -886,6 +970,7 @@ npx shadcn@latest add sidebar
 
 First, installing the sidebar (and related components) created a folder called `src/` directly under the root application level `aspect/` folder.
 The `components` and `hook` folders in `aspect/src/` had to be moved into the `aspect/apps/client/src/` folder, and then delete `aspect/src/`, as follows:
+
 ```
 aspect/
 ├── src/   👈 delete src/
@@ -893,7 +978,7 @@ aspect/
 │   └── hooks/*        👈 move into client/src
 └── apps/
 |   └── client/
-│   	└── src/   👈 move folders `components` and `hooks` into client/src/ 
+│   	└── src/   👈 move folders `components` and `hooks` into client/src/
 ```
 
 Second, there is a bug in `components/ui/sidebar.tsx` resulting in the following errror:
@@ -901,11 +986,13 @@ Second, there is a bug in `components/ui/sidebar.tsx` resulting in the following
 `Uncaught SyntaxError: The requested module '/node_modules/.vite/deps/class-variance-authority.js?v=6f2cdce7' does not provide an export named 'VariantProps'`
 
 To fix this go to the top of `components/ui/sidebar.tsx`, and add `type` in front of the import for `VariantProps`, as follows:
+
 ```TypeScript
 import { cva, type VariantProps } from "class-variance-authority"
 ```
 
 Create `apps/client/src/components/layout/app-sidebar.tsx`.
+
 ```TypeScript
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -946,6 +1033,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 ```
 
 Create `apps/client/src/components/layout/app-sidebar-header.tsx`.
+
 ```TypeScript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -980,6 +1068,7 @@ export function AppSidebarHeader() {
 ```
 
 Create `apps/client/src/components/layout/main-layout.tsx`.
+
 ```TypeScript
 import { Outlet } from "react-router-dom";
 import { AppSidebar } from "@/components/layout/app-sidebar";
@@ -1011,6 +1100,7 @@ export const MainLayout = () => {
 ```
 
 Change the `App.tsx`.
+
 ```TypeScript
 import { useEffect, useState } from "react";
 import {
@@ -1060,13 +1150,16 @@ Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-sidebar.png?raw=true "Client")
 
 # Support Dark/Light Theme
+
 Install `dropdown` and `tooltip` components.
+
 ```bash
 npx shadcn@latest add dropdown-menu
 npx shadcn@latest add tooltip
 ```
 
 Create the `apps/client/src/components/layout/theme-provider.tsx`.
+
 ```TSX
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -1144,6 +1237,7 @@ export const useTheme = () => {
 ```
 
 Create the `apps/client/src/components/layout/theme-toggle.tsx`.
+
 ```TypeScript
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
@@ -1200,6 +1294,7 @@ export function ThemeToggle() {
 ```
 
 In `main.tsx` wrap `<App>` with `<ThemeProvider>`.
+
 ```TSX
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -1209,14 +1304,15 @@ import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme"> // 👈 
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme"> // 👈
       <App />
-    </ThemeProvider> // 👈 
+    </ThemeProvider> // 👈
   </StrictMode>
 );
 ```
 
 Add `ThemeToggle` to `sidebar-header.tsx`.
+
 ```TSX
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -1256,19 +1352,24 @@ Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-theme.png?raw=true "Client")
 
 # Centralize Access to `env` Variables in a `config.ts` Module
+
 The best way to access `.env` variables is to:
+
 - Centralize access in a `config.ts` module
 - Type them for safety
 - Fail fast if any required `env` variables are missing by using `zod` for runtime validation
 
 ### Client `config.ts`
+
 Create `.env` file at `apps/client/.env`
+
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=// 👈 Auth0 domain
 VITE_REACT_APP_AUTH0_CLIENT_ID=// 👈 Auth0 application clientId
 ```
 
 Create `apps/client/src/config/config.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -1284,7 +1385,9 @@ export const config = {
   AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
 };
 ```
+
 Client environment variables can now be consumed anywhere like this:
+
 ```JSX
 import { config } from "@/config/config";
 
@@ -1292,7 +1395,9 @@ const domain = config.AUTH0_DOMAIN;
 ```
 
 ### Server `config.ts`
+
 Create `.env` file at `apps/server/.env`
+
 ```
 NODE_ENV=development
 HOST_URL=localhost
@@ -1303,6 +1408,7 @@ ENDPOINT_NAVIGATION=/api/navigation
 ```
 
 Create `apps/server/src/config/config.ts`
+
 ```TypeScript
 import dotenv from "dotenv";
 import { z } from "zod";
@@ -1330,7 +1436,9 @@ if (!env.success) {
 
 export const config = env.data;
 ```
+
 Server environment variables can now be consumed anywhere like this:
+
 ```JSX
 import { config } from "@/config/config";
 
@@ -1343,20 +1451,20 @@ const hostUrl = config.HOST_URL;
 >
 > Review the Auth0 instructions for setting up and configuring authentication.
 >
-> [React Authentication By Example: Using React Router 6](https://developer.auth0.com/resources/guides/spa/react/basic-authentication)
-> \
-> [Complete Guide to React User Authentication](https://auth0.com/blog/complete-guide-to-react-user-authentication/)
-> \
+> [React Authentication By Example: Using React Router 6](https://developer.auth0.com/resources/guides/spa/react/basic-authentication) > \
+> [Complete Guide to React User Authentication](https://auth0.com/blog/complete-guide-to-react-user-authentication/) > \
 > [Auth0 React QuickStart](https://auth0.com/docs/quickstart/spa/react)
 
 Create the Auth0 application for `Aspect.Client` following the Auth0 instructions above.
 
 Install the Auth0 React SDK
+
 ```bash
 npm install @auth0/auth0-react
 ```
 
 Add `<Auth0Provider>` to `main.tsx`.
+
 ```TypeScript
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -1384,6 +1492,7 @@ createRoot(document.getElementById("root")!).render(
 ```
 
 Create the `apps/client/src/auth/login.tsx` component.
+
 ```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
@@ -1421,6 +1530,7 @@ export default Login;
 ```
 
 Create the `apps/client/src/auth/logout.tsx` component.
+
 ```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
@@ -1460,6 +1570,7 @@ export default Logout;
 ```
 
 Create the `apps/client/src/auth/authentication.tsx` component.
+
 ```TSX
 import { useAuth0 } from "@auth0/auth0-react";
 import Login from "./login";
@@ -1486,6 +1597,7 @@ export default Authentication;
 ```
 
 Add the `authentication.tsx` component to the `app-sidebar-header.tsx`.
+
 ```TSX
 import { useAuth0 } from "@auth0/auth0-react"; // 👈 import
 import { Button } from "@/components/ui/button";
@@ -1542,6 +1654,7 @@ Authenticated with logout button
 ![Alt text](/readme-images/authenticated-auth0.png?raw=true "Authenticated")
 
 # Add Auth0 Authentication to the Server
+
 > [!TIP]
 >
 > Review the Auth0 instructions for setting up and configuring authentication.
@@ -1549,11 +1662,13 @@ Authenticated with logout button
 > [Node (Express) API: Authorization](https://auth0.com/docs/quickstart/backend/nodejs/01-authorization)
 
 Install the Auth0 SDK in the server.
+
 ```
 npm install --save express-oauth2-jwt-bearer
 ```
 
 Update the server's `apps/server/.env`.
+
 ```
 NODE_ENV=development
 HOST_URL=localhost
@@ -1565,7 +1680,9 @@ AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	// 👈 add
 CORS_URL=http://localhost:5173
 ENDPOINT_NAVIGATION=/api/navigation
 ```
+
 Update the server's `apps/server/src/index.ts`
+
 ```TypeScript
 import express from "express";
 import cors from "cors";
@@ -1605,6 +1722,7 @@ start();
 ```
 
 Update the client's `apps/client/.env`
+
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
 VITE_REACT_APP_AUTH0_CLIENT_ID=
@@ -1612,7 +1730,9 @@ VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com  // 👈 add the audience
 VITE_REACT_API_URL=http://localhost:3000
 VITE_REACT_API_NAVIGATION_URL=api/navigation
 ```
+
 Update `apps/client/src/config/config.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -1636,6 +1756,7 @@ export const config = {
 ```
 
 Update `Update `apps/client/src/components/layout/app-sidebar-header.tsx`.
+
 ```TypeScript
 import { useAuth0 } from "@auth0/auth0-react";  // 👈 add
 import { Button } from "@/components/ui/button";
@@ -1689,7 +1810,9 @@ export function AppSidebarHeader() {
 ```
 
 # Add the Navigation Route to the Server
+
 In the Server project, create the `apps/server/src/data/db.ts` for connecting to the database.
+
 ```TypeScript
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
@@ -1705,6 +1828,7 @@ export const dbConnection = async (dbFile: string) => {
 ```
 
 Create the route `apps/server/src/route/navigation.ts`.
+
 ```TypeScript
 import path from "path";
 import { Router, Request, Response, RequestHandler } from "express";
@@ -1727,7 +1851,7 @@ router.get(
     const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.className pClassName, p.component pComponent, p.args pArgs, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -1771,7 +1895,6 @@ router.get(
       page.name = row.pName;
       page.icon = row.pIcon;
       page.path = row.pPath;
-      page.className = row.pClassName;
       page.component = row.pComponent;
       page.args = row.pArgs;
       page.permission = row.pPermission;
@@ -1789,6 +1912,7 @@ export default router;
 ```
 
 Update the `apps/server/src/index.ts`
+
 ```TypeScript
 import express from "express";
 import { config } from "./config/config";
@@ -1811,12 +1935,14 @@ start();
 ```
 
 # Enable CORS in the Node.js Server
+
 ```
 npm install cors
 npm install --save-dev @types/cors
 ```
 
 Update the `apps/server/src/index.ts` to support CORS.
+
 ```TypeScript
 import express from "express";
 import cors from "cors"; // 👈 import CORS
@@ -1849,7 +1975,9 @@ start();
 ```
 
 # Seed the Modules data
+
 Create `apps\shared\src\constants\constants.ts`.
+
 ```TypeScript
 export const MODELS = {
   MODULE: "Module",
@@ -1874,7 +2002,9 @@ export const COMPONENTS = {
   GENERIC_MODEL_TABLE: "GenericModelTable",
 };
 ```
+
 Create `db/src/data/moduleData.ts` for the seed modules data.
+
 ```TypeScript
 import { Module } from "../../../apps/shared/src/models/module";
 import {
@@ -1902,7 +2032,6 @@ export function getModules() {
               name: "Users",
               icon: "users",
               path: "users",
-              className: MODELS.USER,
               component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "userId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
@@ -1912,7 +2041,6 @@ export function getModules() {
               name: "Roles",
               icon: "roles",
               path: "roles",
-              className: MODELS.ROLE,
               component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "roleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
@@ -1922,7 +2050,6 @@ export function getModules() {
               name: "Permissions",
               icon: "permissions",
               path: "permissions",
-              className: MODELS.PERMISSION,
               component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "permissionId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
@@ -1940,7 +2067,6 @@ export function getModules() {
               name: "Modules",
               icon: "modules",
               path: "modules",
-              className: MODELS.MODULE,
               component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "moduleId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
@@ -1950,7 +2076,6 @@ export function getModules() {
               name: "Categories",
               icon: "categories",
               path: "categories",
-              className: MODELS.CATEGORY,
               component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "categoryId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
@@ -1960,7 +2085,6 @@ export function getModules() {
               name: "Pages",
               icon: "pages",
               path: "pages",
-              className: MODELS.PAGE,
               component: COMPONENTS.GENERIC_MODEL_TABLE,
               args: "pageId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
@@ -1974,6 +2098,7 @@ export function getModules() {
 ```
 
 Create the `db/src/seedModules.ts`
+
 ```TypeScript
 import { Database } from "sqlite";
 import { Module } from "../../apps/shared/src/models/module";
@@ -2003,7 +2128,6 @@ export async function seedModules(db: Database, modules: Module[]) {
       name TEXT NOT NULL,
       icon TEXT NOT NULL,
       path TEXT NOT NULL,
-      className TEXT NOT NULL,
       component TEXT NOT NULL,
       args TEXT,
       permission TEXT NOT NULL
@@ -2039,7 +2163,7 @@ export async function seedModules(db: Database, modules: Module[]) {
   );
 
   const pageStatement = await db.prepare(
-    "INSERT INTO pages (pageId, name, icon, path, className, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO pages (pageId, name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
 
   const moduleCategoriesStatement = await db.prepare(
@@ -2079,7 +2203,6 @@ export async function seedModules(db: Database, modules: Module[]) {
           page.name,
           page.icon,
           page.path,
-          page.className,
           page.component,
           page.args ?? null,
           page.permission
@@ -2109,10 +2232,11 @@ export async function seedModules(db: Database, modules: Module[]) {
 ```
 
 Update the `db/src/seed.ts` to seed the module data.
+
 ```TypeScript
 
 // existing code removed for brevity
- 
+
 import { getUsers } from "./data/userData";
 import { seedModules } from "./seedModules"; // 👈 add
 import { getModules } from "./data/moduleData"; // 👈 add
@@ -2131,13 +2255,15 @@ const fs = require("fs");
 
 > [!TIP]
 > Seeding the data can be done by by running the following command.
-> 
+>
 > ```
 > npm --workspace db run seed
 > ```
 
 # Adding Navigation to the Sidebar
+
 Install the `collapsible` component.
+
 ```bash
 npx shadcn@latest add collapsible
 ```
@@ -2146,6 +2272,7 @@ Create an `icons` folder at `apps/client/src/components/icons`.
 \
 \
 Create `apps/client/src/components/icons/iconsMap.ts`.
+
 ```TypeScript
 import {
   IconHome,
@@ -2173,6 +2300,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
 ```
 
 Create `apps/client/src/components/icons/iconLoader.tsx`.
+
 ```TypeScript
 import React from "react";
 import { IconPhotoExclamation } from "@tabler/icons-react";
@@ -2196,6 +2324,7 @@ export default IconLoader;
 ```
 
 Create `apps/client/src/components/layout/navigation-panel.tsx`.
+
 ```TypeScript
 import { Link } from "react-router-dom";
 import { IconChevronRight } from "@tabler/icons-react";
@@ -2271,6 +2400,7 @@ export function NavigationPanel({ modules }: Props) {
 ```
 
 Update `app-sidebar.tsx` to add `NavigationPanel` to pass `module` data into it.
+
 ```TypeScript
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -2319,14 +2449,18 @@ export function AppSidebar({ modules, ...props }: Props) {
 ```
 
 # Call the API from the Client
+
 In the Client project update the the `.env` file.
+
 ```
 VITE_REACT_APP_AUTH0_DOMAIN=
 VITE_REACT_APP_AUTH0_CLIENT_ID=
 VITE_REACT_API_URL=http://localhost:3000  // 👈 add local API url
 VITE_REACT_API_NAVIGATION_URL=api/navigation // 👈 add navigation route
 ```
+
 Update `apps/client/src/config/config.ts`
+
 ```TypeScript
 import { z } from "zod";
 
@@ -2348,6 +2482,7 @@ export const config = {
 ```
 
 Create page `apps/client/src/pages/generic-model-table.tsx` for the target path for pages in the navigation panel.
+
 ```TypeScript
 import { useLocation, type Location } from "react-router-dom";
 
@@ -2362,6 +2497,7 @@ export default GenericModelTable;
 ```
 
 Create page `apps/client/src/pages/not-found.tsx` for the fallback if the target path doesn't find the intended page.
+
 ```TypeScript
 const NotFound = () => (
   <>
@@ -2376,6 +2512,7 @@ export default NotFound;
 ```
 
 Create utility function `apps/client/src/utils/fetch-lazy-components.ts` for `fetchLazyComponents` to handle deferred loading of target route components.
+
 ```TypeScript
 import React from "react";
 
@@ -2390,6 +2527,7 @@ export const fetchLazyComponents: () => LazyComponentMap =
 ```
 
 Create request function `apps/client/src/utils/fetch-modules.ts` for `fetchModules` to handle the request to the API.
+
 ```TypeScript
 import { config } from "@/config/config";
 import { Module } from "shared/src/models/module";
@@ -2414,6 +2552,7 @@ export const fetchModules = async (token: string) => {
 ```
 
 Finally, update `App.tsx` to fetch the modules and dynamically load the `routes` using the response.
+
 ```TypeScript
 import { useEffect, useState, Suspense } from "react";
 import {
@@ -2494,11 +2633,14 @@ function App() {
 
 export default App;
 ```
+
 Client: `http://localhost:5173/`
 ![Alt text](/readme-images/client-navigation.png?raw=true "Client")
 
 # Add Structured Error Handling to the Node.js Server
+
 Create folder `apps/server/src/errors` and inside a custom error class `apps/server/src/errors/aspectError.ts`.
+
 ```TypeScript
 export class AspectError extends Error {
   public readonly statusCode: number;
@@ -2514,6 +2656,7 @@ export class AspectError extends Error {
 ```
 
 Create folder `apps/server/src/middleware` and inside a create centralized error response middleware class `apps/server/src/middleware/errorHandler.ts`.
+
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
@@ -2538,7 +2681,9 @@ export const errorHandler = (
   });
 };
 ```
+
 Create a Async handler wrapper `apps/server/src/middleware/asyncHandler.ts`.
+
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 
@@ -2550,11 +2695,13 @@ export const asyncHandler = (
   };
 };
 ```
+
 > [!TIP]
 >
 > Use a wrapper to avoid repeating try-catch in every async route.
 
 Wrap the request with the `asyncHandler` to avoid repeating try-catch in every async route.
+
 ```TypeScript
 import { Router, Request, Response, RequestHandler } from "express";
 import { Database } from "sqlite";
@@ -2587,6 +2734,7 @@ export default function createNavigationRoute(db: Database) {
 ```
 
 In `apps/server/src/index.ts`, add the error handling middleware last.
+
 ```TypeScript
 import express from "express";
 import cors from "cors";
@@ -2614,13 +2762,16 @@ start();
 ```
 
 # Add Logging to the Node.js Server
+
 Install the **Winston** logging library.
+
 ```
 npm install winston winston-daily-rotate-file
 npm install --save-dev @types/winston @types/express
 ```
 
 Create folder `apps/server/src/logger` and inside create the class `apps/server/src/logger/aspectError.ts`.
+
 ```TypeScript
 import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
@@ -2669,6 +2820,7 @@ export default logger;
 ```
 
 Update the `errorHandler` at `apps/server/src/middleware/errorHandler.ts` to log all errors.
+
 ```TypeScript
 import { Request, Response, NextFunction } from "express";
 import { AspectError } from "../errors/aspectError";
@@ -2707,6 +2859,7 @@ export const errorHandler = (
 ```
 
 Update `.gitignore` to ignore the logging output.
+
 ```
 node_modules
 dist
@@ -2720,7 +2873,9 @@ sqlite3.exe
 ```
 
 # Seed the Authorisation data
+
 Create role data class `db/src/data/roleData.ts`.
+
 ```TypeScript
 import { Role } from "../../../apps/shared/src/models/role";
 import {
@@ -2777,7 +2932,9 @@ export function getRoles() {
   ] as Role[];
 }
 ```
+
 Update `userData` class `db/src/data/userData.ts`.
+
 ```TypeScript
 import { User } from "../../../apps/shared/src/models/user";
 import { Role } from "../../../apps/shared/src/models/role";
@@ -2792,7 +2949,9 @@ export function getUsers(roles: Role[]) {
   return [alice, bob];
 }
 ```
+
 Create seed authorisation data class `db/src/seedAuthorisation.ts`.
+
 ```TypeScript
 import { Database } from "sqlite";
 import { Role } from "../../apps/shared/src/models/role";
@@ -2889,7 +3048,9 @@ export async function seedAuthorisation(db: Database, roles: Role[]) {
   console.log(`Insert Authorisation Complete.`);
 }
 ```
+
 Change seed users data class `db/src/seedUsers.ts`.
+
 ```TypeScript
 import { Database } from "sqlite";
 import { User } from "../../apps/shared/src/models/user";
@@ -2924,7 +3085,9 @@ export async function seedUsers(db: Database, users: User[]) {
   console.log(`Insert Users Complete.`);
 }
 ```
+
 Update seed class class `db/src/seed.ts`.
+
 ```TypeScript
 import fs from "fs";
 import path from "path";
@@ -2979,14 +3142,17 @@ seed().catch((err) => {
 ```
 
 # Add API Endpoints
+
 ## Create Endpoint Variables in `.env` File
+
 Update the server's `apps/server/.env` with the permissions endpoint.
+
 ```
 HOST_URL=localhost
 HOST_PORT=3000
-AUTH_AUDIENCE=https://Aspect.API.com 	
-AUTH_ISSUER_BASE_URL=https:		
-AUTH_TOKEN_SIGNING_ALGORITHM=RS256 	
+AUTH_AUDIENCE=https://Aspect.API.com
+AUTH_ISSUER_BASE_URL=https:
+AUTH_TOKEN_SIGNING_ALGORITHM=RS256
 CORS_URL=http://localhost:5173
 ENDPOINT_NAVIGATION=/api/navigation
 
@@ -3003,7 +3169,9 @@ ENDPOINT_MODULES=/api/modules
 ```
 
 ## Add the Authorisation Endpoints
+
 Create the `permissions` route `apps/server/src/route/permissions.ts`.
+
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -3023,7 +3191,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Permission[] = await db.all(`
-      SELECT    permissionId, name, permission  
+      SELECT    permissionId, name, permission
       FROM 	    permissions
     `);
 
@@ -3037,7 +3205,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Permission>(
       `
-      SELECT    permissionId, name, permission  
+      SELECT    permissionId, name, permission
       FROM 	    permissions
       WHERE     permissionId = ?
     `,
@@ -3121,6 +3289,7 @@ export default router;
 ```
 
 Create the `roles` route `apps/server/src/route/roles.ts`.
+
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -3142,7 +3311,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Role[] = await db.all(`
-      SELECT    roleId, name, permission  
+      SELECT    roleId, name, permission
       FROM 	    roles
     `);
 
@@ -3156,7 +3325,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Role>(
       `
-      SELECT    roleId, name, permission  
+      SELECT    roleId, name, permission
       FROM 	    roles
       WHERE     roleId = ?
     `,
@@ -3167,7 +3336,7 @@ router.get(
 
     const permissions: Permission[] = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission  
+      SELECT        p.permissionId, p.name, p.permission
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -3213,7 +3382,7 @@ router.post(
 
     const permissions: Permission[] = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission  
+      SELECT        p.permissionId, p.name, p.permission
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -3258,7 +3427,7 @@ router.put(
 
     const rolePermissions: RolePermission[] = await db.all(
       `
-      SELECT roleId, permissionId  
+      SELECT roleId, permissionId
       FROM 	 rolePermissions
       WHERE  roleId = ?
     `,
@@ -3297,7 +3466,7 @@ router.put(
 
     permissions = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission  
+      SELECT        p.permissionId, p.name, p.permission
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -3341,6 +3510,7 @@ export default router;
 ```
 
 Create the `users` route `apps/server/src/route/users.ts`.
+
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -3362,7 +3532,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: User[] = await db.all(`
-      SELECT    userId, name, email, permission  
+      SELECT    userId, name, email, permission
       FROM 	    users
     `);
 
@@ -3376,7 +3546,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<User>(
       `
-      SELECT    userId, name, email, permission  
+      SELECT    userId, name, email, permission
       FROM 	    users
       WHERE     userId = ?
     `,
@@ -3387,7 +3557,7 @@ router.get(
 
     const roles: Role[] = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission  
+      SELECT        r.roleId, r.name, r.permission
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -3430,7 +3600,7 @@ router.post(
 
     const roles: Role[] = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission  
+      SELECT        r.roleId, r.name, r.permission
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -3476,7 +3646,7 @@ router.put(
 
     const userRoles: UserRole[] = await db.all(
       `
-      SELECT userId, roleId  
+      SELECT userId, roleId
       FROM 	 userRoles
       WHERE  userId = ?
     `,
@@ -3504,7 +3674,7 @@ router.put(
     }
     roles = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission  
+      SELECT        r.roleId, r.name, r.permission
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -3546,7 +3716,9 @@ export default router;
 ```
 
 ## Add the Applications Endpoints
+
 Create the `pages` route `apps/server/src/route/pages.ts`.
+
 ```TypeScript
 import path from "path";
 import { Router, Request, Response, RequestHandler } from "express";
@@ -3565,7 +3737,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
-      SELECT    pageId, name, icon, path, className, component, args, permission  
+      SELECT    pageId, name, icon, path, component, args, permission
       FROM 	    pages
     `);
 
@@ -3579,7 +3751,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
       `
-      SELECT    pageId, name, icon, path, className, component, args, permission  
+      SELECT    pageId, name, icon, path, component, args, permission
       FROM 	    pages
       WHERE     pageId = ?
     `,
@@ -3603,13 +3775,13 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, className, component, args, permission } =
+    const { name, icon, path, component, args, permission } =
       parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO pages (name, icon, path, className, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [name, icon, path, className, component, args, permission]
+      "INSERT INTO pages (name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, icon, path, component, args, permission]
     );
 
     res.status(201).json({
@@ -3617,7 +3789,6 @@ router.post(
       name,
       icon,
       path,
-      className,
       component,
       args,
       permission,
@@ -3636,13 +3807,13 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, icon, path, className, component, args, permission } =
+    const { name, icon, path, component, args, permission } =
       parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE pages SET name = ?, icon = ?, path = ?, className = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
-      [name, icon, path, className, component, args, permission, _req.params.id]
+      "UPDATE pages SET name = ?, icon = ?, path = ?, component = ?, args = ?, permission = ? WHERE pageId = ?",
+      [name, icon, path, component, args, permission, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -3654,7 +3825,6 @@ router.put(
       name,
       icon,
       path,
-      className,
       component,
       args,
       permission,
@@ -3683,6 +3853,7 @@ export default router;
 ```
 
 Create the `categories` route `apps/server/src/route/categories.ts`.
+
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -3704,7 +3875,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Category[] = await db.all(`
-      SELECT    categoryId, name, icon, permission  
+      SELECT    categoryId, name, icon, permission
       FROM 	    categories
     `);
 
@@ -3718,7 +3889,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Category>(
       `
-      SELECT    categoryId, name, icon, permission  
+      SELECT    categoryId, name, icon, permission
       FROM 	    categories
       WHERE     categoryId = ?
     `,
@@ -3729,7 +3900,7 @@ router.get(
 
     const pages: Page[] = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      SELECT        p.pageId, p.name, p.icon, p.url, p.permission
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
@@ -3772,7 +3943,7 @@ router.post(
 
     const pages: Page[] = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      SELECT        p.pageId, p.name, p.icon, p.url, p.permission
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
@@ -3818,7 +3989,7 @@ router.put(
 
     const categoryPages: CategoryPage[] = await db.all(
       `
-      SELECT categoryId, pageId  
+      SELECT categoryId, pageId
       FROM 	 categoryPages
       WHERE  categoryId = ?
     `,
@@ -3850,7 +4021,7 @@ router.put(
 
     pages = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      SELECT        p.pageId, p.name, p.icon, p.url, p.permission
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
@@ -3895,6 +4066,7 @@ export default router;
 ```
 
 Create the `modules` route `apps/server/src/route/modules.ts`.
+
 ```TypeScript
 import path from "path";
 import dotenv from "dotenv";
@@ -3916,7 +4088,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Module[] = await db.all(`
-      SELECT    moduleId, name, icon, permission  
+      SELECT    moduleId, name, icon, permission
       FROM 	    modules
     `);
 
@@ -3930,7 +4102,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Module>(
       `
-      SELECT    moduleId, name, icon, permission  
+      SELECT    moduleId, name, icon, permission
       FROM 	    modules
       WHERE     moduleId = ?
     `,
@@ -3941,7 +4113,7 @@ router.get(
 
     const categories: Category[] = await db.all(
       `
-      SELECT        c.categoryId, c.name, c.icon, c.permission  
+      SELECT        c.categoryId, c.name, c.icon, c.permission
       FROM 	        moduleCategories mc
       INNER JOIN    categories c ON mc.categoryId = c.categoryId
       WHERE         mc.moduleId = ?
@@ -3984,7 +4156,7 @@ router.post(
 
     const categories: Category[] = await db.all(
       `
-      SELECT        c.categoryId, c.name, c.icon, c.permission  
+      SELECT        c.categoryId, c.name, c.icon, c.permission
       FROM 	        moduleCategories mc
       INNER JOIN    categories c ON mc.categoryId = c.categoryId
       WHERE         mc.moduleId = ?
@@ -4030,7 +4202,7 @@ router.put(
 
     const moduleCategories: ModuleCategory[] = await db.all(
       `
-      SELECT moduleId, categoryId  
+      SELECT moduleId, categoryId
       FROM 	 moduleCategories
       WHERE  moduleId = ?
     `,
@@ -4066,7 +4238,7 @@ router.put(
 
     categories = await db.all(
       `
-      SELECT        c.categoryId, c.name, c.icon, c.permission  
+      SELECT        c.categoryId, c.name, c.icon, c.permission
       FROM 	        moduleCategories mc
       INNER JOIN    categories c ON mc.categoryId = c.categoryId
       WHERE         mc.moduleId = ?
@@ -4111,7 +4283,9 @@ export default router;
 ```
 
 ## Update the `index.ts`
+
 Update the `apps/server/src/index.ts`
+
 ```TypeScript
 // code removed for brevity...
 
@@ -4155,28 +4329,33 @@ start();
 ```
 
 # Test the Endpoints using Postman
+
 To test an API that uses Auth0 token authentication in Postman, you need to first obtain a valid access token from Auth0, then include it in the Authorization header of your API requests.
 
 1. Set Up a Machine-to-Machine Application in Auth0
+
 - Go to your Auth0 dashboard.
 - Navigate to Applications > Applications.
 - Create or select a Machine to Machine app.
 - Under APIs, authorize it to access your API (you may need to create an API under Applications > APIs if it doesn't exist yet).
 
 2. Get an Access Token Using Postman
-In Postman, create a new POST request to Auth0’s token endpoint:
+   In Postman, create a new POST request to Auth0’s token endpoint:
+
 ```
 https://YOUR_DOMAIN/oauth/token
 ```
+
 Set the body type to `x-www-form-urlencoded` and include the following key\value pairs:
-| Key             | Value                       |
+| Key | Value |
 | --------------- | --------------------------- |
-| `grant_type`    | `client_credentials`        |
-| `client_id`     | (from your Auth0 app)       |
-| `client_secret` | (from your Auth0 app)       |
-| `audience`      | (your Auth0 API identifier) |
+| `grant_type` | `client_credentials` |
+| `client_id` | (from your Auth0 app) |
+| `client_secret` | (from your Auth0 app) |
+| `audience` | (your Auth0 API identifier) |
 
 Send the request. You’ll get a response like this:
+
 ```json
 {
   "access_token": "eyJz93a...k4laUWw",
@@ -4186,18 +4365,21 @@ Send the request. You’ll get a response like this:
 ```
 
 3. Use the Access Token to Call Your API
-Create a new request to your API endpoint e.g., `http://localhost:3000/api/permissions`
+   Create a new request to your API endpoint e.g., `http://localhost:3000/api/permissions`
 
 Go to the Authorization tab in Postman and set:
+
 - Type: `Bearer Token`
 - Token: Paste the access_token you received earlier.
 
 Send the request!
 
 # Create a Generic ModelTable Component
+
 Combine `shadcn`'s `<Table />` component with `@tanstack/react-table` to create tables with sorting, filtering and pagination.
 
 Add the `<Table />` component and install `tanstack/react-table`.
+
 ```
 npx shadcn@latest add table
 
@@ -4205,17 +4387,18 @@ npm install @tanstack/react-table
 ```
 
 > [!Caution]
-> 
+>
 > Installing the shadcn/ui table came with two unexpected issues that needed to be resolved.
-> 
+>
 > ```
 > aspect/
 > ├── src/components/ui/table.tsx   👈 move table.tsx into apps/client/src/components/ui then delete this
-> │   
+> │
 > └── apps/client/src/components/ui/table.tsx 👈 move table.tsx to here
 > ```
 
 Create request `apps/client/src/requests/fetch-generic-record-data.ts`.
+
 ```TypeScript
 import { config } from "@/config/config";
 
@@ -4242,6 +4425,7 @@ export async function fetchGenericRecordData(
 ```
 
 Create component `apps/client/src/components/generic/model-table.tsx`.
+
 ```TypeScript
 import {
   type ColumnDef,
@@ -4324,6 +4508,7 @@ export function ModelTable<TData, TValue>({
 ```
 
 Update the page `apps/client/src/pages/generic-model-table.tsx`.
+
 ```TypeScript
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
@@ -4343,7 +4528,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
   const [data, setData] = useState<RawRow[]>([]);
   const [columns, setColumns] = useState<ColumnDef<RawRow>[]>([]);
 
-  const identityFieldName = args;
+  const identityField = args;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -4364,7 +4549,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
           id: "actions",
           header: "Edit",
           cell: ({ row }) => {
-            const rowId = row.original[identityFieldName];
+            const rowId = row.original[identityField];
             return (
               <Button variant="ghost" size="icon" className="size-8">
                 <Link to={`${location.pathname}/${rowId}`}>...</Link>
@@ -4392,6 +4577,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
 ```
 
 Update utility function `apps/client/src/utils/fetch-lazy-components.ts`
+
 ```TypeScript
 import React from "react";
 
@@ -4406,11 +4592,13 @@ export const fetchLazyComponents: () => LazyComponentMap =
 ```
 
 # Add Dynamic Route Loading
+
 > [!WARNING]
 >
 > This section will require significant refactoring of `App.tsx`.
 
 Create the `apps/client/src/context/routes-context.ts`.
+
 ```TSX
 import {
   createContext,
@@ -4601,8 +4789,8 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
 }
 ```
 
-
 Modify `apps/client/src/main.tsx`.
+
 ```TypeScript
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -4645,6 +4833,7 @@ createRoot(document.getElementById("root")!).render(
 ```
 
 Refactor `apps/client/src/App.tsx`.
+
 ```TSX
 import { Route, Routes, type RouteObject } from "react-router-dom";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -4665,7 +4854,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<MainLayout modules={modules ?? []} />}> {/* 👈 Pass modules to MainLayout */}	
+      <Route path="/" element={<MainLayout modules={modules ?? []} />}> {/* 👈 Pass modules to MainLayout */}
         {renderRoutes(routes)}{" "} {/* 👈 Render dynamic routes */}
       </Route>
     </Routes>
@@ -4676,13 +4865,16 @@ export default App;
 ```
 
 **Why this works**
+
 - **`<RoutesProvider>` manages all routes & modules, including dynamically adding new routes.**
 - **Only one router `<RouterProvider>` is used at the root level `main.tsx`.**
 - **The `Auth0Provider` sits above the router so all routes can access authentication context.**
 - **`Auth0Provider`'s `onRedirectCallback` uses the router’s own `navigate` to keep the SPA session history intact after login/logout redirects.**
 
 # Add Error Handling to the Client
+
 Two approaches:
+
 - Add add `<ErrorPage>` to each routes `errorElement`.
 - Flag errors inside `<RoutesProvider />`.
 
@@ -4696,11 +4888,13 @@ Routing errors from inside a `useEffect`. See `` below. See [].
 An `<ErrorBoundary />` in React is a special type of component designed to catch JavaScript errors anywhere in its child component tree, and display a fallback UI instead of crashing the entire app. It’s a safety net for rendering errors in the component hierarchy.
 
 Install `react-error-boundary`
+
 ```
 npm install react-error-boundary
 ```
 
 Create a general `error-page.tsx`.
+
 ```TypeScript
 import { useRouteError, isRouteErrorResponse } from "react-router-dom";
 
@@ -4729,6 +4923,7 @@ export default function ErrorPage() {
 ```
 
 Modify `apps/client/src/main.tsx`.
+
 ```TypeScript
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -4764,7 +4959,7 @@ createRoot(document.getElementById("root")!).render(
           redirect_uri: window.location.origin,
           audience: config.AUTH0_AUDIENCE || undefined,
         }}
-        onRedirectCallback={(appState) => { 
+        onRedirectCallback={(appState) => {
           router.navigate(appState?.returnTo || window.location.pathname);
         }}
       >
@@ -4778,6 +4973,7 @@ createRoot(document.getElementById("root")!).render(
 ```
 
 Update `apps/client/src/context/routes-context.ts` to support handling errors.
+
 ```TypeScript
 import {
   createContext,
@@ -4982,6 +5178,7 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
 ```
 
 Update `apps/client/src/App.tsx` to `<ErrorPage />` show if an error has been registered.
+
 ```TypeScript
 import { Route, Routes, type RouteObject } from "react-router-dom";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -5017,6 +5214,7 @@ export default App;
 ```
 
 Update the page `apps/client/src/pages/generic-model-table.tsx` to catch and handle errors.
+
 ```TypeScript
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
@@ -5082,7 +5280,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
   if (error) {
     // This makes it rethrow error from useEffect during render,
     // which React Router will catch and show errorElement
-	// 👇 
+	// 👇
     throw error;
   }
 
@@ -5097,15 +5295,19 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
 ```
 
 # Add a Generic Form Component for Models
+
 There is a lot to pack in here so we will break this down.
 
 ### Install Dependencies for Generic Model Form
+
 Install `react-hook-form` and `zod` dependencies.
+
 ```
 npm install react-hook-form @hookform/resolvers zod
 ```
 
 Install `shadcn` components.
+
 ```
 npx shadcn@latest add form
 npx shadcn@latest add checkbox
@@ -5113,16 +5315,19 @@ npx shadcn@latest add select
 ```
 
 Install `reflect-metadata` in `apps/shared`
+
 ```
 npm install reflect-metadata
 ```
 
 Import `reflect-metadata` once into the app entry point `app/client/src/main.tsx`;
+
 ```
 import "reflect-metadata";
 ```
 
 Enable decorators by updating the root `tsconfig.base.json`.
+
 ```JSON
 {
   "compilerOptions": {

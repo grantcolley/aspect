@@ -26,7 +26,6 @@ export async function seedModules(db: Database, modules: Module[]) {
       name TEXT NOT NULL,
       icon TEXT NOT NULL,
       path TEXT NOT NULL,
-      className TEXT NOT NULL,
       component TEXT NOT NULL,
       args TEXT,
       permission TEXT NOT NULL
@@ -62,7 +61,7 @@ export async function seedModules(db: Database, modules: Module[]) {
   );
 
   const pageStatement = await db.prepare(
-    "INSERT INTO pages (pageId, name, icon, path, className, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO pages (pageId, name, icon, path, component, args, permission) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
 
   const moduleCategoriesStatement = await db.prepare(
@@ -102,7 +101,6 @@ export async function seedModules(db: Database, modules: Module[]) {
           page.name,
           page.icon,
           page.path,
-          page.className,
           page.component,
           page.args ?? null,
           page.permission
