@@ -3,6 +3,8 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Module } from "shared/src/models/module";
+import { ErrorBoundary } from "react-error-boundary";
+import ErrorPage from "@/pages/error-page";
 
 type Props = {
   modules: Module[];
@@ -23,7 +25,9 @@ export const MainLayout = ({ modules }: Props) => {
         <AppSidebarHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <Outlet />
+            <ErrorBoundary FallbackComponent={ErrorPage}>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </div>
       </SidebarInset>
