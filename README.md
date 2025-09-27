@@ -77,7 +77,8 @@ aspect
 - [Create a Generic ModelTable Component](#create-a-generic-modeltable-component)
 - [Add Dynamic Route Loading](#add-dynamic-route-loading)
 - [Add Error Handling to the Client](#add-error-handling-to-the-client)
-- [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models) \* [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
+- [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models)
+  - [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
 
 # Scaffolding the Monorepo
 
