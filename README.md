@@ -5215,7 +5215,7 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
 }
 ```
 
-Update `apps/client/src/App.tsx` to `<ErrorPage />` show if an error has been registered.
+Update `apps/client/src/App.tsx` to show `<ErrorPage />` if an error has been registered.
 
 ```TypeScript
 import { Route, Routes, type RouteObject } from "react-router-dom";
@@ -5330,6 +5330,47 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
     </div>
   );
 }
+```
+
+Update the page `apps/client/src/components/layout/main-layout.tsx` and wrap `<Outlet />` with an `<ErrorBoundary>` to show `<ErrorPage />` inside the `<SidebarInset>` if an error occurs in pages randered inside `<Outlet />`.
+
+```TypeScript
+import { Outlet } from "react-router-dom";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppSidebarHeader } from "@/components/layout/app-sidebar-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Module } from "shared/src/models/module";
+import { ErrorBoundary } from "react-error-boundary"; // 👈 import
+import ErrorPage from "@/pages/error-page"; // 👈 import
+
+type Props = {
+  modules: Module[];
+};
+
+export const MainLayout = ({ modules }: Props) => {
+  return (
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar modules={modules} variant="inset" />
+      <SidebarInset>
+        <AppSidebarHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <ErrorBoundary FallbackComponent={ErrorPage}> // 👈 add
+              <Outlet />
+            </ErrorBoundary>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+};
 ```
 
 # Add a Generic Form Component for Models
