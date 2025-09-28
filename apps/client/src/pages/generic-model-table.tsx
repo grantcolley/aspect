@@ -6,7 +6,8 @@ import { ModelTable } from "@/components/generic/model-table";
 import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
 import { useRoutesContext, type ApiPage } from "@/context/routes-context";
 import { Button } from "@/components/ui/button";
-import { COMPONENTS } from "shared/src/constants/constants";
+import { COMPONENTS, COMPONENT_ARGS } from "shared/src/constants/constants";
+import { ParseKeyValueString } from "shared/src/utils/string-util";
 
 export type GenericModelTableProps = { args: string };
 
@@ -19,7 +20,8 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
   const [data, setData] = useState<RawRow[]>([]);
   const { addApiPage } = useRoutesContext();
   const location = useLocation();
-  const identityFieldName = args;
+  const parsedArgs = ParseKeyValueString(args);
+  const identityFieldName = parsedArgs[COMPONENT_ARGS.MODEL_IDENTITY_FIELD];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,7 +59,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
             pageId: Date.now(), // Temporary unique ID to millisecond,
             path: location.pathname + "/:id",
             component: COMPONENTS.GENERIC_MODEL_FORM,
-            args: identityFieldName,
+            args: args,
           };
 
           addApiPage(page);

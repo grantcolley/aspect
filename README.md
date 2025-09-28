@@ -2002,6 +2002,10 @@ export const ROLES = {
 export const COMPONENTS = {
   GENERIC_MODEL_TABLE: "GenericModelTable",
 };
+
+export const COMPONENT_ARGS = {
+  MODEL_IDENTITY_FIELD: "IdentityField",
+};
 ```
 
 Create `db/src/data/moduleData.ts` for the seed modules data.
@@ -4462,6 +4466,29 @@ export async function fetchGenericRecordData(
 }
 ```
 
+Create `shared/src/utils/string-util.tsx` to parse `Page.args`.
+
+```TypeScript
+export function ParseKeyValueString(
+  input: string,
+  pairDelimiter = "|",
+  keyValueDelimiter = "="
+): Record<string, string> {
+  if (!input) return {};
+
+  return input
+    .split(pairDelimiter)
+    .reduce<Record<string, string>>((acc, segment) => {
+      const [rawKey, rawValue] = segment.split(keyValueDelimiter);
+      const key = rawKey?.trim();
+      const value = rawValue?.trim();
+
+      if (key) acc[key] = value ?? "";
+      return acc;
+    }, {});
+}
+```
+
 Create component `apps/client/src/components/generic/model-table.tsx`.
 
 ```TypeScript
@@ -4555,6 +4582,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { ModelTable } from "@/components/generic/model-table";
 import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
 import { Button } from "@/components/ui/button";
+import { COMPONENT_ARGS } from "shared/src/constants/constants";
+import { ParseKeyValueString } from "shared/src/utils/string-util";
 
 export type GenericModelTableProps = { args: string };
 
@@ -4565,8 +4594,8 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
   const location = useLocation();
   const [data, setData] = useState<RawRow[]>([]);
   const [columns, setColumns] = useState<ColumnDef<RawRow>[]>([]);
-
-  const identityField = args;
+  const parsedArgs = ParseKeyValueString(args);
+  const identityFieldName = parsedArgs[COMPONENT_ARGS.MODEL_IDENTITY_FIELD];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -4587,7 +4616,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
           id: "actions",
           header: "Edit",
           cell: ({ row }) => {
-            const rowId = row.original[identityField];
+            const rowId = row.original[identityFieldName];
             return (
               <Button variant="ghost" size="icon" className="size-8">
                 <Link to={`${location.pathname}/${rowId}`}>...</Link>
