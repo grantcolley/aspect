@@ -4439,12 +4439,12 @@ npm install @tanstack/react-table
 > └── apps/client/src/components/ui/table.tsx 👈 move table.tsx to here
 > ```
 
-Create request `apps/client/src/requests/fetch-generic-record-data.ts`.
+Create request `apps/client/src/requests/fetch-generic-model.ts`.
 
 ```TypeScript
 import { config } from "@/config/config";
 
-export async function fetchGenericRecordData(
+export async function GetData(
   token: string,
   path: string
 ): Promise<Record<string, unknown>[]> {
@@ -4580,7 +4580,7 @@ import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ModelTable } from "@/components/generic/model-table";
-import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
+import { GetData } from "@/requests/fetch-generic-model";
 import { Button } from "@/components/ui/button";
 import { COMPONENT_ARGS } from "shared/src/constants/constants";
 import { ParseKeyValueString } from "shared/src/utils/string-util";
@@ -4601,7 +4601,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
     const fetchData = async () => {
       if (isAuthenticated) {
         const token = await getAccessTokenSilently();
-        const json = await fetchGenericRecordData(token, location.pathname);
+        const json = await GetData(token, location.pathname);
 
         // Dynamically infer column definitions from the first row
         const keys = Object.keys(json[0] ?? {});
@@ -5288,7 +5288,7 @@ import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ModelTable } from "@/components/generic/model-table";
-import { fetchGenericRecordData } from "@/requests/fetch-generic-record-data";
+import { GetData } from "@/requests/fetch-generic-model";
 import { useRoutesContext } from "@/context/routes-context";
 import { Button } from "@/components/ui/button";
 
@@ -5309,7 +5309,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
       try { // 👈 add try catch
         if (isAuthenticated) {
           const token = await getAccessTokenSilently();
-          const json = await fetchGenericRecordData(token, location.pathname);
+          const json = await GetData(token, location.pathname);
 
           // Dynamically infer column definitions from the first row
           const keys = Object.keys(json[0] ?? {});
