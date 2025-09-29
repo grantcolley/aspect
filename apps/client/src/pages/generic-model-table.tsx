@@ -3,7 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ModelTable } from "@/components/generic/model-table";
-import { GetData } from "@/requests/fetch-generic-model";
+import { GetData } from "@/requests/fetch-generic-data";
 import { useRoutesContext, type ApiPage } from "@/context/routes-context";
 import { Button } from "@/components/ui/button";
 import { COMPONENTS, COMPONENT_ARGS } from "shared/src/constants/constants";

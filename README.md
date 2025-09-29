@@ -4439,7 +4439,7 @@ npm install @tanstack/react-table
 > └── apps/client/src/components/ui/table.tsx 👈 move table.tsx to here
 > ```
 
-Create request `apps/client/src/requests/fetch-generic-model.ts`.
+Create request `apps/client/src/requests/fetch-generic-data.ts`.
 
 ```TypeScript
 import { config } from "@/config/config";
@@ -4580,7 +4580,7 @@ import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ModelTable } from "@/components/generic/model-table";
-import { GetData } from "@/requests/fetch-generic-model";
+import { GetData } from "@/requests/fetch-generic-data";
 import { Button } from "@/components/ui/button";
 import { COMPONENT_ARGS } from "shared/src/constants/constants";
 import { ParseKeyValueString } from "shared/src/utils/string-util";
@@ -5288,7 +5288,7 @@ import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ModelTable } from "@/components/generic/model-table";
-import { GetData } from "@/requests/fetch-generic-model";
+import { GetData } from "@/requests/fetch-generic-data";
 import { useRoutesContext } from "@/context/routes-context";
 import { Button } from "@/components/ui/button";
 
