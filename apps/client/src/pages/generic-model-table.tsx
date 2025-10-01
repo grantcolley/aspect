@@ -3,7 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ModelTable } from "@/components/generic/model-table";
-import { GetData } from "@/requests/fetch-generic-data";
+import { GetRecords } from "@/requests/fetch-generic-data";
 import { useRoutesContext, type ApiPage } from "@/context/routes-context";
 import { Button } from "@/components/ui/button";
 import { COMPONENTS, COMPONENT_ARGS } from "shared/src/constants/constants";
@@ -28,7 +28,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
       try {
         if (isAuthenticated) {
           const token = await getAccessTokenSilently();
-          const json = await GetData(token, location.pathname);
+          const json = await GetRecords(token, location.pathname);
 
           // Dynamically infer column definitions from the first row
           const keys = Object.keys(json[0] ?? {});
