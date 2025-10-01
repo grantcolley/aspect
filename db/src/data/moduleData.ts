@@ -100,7 +100,7 @@ export function getModules() {
                 MODELS.CATEGORY +
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
-                "=categoryIdId",
+                "=categoryId",
               permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
             },
             {
