@@ -2762,7 +2762,7 @@ export default function createNavigationRoute(db: Database) {
       const rows: NavigationRow[] = await db.all(`
       SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
               c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
-              p.pageId, p.name pName, p.icon pIcon, p.url pUrl, p.permission pPermission
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
       FROM 	modules m
       INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
       INNER JOIN categories c ON mc.categoryId = c.categoryId
@@ -3898,7 +3898,6 @@ Create the `categories` route `apps/server/src/route/categories.ts`.
 
 ```TypeScript
 import path from "path";
-import dotenv from "dotenv";
 import { Router, Request, Response, RequestHandler } from "express";
 import { dbConnection } from "../data/db";
 import { Category } from "shared/src/models/category";
@@ -3942,7 +3941,7 @@ router.get(
 
     const pages: Page[] = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission
+      SELECT        p.pageId, p.name, p.icon, p.path, p.component, p.args, p.permission
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
@@ -3985,7 +3984,7 @@ router.post(
 
     const pages: Page[] = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission
+      SELECT        p.pageId, p.name, p.icon, p.path, p.component, p.args, p.permission
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
@@ -4063,7 +4062,7 @@ router.put(
 
     pages = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission
+      SELECT        p.pageId, p.name, p.icon, p.path, p.component, p.args, p.permission
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
@@ -4444,25 +4443,61 @@ Create request `apps/client/src/requests/fetch-generic-data.ts`.
 ```TypeScript
 import { config } from "@/config/config";
 
-export async function GetData(
+async function apiRequest(
   token: string,
-  path: string
-): Promise<Record<string, unknown>[]> {
+  path: string,
+  method: "GET" | "POST" | "PUT" | "DELETE",
+  body?: Record<string, unknown>
+): Promise<unknown> {
   const url = `${config.API_URL}/api${path}`;
 
   const response = await fetch(url, {
+    method,
     headers: {
       Authorization: `Bearer ${token}`,
+      ...(body ? { "Content-Type": "application/json" } : {}),
     },
+    body: body ? JSON.stringify(body) : undefined,
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    throw new Error(
+      `HTTP error! status: ${response.status} ${response.statusText}`
+    );
   }
 
-  const data = await response.json();
+  return response.json();
+}
 
-  return data;
+export function GetData(token: string, path: string): Promise<unknown> {
+  return apiRequest(token, path, "GET");
+}
+
+export function PostData(
+  token: string,
+  path: string,
+  data: Record<string, unknown>
+): Promise<unknown> {
+  return apiRequest(token, path, "POST", data);
+}
+
+export function PutData(
+  token: string,
+  path: string,
+  data: Record<string, unknown>
+): Promise<unknown> {
+  return apiRequest(token, path, "PUT", data);
+}
+
+export function DeleteData(token: string, path: string): Promise<unknown> {
+  return apiRequest(token, path, "DELETE");
+}
+
+export function GetRecords(
+  token: string,
+  path: string
+): Promise<Record<string, unknown>[]> {
+  return apiRequest(token, path, "GET") as Promise<Record<string, unknown>[]>;
 }
 ```
 
@@ -4601,7 +4636,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
     const fetchData = async () => {
       if (isAuthenticated) {
         const token = await getAccessTokenSilently();
-        const json = await GetData(token, location.pathname);
+        const json = await GetRecords(token, location.pathname);
 
         // Dynamically infer column definitions from the first row
         const keys = Object.keys(json[0] ?? {});
@@ -5309,7 +5344,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
       try { // 👈 add try catch
         if (isAuthenticated) {
           const token = await getAccessTokenSilently();
-          const json = await GetData(token, location.pathname);
+          const json = await GetRecords(token, location.pathname);
 
           // Dynamically infer column definitions from the first row
           const keys = Object.keys(json[0] ?? {});
