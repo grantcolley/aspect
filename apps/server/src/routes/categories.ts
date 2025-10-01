@@ -85,7 +85,7 @@ router.post(
 
     const pages: Page[] = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      SELECT        p.pageId, p.name, p.icon, p.path, p.component, p.args, p.permission 
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
@@ -163,7 +163,7 @@ router.put(
 
     pages = await db.all(
       `
-      SELECT        p.pageId, p.name, p.icon, p.url, p.permission 
+      SELECT        p.pageId, p.name, p.icon, p.path, p.component, p.args, p.permission 
       FROM 	        categoryPages cp
       INNER JOIN    pages p ON cp.pageId = p.pageId
       WHERE         cp.categoryId = ?
