@@ -49,3 +49,10 @@ export function PutData(
 export function DeleteData(token: string, path: string): Promise<unknown> {
   return apiRequest(token, path, "DELETE");
 }
+
+export function GetRecords(
+  token: string,
+  path: string
+): Promise<Record<string, unknown>[]> {
+  return apiRequest(token, path, "GET") as Promise<Record<string, unknown>[]>;
+}
