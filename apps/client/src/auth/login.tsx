@@ -19,6 +19,7 @@ const Login = () => {
             variant="outline"
             size="icon"
             onClick={() => loginWithRedirect()}
+            aria-label="Login"
           >
             <IconLogin2 />
             <span className="sr-only">Login</span>
