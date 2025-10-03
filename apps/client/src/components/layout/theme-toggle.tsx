@@ -25,8 +25,14 @@ export function ThemeToggle() {
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
-                <IconSun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-                <IconMoon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+                <IconSun
+                  className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+                  aria-label="Light mode"
+                />
+                <IconMoon
+                  className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+                  aria-label="Dark mode"
+                />
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </DropdownMenuTrigger>
@@ -34,13 +40,22 @@ export function ThemeToggle() {
           <TooltipContent>Toggle theme</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setTheme("light")}>
+          <DropdownMenuItem
+            onClick={() => setTheme("light")}
+            aria-label="Light mode"
+          >
             Light
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")}>
+          <DropdownMenuItem
+            onClick={() => setTheme("dark")}
+            aria-label="Dark mode"
+          >
             Dark
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")}>
+          <DropdownMenuItem
+            onClick={() => setTheme("system")}
+            aria-label="System theme"
+          >
             System
           </DropdownMenuItem>
         </DropdownMenuContent>
