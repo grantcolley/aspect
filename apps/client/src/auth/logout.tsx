@@ -21,6 +21,7 @@ const Logout = () => {
             onClick={() =>
               logout({ logoutParams: { returnTo: window.location.origin } })
             }
+            aria-label="Logout"
           >
             <IconLogout />
             <span className="sr-only">Logout</span>
