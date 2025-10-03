@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { IconBrandGithub } from "@tabler/icons-react";
 import Authentication from "../../auth/authentication";
 
 export function AppSidebarHeader() {
@@ -33,6 +34,7 @@ export function AppSidebarHeader() {
               target="_blank"
               className="dark:text-foreground"
             >
+              <IconBrandGithub className="!size-5" />
               GitHub
             </a>
           </Button>
