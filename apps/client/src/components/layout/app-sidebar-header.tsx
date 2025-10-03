@@ -27,7 +27,13 @@ export function AppSidebarHeader() {
         <div className="ml-auto flex items-center gap-2">
           <Authentication />
           <ThemeToggle />
-          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+          <Button
+            variant="ghost"
+            asChild
+            size="sm"
+            className="hidden sm:flex"
+            aria-label="GitHub"
+          >
             <a
               href="https://github.com/grantcolley/aspect"
               rel="noopener noreferrer"
