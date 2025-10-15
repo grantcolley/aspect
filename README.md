@@ -833,7 +833,7 @@ Create the navigation validation schema `moduleSchema`, `categorySchema` and `pa
 import { z } from "zod";
 
 export const pageSchema = z.object({
-  pageId: z.number(),
+  pageId: z.coerce.number(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   path: z.string().min(1, "Path is required"),
@@ -852,7 +852,7 @@ export type PageInput = z.infer<typeof pageSchema>;
 import { z } from "zod";
 
 export const categorySchema = z.object({
-  categoryId: z.number(),
+  categoryId: z.coerce.number(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   permission: z.string().min(1, "Permission is required"),
@@ -868,7 +868,7 @@ export type CategoryInput = z.infer<typeof categorySchema>;
 import { z } from "zod";
 
 export const moduleSchema = z.object({
-  moduleId: z.number(),
+  moduleId: z.coerce.number(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   permission: z.string().min(1, "Permission is required"),
@@ -887,7 +887,7 @@ Create the authorisation validation schema `userSchema`, `roleSchema` and `pemis
 import { z } from "zod";
 
 export const permissionSchema = z.object({
-  permissionId: z.number(),
+  permissionId: z.coerce.number(),
   name: z.string().min(1, "Name is required"),
   permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
@@ -902,7 +902,7 @@ export type PermissionInput = z.infer<typeof permissionSchema>;
 import { z } from "zod";
 
 export const roleSchema = z.object({
-  roleId: z.number(),
+  roleId: z.coerce.number(),
   name: z.string().min(1, "Name is required"),
   permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
@@ -917,7 +917,7 @@ export type RoleInput = z.infer<typeof roleSchema>;
 import { z } from "zod";
 
 export const userSchema = z.object({
-  userId: z.number(),
+  userId: z.coerce.number(),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   permission: z.string().min(1, "Permission is required"),
@@ -5443,18 +5443,20 @@ There is a lot to pack in here so we will break this down.
 
 ### Install Dependencies for Generic Model Form
 
-Install `react-hook-form` and `zod` dependencies.
-
-```
-npm install react-hook-form @hookform/resolvers zod
-```
-
 Install `shadcn` components.
 
 ```
 npx shadcn@latest add form
 npx shadcn@latest add checkbox
 npx shadcn@latest add select
+npx shadcn@latest add spinner
+npx shadcn@latest add alert-dialog
+```
+
+Install `react-hook-form` and `zod` dependencies.
+
+```
+npm install react-hook-form @hookform/resolvers zod
 ```
 
 Install `reflect-metadata` in `apps/shared`
@@ -5485,6 +5487,139 @@ Enable decorators by updating the root `tsconfig.base.json`.
     "baseUrl": ".",
     "experimentalDecorators": true, 👈 add
     "emitDecoratorMetadata": true	👈 add
+  }
+}
+```
+
+Create `apps/shared/src/decorators/model-decorators.ts`
+
+```TS
+import "reflect-metadata";
+
+export type FieldType = "text" | "checkbox" | "datetime" | "select" | "number";
+
+export interface FormFieldOptions {
+  label?: string;
+  options?: string[]; // for enums / selects
+}
+
+const FORM_FIELDS_KEY = Symbol("formFields");
+
+export function FormField(type: FieldType, options: FormFieldOptions = {}) {
+  return function (target: any, propertyKey: string) {
+    const fields =
+      Reflect.getMetadata(FORM_FIELDS_KEY, target.constructor) || [];
+    fields.push({ propertyKey, type, options });
+    Reflect.defineMetadata(FORM_FIELDS_KEY, fields, target.constructor);
+  };
+}
+
+export function getFormMetadata(target: Function) {
+  return Reflect.getMetadata(FORM_FIELDS_KEY, target) || [];
+}
+```
+
+Create `apps/shared/src/decorators/model-registry.ts`
+
+```TS
+export function registerModel<T>(
+  cls: new () => T,
+  schema: ZodObject<ZodRawShape>
+) {
+  schemaRegistry.set(cls, schema);
+  classRegistry.set(cls.name, cls);
+}
+
+export function getSchema(cls: Function) {
+  return schemaRegistry.get(cls);
+}
+
+export function getClass(name: string) {
+  return classRegistry.get(name);
+}
+
+export function getAllModels() {
+  return Array.from(classRegistry.keys());
+}
+```
+
+Create `apps/shared/src/decorators/index.ts`
+
+```TS
+import "../validation/user-schema";
+import "../validation/role-schema";
+import "../validation/permission-schema";
+import "../validation/module-schema";
+import "../validation/category-schema";
+import "../validation/page-schema";
+
+export * from "./model-decorators";
+export * from "./model-registry";
+export * from "../models/user";
+export * from "../models/role";
+export * from "../models/permission";
+export * from "../models/module";
+export * from "../models/category";
+export * from "../models/page";
+```
+
+Update the schemas to register the models.
+
+The following example shows how to register `Category`. Do the same for `Module`, `Page`, `User`, `Role`, and `Permission`.
+
+```TypeScript
+import { z } from "zod";
+import { Category } from "../models/category";
+import { registerModel } from "../decorators/model-registry"; // 👈 import
+
+export const categorySchema = z.object({
+  categoryId: z.coerce.number(),
+  name: z.string().min(1, "Name is required"),
+  icon: z.string().min(1, "Icon is required"),
+  permission: z.string().min(1, "Permission is required"),
+  isReadOnly: z.boolean().optional(),
+});
+
+registerModel(Category, categorySchema); // 👈 do this for all models
+
+export type CategoryInput = z.infer<typeof categorySchema>;
+```
+
+Update each model to describe how each field is to be rendered.
+
+The following example shows how to render each field for `Category`. Do the same for `Module`, `Page`, `User`, `Role`, and `Permission`.
+
+```TypeScript
+import { Editability } from "../interfaces/editability";
+import { Permissionable } from "../interfaces/permissionable";
+import { FormField } from "../decorators/model-decorators"; // 👈 import
+import { Page } from "./page";
+
+export class Category implements Permissionable, Editability {
+  @FormField("number", { label: "Category ID" }) // 👈 add
+  categoryId!: number;
+
+  @FormField("text", { label: "Name" }) // 👈 add
+  name!: string;
+
+  @FormField("text", { label: "Icon" }) // 👈 add
+  icon!: string;
+
+  @FormField("text", { label: "Permission" }) // 👈 add
+  permission!: string;
+
+  isReadOnly!: boolean; // 👈 isReadOnly will be hidden
+
+  pages: Page[] = [];
+
+  addPage(pages: Page) {
+    if (!this.pages.find((p) => p.pageId === pages.pageId)) {
+      this.pages.push(pages);
+    }
+  }
+
+  removePage(pageId: number) {
+    this.pages = this.pages.filter((p) => p.pageId !== pageId);
   }
 }
 ```
