@@ -6,5 +6,6 @@ interface LazyComponentMap {
 
 export const fetchLazyComponents: () => LazyComponentMap =
   (): LazyComponentMap => ({
-    GenericDataTable: React.lazy(() => import("../pages/generic-data-table")),
+    GenericModelTable: React.lazy(() => import("../pages/generic-model-table")),
+    GenericModelForm: React.lazy(() => import("../pages/generic-model-form")),
   });
