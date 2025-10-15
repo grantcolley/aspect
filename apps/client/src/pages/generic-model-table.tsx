@@ -80,7 +80,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <div className="container mx-auto py-10 px-4">
+      <div className="container mx-auto py-4 px-4">
         <ModelTable columns={columns} data={data} />
       </div>
     </div>
