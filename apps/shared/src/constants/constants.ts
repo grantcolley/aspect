@@ -21,3 +21,10 @@ export const COMPONENTS = {
   GENERIC_MODEL_TABLE: "GenericModelTable",
   GENERIC_MODEL_FORM: "GenericModelForm",
 };
+
+export const COMPONENT_ARGS = {
+  MODEL_NAME: "ModelName",
+  MODEL_IDENTITY_FIELD: "IdentityField",
+  MODEL_HIDDEN_FIELDS: "HiddenFields",
+  MODEL_READONLY_FIELDS: "ReadOnlyFields",
+};
