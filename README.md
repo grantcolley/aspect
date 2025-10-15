@@ -6183,3 +6183,37 @@ export const fetchLazyComponents: () => LazyComponentMap =
     GenericModelForm: React.lazy(() => import("../pages/generic-model-form")), // 👈 add
   });
 ```
+
+Update `db/src/data/moduleData.ts` to add `COMPONENT_ARGS.MODEL_READONLY_FIELDS` and `COMPONENT_ARGS.MODEL_HIDDEN_FIELDS` to the `Page`'s `args` field.
+
+The following example shows how to update the `args` field for the `Page` for `Category`. Do the same for `Page`'s for `Module`, `Page`, `User`, `Role`, and `Permission`.
+
+```TypeScript
+// code removed for brevity
+            {
+              pageId: 5,
+              name: "Categories",
+              icon: "categories",
+              path: "categories",
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.CATEGORY +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=categoryId" +
+                "|" +
+
+                // 👇add elow
+                COMPONENT_ARGS.MODEL_READONLY_FIELDS +
+                "=categoryId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
+                "=isReadOnly",
+                // 👆 add above
+
+              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+            },
+// code removed for brevity
+```
