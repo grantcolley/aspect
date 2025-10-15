@@ -1,33 +1,28 @@
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
+import { FormField } from "../decorators/model-decorators";
 
 export class Page implements Permissionable, Editability {
-  pageId: number;
-  name: string;
-  icon: string;
-  path: string;
-  component: string;
-  args: string;
-  permission: string;
-  isReadOnly: boolean;
+  @FormField("number", { label: "Page ID" })
+  pageId!: number;
 
-  constructor(
-    pageId: number,
-    name: string,
-    icon: string,
-    path: string,
-    component: string,
-    args: string,
-    permission: string,
-    isReadOnly: boolean = false
-  ) {
-    this.pageId = pageId;
-    this.name = name;
-    this.icon = icon;
-    this.path = path;
-    this.component = component;
-    this.args = args;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-  }
+  @FormField("text", { label: "Name" })
+  name!: string;
+
+  @FormField("text", { label: "Icon" })
+  icon!: string;
+
+  @FormField("text", { label: "Path" })
+  path!: string;
+
+  @FormField("text", { label: "Component" })
+  component!: string;
+
+  @FormField("text", { label: "Args" })
+  args!: string;
+
+  @FormField("text", { label: "Permission" })
+  permission!: string;
+
+  isReadOnly: boolean = false;
 }

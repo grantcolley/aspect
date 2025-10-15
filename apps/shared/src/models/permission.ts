@@ -1,21 +1,16 @@
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
+import { FormField } from "../decorators/model-decorators";
 
 export class Permission implements Permissionable, Editability {
-  permissionId: number;
-  name: string;
-  permission: string;
-  isReadOnly: boolean;
+  @FormField("number", { label: "Permission ID" })
+  permissionId!: number;
 
-  constructor(
-    permissionId: number,
-    name: string,
-    permission: string,
-    isReadOnly: boolean = false
-  ) {
-    this.permissionId = permissionId;
-    this.name = name;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-  }
+  @FormField("text", { label: "Name" })
+  name!: string;
+
+  @FormField("text", { label: "Permission" })
+  permission!: string;
+
+  isReadOnly!: boolean;
 }

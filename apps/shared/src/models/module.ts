@@ -1,30 +1,24 @@
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
+import { FormField } from "../decorators/model-decorators";
 import { Category } from "./category";
 
 export class Module implements Permissionable, Editability {
-  moduleId: number;
-  name: string;
-  icon: string;
-  permission: string;
-  isReadOnly: boolean;
-  categories: Category[];
+  @FormField("number", { label: "Module ID" })
+  moduleId!: number;
 
-  constructor(
-    moduleId: number,
-    name: string,
-    icon: string,
-    permission: string,
-    isReadOnly: boolean = false,
-    categories: Category[] = []
-  ) {
-    this.moduleId = moduleId;
-    this.name = name;
-    this.icon = icon;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-    this.categories = categories;
-  }
+  @FormField("text", { label: "Name" })
+  name!: string;
+
+  @FormField("text", { label: "Icon" })
+  icon!: string;
+
+  @FormField("text", { label: "Permission" })
+  permission!: string;
+
+  isReadOnly: boolean = false;
+
+  categories: Category[] = [];
 
   addCategory(category: Category) {
     if (!this.categories.find((c) => c.categoryId === category.categoryId)) {

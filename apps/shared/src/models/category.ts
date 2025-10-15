@@ -1,30 +1,25 @@
 import { Editability } from "../interfaces/editability";
 import { Permissionable } from "../interfaces/permissionable";
+import { FormField } from "../decorators/model-decorators";
 import { Page } from "./page";
 
 export class Category implements Permissionable, Editability {
-  categoryId: number;
-  name: string;
-  icon: string;
-  permission: string;
-  isReadOnly: boolean;
-  pages: Page[];
+  @FormField("number", { label: "Category ID" })
+  categoryId!: number;
 
-  constructor(
-    categoryId: number,
-    name: string,
-    icon: string,
-    permission: string,
-    isReadOnly: boolean = false,
-    pages: Page[] = []
-  ) {
-    this.categoryId = categoryId;
-    this.name = name;
-    this.icon = icon;
-    this.permission = permission;
-    this.isReadOnly = isReadOnly;
-    this.pages = pages;
-  }
+  @FormField("text", { label: "Name" })
+  name!: string;
+
+  @FormField("text", { label: "Icon" })
+  icon!: string;
+
+  @FormField("text", { label: "Permission" })
+  permission!: string;
+
+  @FormField("checkbox", { label: "Is Read-only" })
+  isReadOnly!: boolean;
+
+  pages: Page[] = [];
 
   addPage(pages: Page) {
     if (!this.pages.find((p) => p.pageId === pages.pageId)) {
