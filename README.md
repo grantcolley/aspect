@@ -937,10 +937,10 @@ First, change the browser tab's title and icon in `index.html`.
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" sizes="16x16" href="/atlas.png" />
-    <!-- 👈 change icon -->
+    <!-- 👇 change icon -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aspect</title>
-    <!-- 👈 change title -->
+    <!-- 👆 change title -->
   </head>
   <body>
     <div id="root"></div>
@@ -5493,7 +5493,7 @@ Enable decorators by updating the root `tsconfig.base.json`.
 
 Create `apps/shared/src/decorators/model-decorators.ts`
 
-```TS
+```TypeScript
 import "reflect-metadata";
 
 export type FieldType = "text" | "checkbox" | "datetime" | "select" | "number";
@@ -5521,7 +5521,7 @@ export function getFormMetadata(target: Function) {
 
 Create `apps/shared/src/decorators/model-registry.ts`
 
-```TS
+```TypeScript
 export function registerModel<T>(
   cls: new () => T,
   schema: ZodObject<ZodRawShape>
@@ -5545,7 +5545,7 @@ export function getAllModels() {
 
 Create `apps/shared/src/decorators/index.ts`
 
-```TS
+```TypeScript
 import "../validation/user-schema";
 import "../validation/role-schema";
 import "../validation/permission-schema";
@@ -5622,4 +5622,564 @@ export class Category implements Permissionable, Editability {
     this.pages = this.pages.filter((p) => p.pageId !== pageId);
   }
 }
+```
+
+Update `apps\shared\src\constants\constants.ts`.
+
+```TypeScript
+// existing code not shown for brevity
+
+export const COMPONENTS = {
+  GENERIC_MODEL_TABLE: "GenericModelTable",
+  GENERIC_MODEL_FORM: "GenericModelForm", // 👈 add
+};
+
+export const COMPONENT_ARGS = {
+  MODEL_NAME: "ModelName", // 👈 add
+  MODEL_IDENTITY_FIELD: "IdentityField",
+  MODEL_HIDDEN_FIELDS: "HiddenFields", // 👈 add
+  MODEL_READONLY_FIELDS: "ReadOnlyFields", // 👈 add
+};
+```
+
+Extend `shared/src/utils/string-util.tsx` with additional helper methods.
+
+```TypeScript
+// existing code removed for brevity.
+
+// 👇add code below
+export function ParseValueString(value: string): string[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
+}
+
+export function GetLastPathSegment(path: string): string | null {
+  if (typeof path !== "string") return null;
+  const segments = path.split("/").filter(Boolean); // remove empty segments
+  return segments.pop() || null;
+}
+
+export function RemoveLastPathSegment(path: string): string {
+  if (typeof path !== "string" || !path.trim()) return path;
+
+  const segments = path.split("/").filter(Boolean); // remove empty segments
+  segments.pop(); // remove last segment
+
+  // Rebuild path with leading slash (and no trailing slash)
+  return segments.length ? `/${segments.join("/")}` : "/";
+}
+
+export function IsNumeric(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  return !isNaN(Number(value));
+}
+
+/**
+ * Determines whether the given numeric value represents a "new model".
+ * Returns true if the value is numeric and equal to 0, otherwise false.
+ */
+export function IsNewModel(value: unknown): boolean {
+  if (!IsNumeric(value)) return false;
+  return Number(value) === 0;
+}
+// 👆 add code above
+```
+
+Create the component `apps/client/src/generic/model-form.tsx`.
+
+```TypeScript
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z, ZodType, ZodObject } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { getFormMetadata } from "shared/src/decorators";
+import { IconDeviceFloppy, IconLock, IconTrash } from "@tabler/icons-react";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+
+type CrudFormProps<TSchema extends ZodType<any>> = {
+  schema: TSchema;
+  cls: new (...args: any[]) => z.infer<TSchema>;
+  item?: z.infer<TSchema>;
+  hiddenFields?: string[];
+  readOnlyFields?: string[];
+  onCreate?: (data: z.infer<TSchema>) => Promise<void> | void;
+  onUpdate?: (data: z.infer<TSchema>) => Promise<void> | void;
+  onDelete?: (data: z.infer<TSchema>) => Promise<void> | void;
+};
+
+export function ModelForm<TSchema extends ZodObject<any>>({
+  schema,
+  cls,
+  item,
+  hiddenFields = [],
+  readOnlyFields = [],
+  onCreate,
+  onUpdate,
+  onDelete,
+}: CrudFormProps<TSchema>) {
+  type T = z.infer<TSchema>;
+  const metadata = getFormMetadata(cls);
+  const [isSaveProcessing, setIsSaveProcessing] = useState(false);
+  const [isDeleteProcessing, setIsDeleteProcessing] = useState(false);
+
+  // Removed "values" prop; rely on reset()
+  const form = useForm<T>({
+    resolver: zodResolver(schema),
+    defaultValues: item ?? (new cls() as any),
+  });
+
+  // Reset form when "item" changes
+  useEffect(() => {
+    console.log("reset ModelForm");
+    form.reset(item ?? (new cls() as any));
+  }, [item, form]);
+
+  const handleSubmit = async (data: T) => {
+    try {
+      setIsSaveProcessing(true);
+      if (item && onUpdate) {
+        await onUpdate(data);
+      } else if (!item && onCreate) {
+        await onCreate(data);
+        form.reset(new cls() as any);
+      }
+    } finally {
+      setIsSaveProcessing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleteProcessing(true);
+      if (item && onDelete) {
+        await onDelete(item);
+        form.reset(new cls() as any);
+      }
+    } finally {
+      setIsDeleteProcessing(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex flex-col gap-6"
+      >
+        <div className="flex justify-between items-center w-full">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Submit"
+            type="submit"
+            disabled={isSaveProcessing}
+          >
+            {isSaveProcessing ? (
+              <Spinner />
+            ) : (
+              <IconDeviceFloppy className="!size-5" />
+            )}
+          </Button>
+          {item && onDelete && (
+            <Button
+              variant="destructive"
+              size="icon"
+              aria-label="Delete"
+              onClick={handleDelete}
+              disabled={isDeleteProcessing}
+            >
+              {isDeleteProcessing ? (
+                <Spinner />
+              ) : (
+                <IconTrash className="!size-5" />
+              )}
+            </Button>
+          )}
+        </div>
+
+        {metadata
+          .filter((field: any) => !hiddenFields.includes(field.propertyKey))
+          .map((field: any) => {
+            const isReadOnly = readOnlyFields.includes(field.propertyKey);
+            const readOnlyClass = isReadOnly
+              ? "opacity-50 cursor-not-allowed"
+              : "";
+
+            return (
+              <FormField
+                key={field.propertyKey}
+                control={form.control}
+                name={field.propertyKey as any}
+                render={({ field: rhfField }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      {field.options.label}
+                      {isReadOnly && (
+                        <IconLock
+                          size={14}
+                          stroke={1.5}
+                          className="text-muted-foreground"
+                        />
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      {(() => {
+                        switch (field.type) {
+                          case "text":
+                            return (
+                              <Input
+                                {...rhfField}
+                                value={rhfField.value ?? ""}
+                                readOnly={isReadOnly}
+                                disabled={isReadOnly}
+                                className={readOnlyClass}
+                              />
+                            );
+
+                          case "number":
+                            return (
+                              <Input
+                                type="number"
+                                value={rhfField.value ?? ""}
+                                onChange={(e) =>
+                                  rhfField.onChange(
+                                    e.target.value === ""
+                                      ? undefined
+                                      : Number(e.target.value)
+                                  )
+                                }
+                                readOnly={isReadOnly}
+                                disabled={isReadOnly}
+                                className={readOnlyClass}
+                              />
+                            );
+
+                          case "checkbox":
+                            return (
+                              <div
+                                className={`flex items-center gap-2 ${readOnlyClass}`}
+                              >
+                                <Checkbox
+                                  checked={rhfField.value}
+                                  onCheckedChange={rhfField.onChange}
+                                  disabled={isReadOnly}
+                                />
+                              </div>
+                            );
+
+                          case "datetime": {
+                            const val = rhfField.value as any;
+                            const formatted =
+                              val instanceof Date
+                                ? val.toISOString().slice(0, 16)
+                                : val || "";
+                            return (
+                              <Input
+                                type="datetime-local"
+                                value={formatted}
+                                onChange={(e) =>
+                                  rhfField.onChange(new Date(e.target.value))
+                                }
+                                readOnly={isReadOnly}
+                                disabled={isReadOnly}
+                                className={readOnlyClass}
+                              />
+                            );
+                          }
+
+                          case "select":
+                            return (
+                              <div className={readOnlyClass}>
+                                <Select
+                                  onValueChange={rhfField.onChange}
+                                  value={rhfField.value}
+                                  disabled={isReadOnly}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options.options?.map(
+                                      (opt: string) => (
+                                        <SelectItem key={opt} value={opt}>
+                                          {opt}
+                                        </SelectItem>
+                                      )
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            );
+
+                          default:
+                            return (
+                              <Input
+                                {...rhfField}
+                                readOnly={isReadOnly}
+                                disabled={isReadOnly}
+                                className={readOnlyClass}
+                              />
+                            );
+                        }
+                      })()}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            );
+          })}
+      </form>
+    </Form>
+  );
+}
+```
+
+Create the page `apps/client/src/pages/generic-model-form.tsx`.
+
+```TypeScript
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import { ModelForm } from "@/components/generic/model-form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DeleteData,
+  GetData,
+  PostData,
+  PutData,
+} from "@/requests/fetch-generic-data";
+import { getClass, getSchema } from "shared/src/decorators/model-registry";
+import {
+  ParseKeyValueString,
+  RemoveLastPathSegment,
+  GetLastPathSegment,
+  IsNewModel,
+} from "shared/src/utils/string-util";
+import { COMPONENT_ARGS } from "shared/src/constants/constants";
+
+export type GenericModelFormProps = { args: string };
+
+type RawRow = Record<string, any>; // We don't know the shape yet
+
+export default function GenericModelForm({ args }: GenericModelFormProps) {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<RawRow | any>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<RawRow | null>(
+    null
+  );
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const parsedArgs = ParseKeyValueString(args);
+  const model = parsedArgs[COMPONENT_ARGS.MODEL_NAME];
+  const cls = model ? getClass(model) : null;
+  const schema = cls ? getSchema(cls) : null;
+
+  if (!cls) return <div>No {model} model registered!</div>;
+
+  const idValue = GetLastPathSegment(location.pathname);
+  const isNew = !idValue || IsNewModel(idValue);
+
+  const identityField = parsedArgs[COMPONENT_ARGS.MODEL_IDENTITY_FIELD] || "";
+
+  const hiddenFields = parsedArgs[COMPONENT_ARGS.MODEL_HIDDEN_FIELDS]
+    ? parsedArgs[COMPONENT_ARGS.MODEL_HIDDEN_FIELDS]
+        .split(",")
+        .map((s) => s.trim())
+    : [];
+
+  const readOnlyFields = parsedArgs[COMPONENT_ARGS.MODEL_READONLY_FIELDS]
+    ? parsedArgs[COMPONENT_ARGS.MODEL_READONLY_FIELDS]
+        .split(",")
+        .map((s) => s.trim())
+    : [];
+
+  if (isNew && identityField && !hiddenFields.includes(identityField)) {
+    // Ensure identity field is hidden or read-only when creating new item
+    hiddenFields.push(identityField);
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (isAuthenticated) {
+          const token = await getAccessTokenSilently();
+          const json = await GetData(token, location.pathname);
+
+          setData(json);
+        }
+      } catch (err) {
+        setError(err as Error); // Capture error to rethrow in render
+      }
+    };
+
+    if (!isNew) {
+      fetchData();
+    }
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  const handleCreate = async (item: RawRow) => {
+    try {
+      if (isAuthenticated && isNew) {
+        const createPath = RemoveLastPathSegment(location.pathname);
+        const token = await getAccessTokenSilently();
+        const json = await PostData(token, createPath, item);
+
+        setData(json);
+
+        const newId = (json as Record<string, any>)?.[identityField];
+
+        const newPath = `${createPath}/${newId}`;
+        navigate(newPath, { replace: true });
+      }
+    } catch (err) {
+      setError(err as Error); // Capture error to rethrow in render
+    }
+  };
+
+  const handleUpdate = async (item: RawRow) => {
+    try {
+      if (isAuthenticated) {
+        const token = await getAccessTokenSilently();
+        const json = await PutData(token, location.pathname, item);
+
+        setData(json);
+      }
+    } catch (err) {
+      setError(err as Error); // Capture error to rethrow in render
+    }
+  };
+
+  const handleDelete = (item: RawRow) => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setPendingDeleteItem(item);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteItem) return;
+    try {
+      if (isAuthenticated) {
+        const token = await getAccessTokenSilently();
+        await DeleteData(token, location.pathname);
+
+        // Strip the last segment of the path (e.g. /permissions/123 → /permissions)
+        const parentPath =
+          location.pathname.split("/").slice(0, -1).join("/") || "/";
+
+        navigate(parentPath);
+      }
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setShowDeleteDialog(false);
+      setPendingDeleteItem(null);
+    }
+  };
+
+  if (error) {
+    // This makes it rethrow error from useEffect during render,
+    // which React Router will catch and show errorElement
+    throw error;
+  }
+
+  const identityValue =
+    pendingDeleteItem?.[identityField] || data?.[identityField];
+
+  return (
+    <>
+      <div className="flex flex-1 flex-col gap-4">
+        <div className="container mx-auto py-4 px-4">
+          {cls && schema && (
+            <ModelForm
+              key={data?.[identityField]}
+              schema={schema}
+              cls={cls}
+              item={data}
+              hiddenFields={hiddenFields}
+              readOnlyFields={readOnlyFields}
+              onCreate={handleCreate}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+            />
+          )}
+        </div>
+      </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm delete {model}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{model}</strong>
+              {identityValue ? ` with ID “${identityValue}”` : ""}? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+```
+
+Extend `apps/client/src/utils/fetch-lazy-components.ts`.
+
+```TypeScript
+import React from "react";
+
+interface LazyComponentMap {
+  [key: string]: React.LazyExoticComponent<React.FC<{ args: string }>>;
+}
+
+export const fetchLazyComponents: () => LazyComponentMap =
+  (): LazyComponentMap => ({
+    GenericModelTable: React.lazy(() => import("../pages/generic-model-table")),
+    GenericModelForm: React.lazy(() => import("../pages/generic-model-form")), // 👈 add
+  });
 ```
