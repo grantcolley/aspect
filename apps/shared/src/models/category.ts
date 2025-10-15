@@ -16,7 +16,6 @@ export class Category implements Permissionable, Editability {
   @FormField("text", { label: "Permission" })
   permission!: string;
 
-  @FormField("checkbox", { label: "Is Read-only" })
   isReadOnly!: boolean;
 
   pages: Page[] = [];
