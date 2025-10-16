@@ -1,10 +1,18 @@
+import { useLocation, Link } from "react-router-dom";
+import { IconFilePlus } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
@@ -29,8 +37,27 @@ export function ModelTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const location = useLocation(); // 👈 add
+
   return (
-    <div className="overflow-hidden rounded-md border">
+    <div className="flex flex-col overflow-hidden rounded-md border">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Create new item"
+              className="self-start m-2"
+            >
+              <Link to={`${location.pathname}/0`}>
+                <IconFilePlus className="!size-5" />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Create new</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <Table>
         <TableHeader className="bg-muted sticky top-0 z-10">
           {table.getHeaderGroups().map((headerGroup) => (
