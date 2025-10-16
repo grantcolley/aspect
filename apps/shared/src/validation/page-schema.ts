@@ -3,7 +3,7 @@ import { Page } from "../models/page";
 import { registerModel } from "../decorators/model-registry";
 
 export const pageSchema = z.object({
-  pageId: z.coerce.number(),
+  pageId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   path: z.string().min(1, "Path is required"),

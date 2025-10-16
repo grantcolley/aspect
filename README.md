@@ -833,7 +833,7 @@ Create the navigation validation schema `moduleSchema`, `categorySchema` and `pa
 import { z } from "zod";
 
 export const pageSchema = z.object({
-  pageId: z.coerce.number(),
+  pageId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   path: z.string().min(1, "Path is required"),
@@ -852,7 +852,7 @@ export type PageInput = z.infer<typeof pageSchema>;
 import { z } from "zod";
 
 export const categorySchema = z.object({
-  categoryId: z.coerce.number(),
+  categoryId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   permission: z.string().min(1, "Permission is required"),
@@ -868,7 +868,7 @@ export type CategoryInput = z.infer<typeof categorySchema>;
 import { z } from "zod";
 
 export const moduleSchema = z.object({
-  moduleId: z.coerce.number(),
+  moduleId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   icon: z.string().min(1, "Icon is required"),
   permission: z.string().min(1, "Permission is required"),
@@ -887,7 +887,7 @@ Create the authorisation validation schema `userSchema`, `roleSchema` and `pemis
 import { z } from "zod";
 
 export const permissionSchema = z.object({
-  permissionId: z.coerce.number(),
+  permissionId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
@@ -902,7 +902,7 @@ export type PermissionInput = z.infer<typeof permissionSchema>;
 import { z } from "zod";
 
 export const roleSchema = z.object({
-  roleId: z.coerce.number(),
+  roleId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
@@ -917,7 +917,7 @@ export type RoleInput = z.infer<typeof roleSchema>;
 import { z } from "zod";
 
 export const userSchema = z.object({
-  userId: z.coerce.number(),
+  userId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   permission: z.string().min(1, "Permission is required"),
