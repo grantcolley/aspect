@@ -37,7 +37,7 @@ export function ModelTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const location = useLocation(); // 👈 add
+  const location = useLocation();
 
   return (
     <div className="flex flex-col overflow-hidden rounded-md border">
