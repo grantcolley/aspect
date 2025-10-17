@@ -81,7 +81,7 @@ aspect
   - [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
   - [Create the Model Decorators and Registry](#create-the-model-decorators-and-registry)
   - [Create Constants and Helpers](#create-constants-and-helpers)
-  - [Create the Generic Model Form component and Page](#create-the-generic-model-form-component-and-page)
+  - [Create the Generic Model Form Component and Page](#create-the-generic-model-form-component-and-page)
   - [Update the Model Table Component and Page](#update-the-model-table-component-and-page)
 
 # Scaffolding the Monorepo
