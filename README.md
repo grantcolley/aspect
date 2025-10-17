@@ -79,6 +79,10 @@ aspect
 - [Add Error Handling to the Client](#add-error-handling-to-the-client)
 - [Add a Generic Form Component for Models](#add-a-generic-form-component-for-models)
   - [Install Dependencies for Generic Model Form](#install-dependencies-for-generic-model-form)
+  - [Create the Model Decorators and Registry](#create-the-model-decorators-and-registry)
+  - [Create Constants and Helpers](#create-constants-and-helpers)
+  - [Create the Generic Model Form component and Page](#create-the-generic-model-form-component-and-page)
+  - [Update the Model Table Component and Page](#update-the-model-table-component-and-page)
 
 # Scaffolding the Monorepo
 
@@ -5439,7 +5443,7 @@ export const MainLayout = ({ modules }: Props) => {
 
 # Add a Generic Form Component for Models
 
-There is a lot to pack in here.
+There is a lot to pack in here so we will unpack it step by step.
 
 ### Install Dependencies for Generic Model Form
 
@@ -5490,6 +5494,8 @@ Enable decorators by updating the root `tsconfig.base.json`.
   }
 }
 ```
+
+### Create the Model Decorators and Registry
 
 Create `apps/shared/src/decorators/model-decorators.ts`
 
@@ -5624,6 +5630,8 @@ export class Category implements Permissionable, Editability {
 }
 ```
 
+### Create Constants and Helpers
+
 Update `apps\shared\src\constants\constants.ts`.
 
 ```TypeScript
@@ -5687,6 +5695,8 @@ export function IsNewModel(value: unknown): boolean {
 }
 // 👆 add code above
 ```
+
+### Create the Generic Model Form component and Page
 
 Create the component `apps/client/src/generic/model-form.tsx`.
 
@@ -6217,6 +6227,8 @@ The following example shows how to update the `args` field for the `Page` for `C
             },
 // code removed for brevity
 ```
+
+### Update the Model Table Component and Page
 
 Update component `apps/client/src/components/generic/model-table.tsx`.
 
