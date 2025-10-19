@@ -41,7 +41,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
 
           inferredColumns.push({
             id: "actions",
-            header: "Edit",
+            header: "Detail",
             cell: ({ row }) => {
               const rowId = row.original[identityFieldName];
               return (
