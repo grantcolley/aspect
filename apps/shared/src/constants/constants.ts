@@ -10,6 +10,8 @@ export const MODELS = {
 export const PERMISSIONS = {
   ADMIN_RO: "admin_ro",
   ADMIN_RW: "admin_rw",
+  AUTH_RO: "auth_ro",
+  AUTH_RW: "auth_rw",
 };
 
 export const ROLES = {

@@ -23,12 +23,12 @@ export function getRoles() {
         },
         {
           permissionId: 3,
-          name: PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.AUTH_RO,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 4,
-          name: PERMISSIONS.ADMIN_RO,
+          name: PERMISSIONS.AUTH_RW,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
       ],
@@ -40,12 +40,12 @@ export function getRoles() {
       permissions: [
         {
           permissionId: 3,
-          name: PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.AUTH_RO,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 4,
-          name: PERMISSIONS.ADMIN_RO,
+          name: PERMISSIONS.AUTH_RW,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
       ],

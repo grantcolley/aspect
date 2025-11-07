@@ -7,13 +7,13 @@ export function getUsers(roles: Role[]) {
   alice.userId = 1;
   alice.name = "Alice";
   alice.email = "alice@email.com";
-  alice.permission = PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW;
+  alice.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
 
   let bob = new User();
   bob.userId = 2;
   bob.name = "Bob";
   bob.email = "bob@email.com";
-  bob.permission = PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW;
+  bob.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
 
   alice.roles.push(roles[0]); // Assigning 'admin' role to Alice
   bob.roles.push(roles[1]); // Assigning 'auth' role to Bob

@@ -212,13 +212,13 @@ export function getUsers() {
   alice.userId = 1;
   alice.name = "Alice";
   alice.email = "alice@email.com";
-  alice.permission = PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW;
+  alice.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
 
   let bob = new User();
   bob.userId = 2;
   bob.name = "Bob";
   bob.email = "bob@email.com";
-  bob.permission = PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW;
+  bob.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
 
   return [ alice, bob ];
 }
@@ -1996,6 +1996,8 @@ export const MODELS = {
 export const PERMISSIONS = {
   ADMIN_RO: "admin_ro",
   ADMIN_RW: "admin_rw",
+  AUTH_RO: "auth_ro",
+  AUTH_RW: "auth_rw",
 };
 
 export const ROLES = {
@@ -2029,13 +2031,13 @@ export function getModules() {
       moduleId: 1,
       name: "Administration",
       icon: "settings",
-      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+      permission: PERMISSIONS.ADMIN_RO,
       categories: [
         {
           categoryId: 1,
           name: "Authorisation",
           icon: "authorisation",
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          permission: PERMISSIONS.ADMIN_RO,
           pages: [
             {
               pageId: 1,
@@ -2050,7 +2052,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=userId",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
             {
               pageId: 2,
@@ -2065,7 +2067,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=roleId",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
             {
               pageId: 3,
@@ -2080,7 +2082,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=permissionId",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
           ],
         },
@@ -2088,7 +2090,7 @@ export function getModules() {
           categoryId: 2,
           name: "Applications",
           icon: "applications",
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          permission: PERMISSIONS.ADMIN_RO,
           pages: [
             {
               pageId: 4,
@@ -2103,7 +2105,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=moduleId",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
             {
               pageId: 5,
@@ -2118,7 +2120,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=categoryId",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
             {
               pageId: 6,
@@ -2133,7 +2135,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=pageId",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
           ],
         },
@@ -2948,12 +2950,12 @@ export function getRoles() {
         },
         {
           permissionId: 3,
-          name: PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.AUTH_RW,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 4,
-          name: PERMISSIONS.ADMIN_RO,
+          name: PERMISSIONS.AUTH_RO,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
       ],
@@ -2965,12 +2967,12 @@ export function getRoles() {
       permissions: [
         {
           permissionId: 3,
-          name: PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.AUTH_RW,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
         {
           permissionId: 4,
-          name: PERMISSIONS.ADMIN_RO,
+          name: PERMISSIONS.AUTH_RO,
           permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
         },
       ],
@@ -2984,10 +2986,20 @@ Update `userData` class `db/src/data/userData.ts`.
 ```TypeScript
 import { User } from "../../../apps/shared/src/models/user";
 import { Role } from "../../../apps/shared/src/models/role";
+import { PERMISSIONS } from "../../../apps/shared/src/constants/constants";
 
 export function getUsers(roles: Role[]) {
-  let alice = new User(1, "Alice", "alice@email.com", "auth_rw|auth_ro");
-  let bob = new User(2, "Bob", "bob@email.com", "auth_rw|auth_ro");
+  let alice = new User();
+  alice.userId = 1;
+  alice.name = "Alice";
+  alice.email = "alice@email.com";
+  alice.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
+
+  let bob = new User();
+  bob.userId = 2;
+  bob.name = "Bob";
+  bob.email = "bob@email.com";
+  bob.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
 
   alice.roles.push(roles[0]); // Assigning 'admin' role to Alice
   bob.roles.push(roles[1]); // Assigning 'auth' role to Bob
@@ -6223,7 +6235,7 @@ The following example shows how to update the `args` field for the `Page` for `C
                 "=isReadOnly",
                 // 👆 add above
 
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
 // code removed for brevity
 ```

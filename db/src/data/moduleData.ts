@@ -12,13 +12,13 @@ export function getModules() {
       moduleId: 1,
       name: "Administration",
       icon: "settings",
-      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.AUTH_RO,
       categories: [
         {
           categoryId: 1,
           name: "Authorisation",
           icon: "authorisation",
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          permission: PERMISSIONS.AUTH_RO,
           pages: [
             {
               pageId: 1,
@@ -39,7 +39,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
                 "=isReadOnly",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.AUTH_RO,
             },
             {
               pageId: 2,
@@ -60,7 +60,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
                 "=isReadOnly",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.AUTH_RO,
             },
             {
               pageId: 3,
@@ -81,7 +81,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
                 "=isReadOnly",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.AUTH_RO,
             },
           ],
         },
@@ -89,7 +89,7 @@ export function getModules() {
           categoryId: 2,
           name: "Applications",
           icon: "applications",
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          permission: PERMISSIONS.ADMIN_RO,
           pages: [
             {
               pageId: 4,
@@ -110,7 +110,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
                 "=isReadOnly",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
             {
               pageId: 5,
@@ -131,7 +131,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
                 "=isReadOnly",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
             {
               pageId: 6,
@@ -152,7 +152,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
                 "=isReadOnly",
-              permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+              permission: PERMISSIONS.ADMIN_RO,
             },
           ],
         },
