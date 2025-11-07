@@ -31,6 +31,19 @@
       },
       "sourceMaps": true,
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Launch Database",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/db/src/seed.ts"],
+      "cwd": "${workspaceFolder}/db",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
