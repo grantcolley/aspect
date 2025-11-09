@@ -7,6 +7,8 @@ import { Category } from "shared/src/models/category";
 import { Page } from "shared/src/models/page";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
+import { hasAnyPermission } from "../middleware/requirePermission";
+import { ParseStringByPipe } from "shared/src/utils/string-util";
 
 const dbFile = path.resolve(__dirname, config.DATABASE);
 
@@ -31,6 +33,10 @@ router.get(
     const categoriesMap = new Map<number, Category>();
 
     for (const row of rows) {
+      if (!hasAnyPermission(_req, ...ParseStringByPipe(row.mPermission))) {
+        continue;
+      }
+
       let module = modulesMap.get(row.moduleId);
       if (!module) {
         module = new Module();
@@ -39,6 +45,10 @@ router.get(
         module.icon = row.mIcon;
         module.permission = row.mPermission;
         modulesMap.set(row.moduleId, module);
+      }
+
+      if (!hasAnyPermission(_req, ...ParseStringByPipe(row.cPermission))) {
+        continue;
       }
 
       let category = categoriesMap.get(row.categoryId);
@@ -56,6 +66,10 @@ router.get(
       );
       if (!moduleCategory) {
         module.addCategory(category);
+      }
+
+      if (!hasAnyPermission(_req, ...ParseStringByPipe(row.pPermission))) {
+        continue;
       }
 
       const page = new Page();

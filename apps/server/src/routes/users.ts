@@ -7,6 +7,8 @@ import { UserRole } from "shared/src/interfaces/userRole";
 import { userSchema } from "shared/src/validation/user-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
+import { requirePermission } from "../middleware/requirePermission";
+import { PERMISSIONS } from "shared/src/constants/constants";
 
 const dbFile = path.resolve(__dirname, config.DATABASE);
 
@@ -14,6 +16,7 @@ const router = Router();
 
 router.get(
   "/",
+  requirePermission(PERMISSIONS.AUTH_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: User[] = await db.all(`
@@ -27,6 +30,7 @@ router.get(
 
 router.get(
   "/:id",
+  requirePermission(PERMISSIONS.AUTH_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.get<User>(
@@ -58,6 +62,7 @@ router.get(
 
 router.post(
   "/",
+  requirePermission(PERMISSIONS.AUTH_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = userSchema.safeParse(_req.body);
 
@@ -105,6 +110,7 @@ router.post(
 
 router.put(
   "/:id",
+  requirePermission(PERMISSIONS.AUTH_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = userSchema.safeParse(_req.body);
 
@@ -179,6 +185,7 @@ router.put(
 
 router.delete(
   "/:id",
+  requirePermission(PERMISSIONS.AUTH_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
 

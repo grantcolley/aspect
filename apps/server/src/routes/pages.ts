@@ -5,6 +5,8 @@ import { Page } from "shared/src/models/page";
 import { pageSchema } from "shared/src/validation/page-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
+import { requirePermission } from "../middleware/requirePermission";
+import { PERMISSIONS } from "shared/src/constants/constants";
 
 const dbFile = path.resolve(__dirname, config.DATABASE);
 
@@ -12,6 +14,7 @@ const router = Router();
 
 router.get(
   "/",
+  requirePermission(PERMISSIONS.ADMIN_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
@@ -25,6 +28,7 @@ router.get(
 
 router.get(
   "/:id",
+  requirePermission(PERMISSIONS.ADMIN_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
@@ -44,6 +48,7 @@ router.get(
 
 router.post(
   "/",
+  requirePermission(PERMISSIONS.ADMIN_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = pageSchema.safeParse(_req.body);
 
@@ -75,6 +80,7 @@ router.post(
 
 router.put(
   "/:id",
+  requirePermission(PERMISSIONS.ADMIN_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = pageSchema.safeParse(_req.body);
 
@@ -110,6 +116,7 @@ router.put(
 
 router.delete(
   "/:id",
+  requirePermission(PERMISSIONS.ADMIN_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.run(

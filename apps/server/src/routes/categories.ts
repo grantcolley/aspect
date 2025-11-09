@@ -7,6 +7,8 @@ import { CategoryPage } from "shared/src/interfaces/categoryPage";
 import { categorySchema } from "shared/src/validation/category-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
+import { requirePermission } from "../middleware/requirePermission";
+import { PERMISSIONS } from "shared/src/constants/constants";
 
 const dbFile = path.resolve(__dirname, config.DATABASE);
 
@@ -14,6 +16,7 @@ const router = Router();
 
 router.get(
   "/",
+  requirePermission(PERMISSIONS.ADMIN_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Category[] = await db.all(`
@@ -27,6 +30,7 @@ router.get(
 
 router.get(
   "/:id",
+  requirePermission(PERMISSIONS.ADMIN_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.get<Category>(
@@ -58,6 +62,7 @@ router.get(
 
 router.post(
   "/",
+  requirePermission(PERMISSIONS.ADMIN_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = categorySchema.safeParse(_req.body);
 
@@ -105,6 +110,7 @@ router.post(
 
 router.put(
   "/:id",
+  requirePermission(PERMISSIONS.ADMIN_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = categorySchema.safeParse(_req.body);
 
@@ -183,6 +189,7 @@ router.put(
 
 router.delete(
   "/:id",
+  requirePermission(PERMISSIONS.ADMIN_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
 

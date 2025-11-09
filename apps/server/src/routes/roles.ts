@@ -7,6 +7,8 @@ import { RolePermission } from "shared/src/interfaces/rolePermission";
 import { roleSchema } from "shared/src/validation/role-schema";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { config } from "../config/config";
+import { requirePermission } from "../middleware/requirePermission";
+import { PERMISSIONS } from "shared/src/constants/constants";
 
 const dbFile = path.resolve(__dirname, config.DATABASE);
 
@@ -14,6 +16,7 @@ const router = Router();
 
 router.get(
   "/",
+  requirePermission(PERMISSIONS.AUTH_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Role[] = await db.all(`
@@ -27,6 +30,7 @@ router.get(
 
 router.get(
   "/:id",
+  requirePermission(PERMISSIONS.AUTH_RO),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.get<Role>(
@@ -58,6 +62,7 @@ router.get(
 
 router.post(
   "/",
+  requirePermission(PERMISSIONS.AUTH_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = roleSchema.safeParse(_req.body);
 
@@ -107,6 +112,7 @@ router.post(
 
 router.put(
   "/:id",
+  requirePermission(PERMISSIONS.AUTH_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = roleSchema.safeParse(_req.body);
 
@@ -191,6 +197,7 @@ router.put(
 
 router.delete(
   "/:id",
+  requirePermission(PERMISSIONS.AUTH_RW),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
 

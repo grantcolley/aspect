@@ -3,6 +3,7 @@ import cors from "cors";
 import { auth } from "express-oauth2-jwt-bearer";
 import { config } from "./config/config";
 import { errorHandler } from "./middleware/errorHandler";
+import { AttachUserPermissions } from "./middleware/attachUserPermissions";
 import navigationRouter from "./routes/navigation";
 import permissionsRouter from "./routes/permissions";
 import rolesRouter from "./routes/roles";
@@ -32,6 +33,7 @@ const start = async () => {
 
   // enforce on all endpoints
   app.use(jwtCheck);
+  app.use(AttachUserPermissions);
 
   app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
   app.use(config.ENDPOINT_PERMISSIONS, permissionsRouter);

@@ -83,6 +83,7 @@ aspect
   - [Create Constants and Helpers](#create-constants-and-helpers)
   - [Create the Generic Model Form Component and Page](#create-the-generic-model-form-component-and-page)
   - [Update the Model Table Component and Page](#update-the-model-table-component-and-page)
+- [Add Permission-Based Access Control (PBAC) to Server Endpoints](#add-permission-based-access-control-pbac-to-server-endpoints)
 
 # Scaffolding the Monorepo
 
@@ -6461,4 +6462,313 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
     </div>
   );
 }
+```
+
+# Add Permission-Based Access Control (PBAC) to the Server Endpoints
+
+Install `@types/express`.
+
+cd to `/aspect/apps/server`
+
+```
+npm install --save-dev @types/express
+```
+
+Update `/aspect/apps/server/src/tsconfig.json`
+
+```TypeScript
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "typeRoots": ["./src/types", "./node_modules/@types"], 👈 add
+    "outDir": "dist",
+    "sourceMap": true,
+    "module": "CommonJS",
+    "target": "es2020",
+    "declaration": true
+  },
+  "include": ["src"]
+}
+```
+
+Create `/aspect/apps/server/src/types/express/index.d.ts` to extend the `Express.Request` object with custom properties `user` and `userPermissions`.
+
+```TypeScript
+import "express";
+
+declare global {
+  namespace Express {
+    interface User {
+      email?: string;
+    }
+
+    interface Request {
+      user?: User; // e.g. set by your auth middleware
+      userPermissions?: string[]; // you set this in AttachUserPermissions
+    }
+  }
+}
+```
+
+Create the middleware `/aspect/apps/server/src/middleware/attachUserPermissions.ts` to fetch the users permissions from the database and attach them to `Express.Request.userPermissions`.
+
+```TypeScript
+import { RequestHandler } from "express";
+import { dbConnection } from "../data/db";
+import { config } from "../config/config";
+import path from "path";
+
+const dbFile = path.resolve(__dirname, config.DATABASE);
+
+// Helper to normalize email extraction from Auth0/ADFS-style tokens
+function getEmailFromJwt(payload: Record<string, unknown>): string | undefined {
+  const email = payload[
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+  ] as string | undefined;
+  return email?.toLowerCase();
+}
+
+export const AttachUserPermissions: RequestHandler = async (req, res, next) => {
+  try {
+    // express-oauth2-jwt-bearer puts the JWT here:
+    // req.auth?.payload is Record<string, unknown>
+    const email = req.auth?.payload
+      ? getEmailFromJwt(req.auth.payload as any)
+      : undefined;
+
+    if (!email) {
+      res.status(401).send("User not authenticated");
+      return; // <-- just return; not returning a Response object
+    }
+
+    const db = await dbConnection(dbFile);
+    const rows: { pPermission: string }[] = await db.all(
+      `
+      SELECT p.name pPermission
+      FROM users u
+      INNER JOIN userRoles ur ON u.userId = ur.userId
+      INNER JOIN rolePermissions rp ON ur.roleId = rp.roleId
+      INNER JOIN permissions p ON rp.permissionId = p.permissionId
+      WHERE u.email = ?
+      `,
+      [email]
+    );
+
+    if (!rows.length) {
+      res.status(403).send("User not registered");
+      return;
+    }
+
+    req.userPermissions = rows.map((r) => r.pPermission);
+    next();
+  } catch (error) {
+    console.error("AttachUserPermissions error:", error);
+    res.status(500).send("Internal server error");
+  }
+};
+```
+
+Update `/aspect/apps/server/src/index.ts` to enforce middleware `AttachUserPermissions` on all endpoints.
+
+```TypeScript
+// code removed for brevity
+
+import { AttachUserPermissions } from "./middleware/attachUserPermissions"; // 👈 import
+
+// code removed for brevity
+
+const start = async () => {
+  const jwtCheck = auth({
+    audience: config.AUTH_AUDIENCE,
+    issuerBaseURL: config.AUTH_ISSUER_BASE_URL,
+    tokenSigningAlg: config.AUTH_TOKEN_SIGNING_ALGORITHM,
+  });
+
+  // enforce on all endpoints
+  app.use(jwtCheck);
+  app.use(AttachUserPermissions);  // 👈 add
+
+// code removed for brevity
+```
+
+Create `/aspect/apps/server/src/middleware/requirePermission.ts` to reader users permissions that have been attach to `Express.Request.userPermissions`.
+
+```TypeScript
+import type { Request, Response, NextFunction, RequestHandler } from "express";
+
+export type Permission = string;
+
+export function hasPermission(req: Request, permission: Permission): boolean {
+  return !!req.userPermissions?.includes(permission);
+}
+
+/**
+ * Route guard: ensure the user has the required permission(s) *before* hitting the handler.
+ * Place this AFTER `AttachUserPermissions` in the middleware chain.
+ */
+export function requirePermission(
+  required: Permission | Permission[]
+): RequestHandler {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.userPermissions) {
+      res.status(401).send("User not authenticated");
+      return;
+    }
+
+    const requiredList = Array.isArray(required) ? required : [required];
+    const userPerms = new Set(req.userPermissions);
+
+    const ok = requiredList.some((p) => userPerms.has(p));
+
+    if (!ok) {
+      res.status(403).send("Forbidden: missing required permission");
+      return;
+    }
+
+    next();
+  };
+}
+```
+
+Add a permission check to each end point. The following example updates `/aspect/apps/server/src/routes/users.ts`. Do the same for `roles.ts`, `permissions.ts`, `modules.ts`, `categories.ts`, and `pages.ts`.
+
+```TypeScript
+
+// code removed for brevity
+
+router.get(
+  "/",
+  requirePermission(PERMISSIONS.AUTH_RO),		// 👈 add permission check
+  asyncHandler(async (_req: Request, res: Response) => {
+
+	// code removed for brevity
+
+  })
+);
+
+router.get(
+  "/:id",
+  requirePermission(PERMISSIONS.AUTH_RO),		// 👈 add permission check
+  asyncHandler(async (_req: Request, res: Response) => {
+
+	// code removed for brevity
+
+  })
+);
+
+router.post(
+  "/",
+  requirePermission(PERMISSIONS.AUTH_RW),		// 👈 add permission check
+  asyncHandler(async (_req: Request, res: Response) => {
+
+	// code removed for brevity
+
+  })
+);
+
+router.put(
+  "/:id",
+  requirePermission(PERMISSIONS.AUTH_RW),		// 👈 add permission check
+  asyncHandler(async (_req: Request, res: Response) => {
+
+	// code removed for brevity
+
+  })
+);
+
+router.delete(
+  "/:id",
+  requirePermission(PERMISSIONS.AUTH_RW),		// 👈 add permission check
+  asyncHandler(async (_req: Request, res: Response) => {
+
+	// code removed for brevity
+
+  })
+);
+
+```
+
+Update `/aspect/apps/server/src/routes/navigation.ts` adding permission checks when building the permisison driven navigation panel, where `modules`, `catagories`, and `pages` the user does not have permission for is filtered out.
+
+```
+
+// code removed for brevity
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const db = await dbConnection(dbFile);
+    const rows: NavigationRow[] = await db.all(`
+      SELECT  m.moduleId, m.name mName, m.icon mIcon, m.permission mPermission,
+              c.categoryId, c.name cName, c.icon cIcon, c.permission cPermission,
+              p.pageId, p.name pName, p.icon pIcon, p.path pPath, p.component pComponent, p.args pArgs, p.permission pPermission
+      FROM 	modules m
+      INNER JOIN moduleCategories mc ON m.moduleId = mc.moduleId
+      INNER JOIN categories c ON mc.categoryId = c.categoryId
+      INNER JOIN categoryPages cp ON c.categoryId = cp.categoryId
+      INNER JOIN pages p ON cp.pageId = p.pageId;
+    `);
+
+    const modulesMap = new Map<number, Module>();
+    const categoriesMap = new Map<number, Category>();
+
+    for (const row of rows) {
+      if (!hasAnyPermission(_req, ...ParseStringByPipe(row.mPermission))) {   // 👈 add permission check
+        continue;
+      }
+
+      let module = modulesMap.get(row.moduleId);
+      if (!module) {
+        module = new Module();
+        module.moduleId = row.moduleId;
+        module.name = row.mName;
+        module.icon = row.mIcon;
+        module.permission = row.mPermission;
+        modulesMap.set(row.moduleId, module);
+      }
+
+      if (!hasAnyPermission(_req, ...ParseStringByPipe(row.cPermission))) {   // 👈 add permission check
+        continue;
+      }
+
+      let category = categoriesMap.get(row.categoryId);
+      if (!category) {
+        category = new Category();
+        category.categoryId = row.categoryId;
+        category.name = row.cName;
+        category.icon = row.cIcon;
+        category.permission = row.cPermission;
+        categoriesMap.set(row.categoryId, category);
+      }
+
+      const moduleCategory = module.categories.some(
+        (category) => category.categoryId === row.categoryId
+      );
+      if (!moduleCategory) {
+        module.addCategory(category);
+      }
+
+      if (!hasAnyPermission(_req, ...ParseStringByPipe(row.pPermission))) {   // 👈 add permission check
+        continue;
+      }
+
+      const page = new Page();
+      page.pageId = row.pageId;
+      page.name = row.pName;
+      page.icon = row.pIcon;
+      page.path = row.pPath;
+      page.component = row.pComponent;
+      page.args = row.pArgs;
+      page.permission = row.pPermission;
+
+      if (!category.pages.some((p) => p.pageId === page.pageId)) {
+        category.addPage(page);
+      }
+    }
+
+    res.json(Array.from(modulesMap.values()));
+  })
+);
+
+export default router;
 ```
