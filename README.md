@@ -5668,10 +5668,18 @@ Extend `shared/src/utils/string-util.tsx` with additional helper methods.
 // existing code removed for brevity.
 
 // 👇add code below
-export function ParseValueString(value: string): string[] {
+export function ParseStringByComma(value: string): string[] {
   if (!value) return [];
   return value
     .split(",")
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
+}
+
+export function ParseStringByPipe(value: string): string[] {
+  if (!value) return [];
+  return value
+    .split("|")
     .map((v) => v.trim())
     .filter((v) => v.length > 0);
 }
