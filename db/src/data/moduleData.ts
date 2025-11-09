@@ -16,8 +16,8 @@ export function getModules() {
       categories: [
         {
           categoryId: 1,
-          name: "Authorisation",
-          icon: "authorisation",
+          name: "Accounts",
+          icon: "accounts",
           permission: PERMISSIONS.AUTH_RO,
           pages: [
             {
