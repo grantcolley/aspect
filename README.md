@@ -6690,7 +6690,7 @@ router.delete(
 
 Update `/aspect/apps/server/src/routes/navigation.ts` adding permission checks when building the permisison driven navigation panel, where `modules`, `catagories`, and `pages` the user does not have permission for is filtered out.
 
-```
+```TypeScript
 
 // code removed for brevity
 
