@@ -18,7 +18,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
   user: IconUser,
   search: IconSearch,
   settings: IconSettings,
-  authorisation: IconShieldCog,
+  accounts: IconShieldCog,
   users: IconUsersGroup,
   roles: IconUserCircle,
   permissions: IconShieldLock,
