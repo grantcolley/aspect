@@ -6464,7 +6464,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
 }
 ```
 
-# Add Permission-Based Access Control (PBAC) to the Server Endpoints
+# Add Permission-Based Access Control (PBAC) to Server Endpoints
 
 Install `@types/express`.
 
