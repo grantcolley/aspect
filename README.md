@@ -2035,8 +2035,8 @@ export function getModules() {
       categories: [
         {
           categoryId: 1,
-          name: "Authorisation",
-          icon: "authorisation",
+          name: "Accounts",
+          icon: "accounts",
           permission: PERMISSIONS.ADMIN_RO,
           pages: [
             {
@@ -2339,7 +2339,7 @@ export const iconsMap: Record<string, React.FC<any>> = {
   user: IconUser,
   search: IconSearch,
   settings: IconSettings,
-  authorisation: IconShieldCog,
+  accounts: IconShieldCog,
   users: IconUsersGroup,
   roles: IconUserCircle,
   permissions: IconShieldLock,
