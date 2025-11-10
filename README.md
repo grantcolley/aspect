@@ -83,7 +83,9 @@ aspect
   - [Create Constants and Helpers](#create-constants-and-helpers)
   - [Create the Generic Model Form Component and Page](#create-the-generic-model-form-component-and-page)
   - [Update the Model Table Component and Page](#update-the-model-table-component-and-page)
-- [Add Permission-Based Access Control (PBAC) to Server Endpoints](#add-permission-based-access-control-pbac-to-server-endpoints)
+- [Add Permission-Based Access Control (PBAC)](#add-permission-based-access-control-pbac)
+  - [Add PBAC to Server Endpoints](#add-pbac-to-server-endpoints)
+  - [Add PBAC to the Client](#add-pbac-to-the-client)
 
 # Scaffolding the Monorepo
 
@@ -6464,7 +6466,9 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
 }
 ```
 
-# Add Permission-Based Access Control (PBAC) to Server Endpoints
+# Add Permission-Based Access Control (PBAC)
+
+### Add PBAC to Server Endpoints
 
 Install `@types/express`.
 
@@ -6772,3 +6776,5 @@ router.get(
 
 export default router;
 ```
+
+### Add PBAC to the Client
