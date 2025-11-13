@@ -215,13 +215,13 @@ export function getUsers() {
   alice.userId = 1;
   alice.name = "Alice";
   alice.email = "alice@email.com";
-  alice.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
+  alice.permission = PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   let bob = new User();
   bob.userId = 2;
   bob.name = "Bob";
   bob.email = "bob@email.com";
-  bob.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
+  bob.permission = PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   return [ alice, bob ];
 }
@@ -1997,15 +1997,17 @@ export const MODELS = {
 };
 
 export const PERMISSIONS = {
-  ADMIN_RO: "admin_ro",
-  ADMIN_RW: "admin_rw",
-  AUTH_RO: "auth_ro",
-  AUTH_RW: "auth_rw",
+  ADMIN_READ: "admin_read",
+  ADMIN_WRITE: "admin_write",
+  ACCOUNTS_READ: "accounts-read",
+  ACCOUNTS_WRITE: "accounts-write",
 };
 
 export const ROLES = {
-  ADMIN: "admin",
-  AUTH: "auth",
+  ADMIN_READER: "admin-reader",
+  ADMIN_WRITER: "admin-writer",
+  ACCOUNTS_READER: "accounts-reader",
+  ACCOUNTS_WRITER: "accounts-writer",
 };
 
 export const COMPONENTS = {
@@ -2034,13 +2036,13 @@ export function getModules() {
       moduleId: 1,
       name: "Administration",
       icon: "settings",
-      permission: PERMISSIONS.ADMIN_RO,
+      permission: PERMISSIONS.ADMIN_READ,
       categories: [
         {
           categoryId: 1,
           name: "Accounts",
           icon: "accounts",
-          permission: PERMISSIONS.ADMIN_RO,
+          permission: PERMISSIONS.ADMIN_READ,
           pages: [
             {
               pageId: 1,
@@ -2055,7 +2057,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=userId",
-              permission: PERMISSIONS.ADMIN_RO,
+              permission: PERMISSIONS.ADMIN_READ,
             },
             {
               pageId: 2,
@@ -2070,7 +2072,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=roleId",
-              permission: PERMISSIONS.ADMIN_RO,
+              permission: PERMISSIONS.ADMIN_READ,
             },
             {
               pageId: 3,
@@ -2085,7 +2087,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=permissionId",
-              permission: PERMISSIONS.ADMIN_RO,
+              permission: PERMISSIONS.ADMIN_READ,
             },
           ],
         },
@@ -2093,7 +2095,7 @@ export function getModules() {
           categoryId: 2,
           name: "Applications",
           icon: "applications",
-          permission: PERMISSIONS.ADMIN_RO,
+          permission: PERMISSIONS.ADMIN_READ,
           pages: [
             {
               pageId: 4,
@@ -2108,7 +2110,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=moduleId",
-              permission: PERMISSIONS.ADMIN_RO,
+              permission: PERMISSIONS.ADMIN_READ,
             },
             {
               pageId: 5,
@@ -2123,7 +2125,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=categoryId",
-              permission: PERMISSIONS.ADMIN_RO,
+              permission: PERMISSIONS.ADMIN_READ,
             },
             {
               pageId: 6,
@@ -2138,7 +2140,7 @@ export function getModules() {
                 "|" +
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=pageId",
-              permission: PERMISSIONS.ADMIN_RO,
+              permission: PERMISSIONS.ADMIN_READ,
             },
           ],
         },
@@ -2938,45 +2940,74 @@ export function getRoles() {
   return [
     {
       roleId: 1,
-      name: ROLES.ADMIN,
-      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+      name: ROLES.ADMIN_READ,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
       permissions: [
         {
           permissionId: 1,
-          name: PERMISSIONS.ADMIN_RO,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
-        },
-        {
-          permissionId: 2,
-          name: PERMISSIONS.ADMIN_RW,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ADMIN_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 3,
-          name: PERMISSIONS.AUTH_RW,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
-        },
-        {
-          permissionId: 4,
-          name: PERMISSIONS.AUTH_RO,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },
     {
       roleId: 2,
-      name: ROLES.AUTH,
-      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+      name: ROLES.ADMIN_WRITE,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
       permissions: [
         {
+          permissionId: 1,
+          name: PERMISSIONS.ADMIN_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+        {
+          permissionId: 2,
+          name: PERMISSIONS.ADMIN_WRITE,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+        {
           permissionId: 3,
-          name: PERMISSIONS.AUTH_RW,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 4,
-          name: PERMISSIONS.AUTH_RO,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ACCOUNTS_WRITE,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+      ],
+    },
+    {
+      roleId: 3,
+      name: ROLES.ACCOUNTS_READ,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      permissions: [
+        {
+          permissionId: 3,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+      ],
+    },
+    {
+      roleId: 4,
+      name: ROLES.ACCOUNTS_WRITE,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      permissions: [
+        {
+          permissionId: 3,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+        {
+          permissionId: 4,
+          name: PERMISSIONS.ACCOUNTS_WRITE,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },
@@ -2996,18 +3027,35 @@ export function getUsers(roles: Role[]) {
   alice.userId = 1;
   alice.name = "Alice";
   alice.email = "alice@email.com";
-  alice.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
+  alice.permission =
+    PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   let bob = new User();
   bob.userId = 2;
   bob.name = "Bob";
   bob.email = "bob@email.com";
-  bob.permission = PERMISSIONS.AUTH_RO + "|" + PERMISSIONS.AUTH_RW;
+  bob.permission = PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
-  alice.roles.push(roles[0]); // Assigning 'admin' role to Alice
-  bob.roles.push(roles[1]); // Assigning 'auth' role to Bob
+  let jane = new User();
+  jane.userId = 3;
+  jane.name = "Jane";
+  jane.email = "jane@email.com";
+  jane.permission =
+    PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
-  return [alice, bob];
+  let will = new User();
+  will.userId = 4;
+  will.name = "Will";
+  will.email = "jane@email.com";
+  will.permission =
+    PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
+
+  alice.roles.push(roles[1]); // Assigning 'admin writer' role to Alice
+  bob.roles.push(roles[3]); // Assigning 'accounts writer' role to Bob
+  jane.roles.push(roles[0]); // Assigning 'admin reader' role to Jane
+  will.roles.push(roles[2]); // Assigning 'accounts reader' role to Will
+
+  return [alice, bob, jane, will];
 }
 ```
 
@@ -6246,7 +6294,7 @@ The following example shows how to update the `args` field for the `Page` for `C
                 "=isReadOnly",
                 // 👆 add above
 
-              permission: PERMISSIONS.ADMIN_RO,
+              permission: PERMISSIONS.ADMIN_READ,
             },
 // code removed for brevity
 ```
@@ -6642,7 +6690,7 @@ Add a permission check to each end point. The following example updates `/aspect
 
 router.get(
   "/",
-  requirePermission(PERMISSIONS.AUTH_RO),		// 👈 add permission check
+  requirePermission(PERMISSIONS.ACCOUNTS_READ),		// 👈 add permission check
   asyncHandler(async (_req: Request, res: Response) => {
 
 	// code removed for brevity
@@ -6652,7 +6700,7 @@ router.get(
 
 router.get(
   "/:id",
-  requirePermission(PERMISSIONS.AUTH_RO),		// 👈 add permission check
+  requirePermission(PERMISSIONS.ACCOUNTS_READ),		// 👈 add permission check
   asyncHandler(async (_req: Request, res: Response) => {
 
 	// code removed for brevity
@@ -6662,7 +6710,7 @@ router.get(
 
 router.post(
   "/",
-  requirePermission(PERMISSIONS.AUTH_RW),		// 👈 add permission check
+  requirePermission(PERMISSIONS.ACCOUNTS_WRITE),		// 👈 add permission check
   asyncHandler(async (_req: Request, res: Response) => {
 
 	// code removed for brevity
@@ -6672,7 +6720,7 @@ router.post(
 
 router.put(
   "/:id",
-  requirePermission(PERMISSIONS.AUTH_RW),		// 👈 add permission check
+  requirePermission(PERMISSIONS.ACCOUNTS_WRITE),		// 👈 add permission check
   asyncHandler(async (_req: Request, res: Response) => {
 
 	// code removed for brevity
@@ -6682,7 +6730,7 @@ router.put(
 
 router.delete(
   "/:id",
-  requirePermission(PERMISSIONS.AUTH_RW),		// 👈 add permission check
+  requirePermission(PERMISSIONS.ACCOUNTS_WRITE),		// 👈 add permission check
   asyncHandler(async (_req: Request, res: Response) => {
 
 	// code removed for brevity

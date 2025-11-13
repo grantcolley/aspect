@@ -8,45 +8,74 @@ export function getRoles() {
   return [
     {
       roleId: 1,
-      name: ROLES.ADMIN,
-      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+      name: ROLES.ADMIN_READER,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
       permissions: [
         {
           permissionId: 1,
-          name: PERMISSIONS.ADMIN_RO,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
-        },
-        {
-          permissionId: 2,
-          name: PERMISSIONS.ADMIN_RW,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ADMIN_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 3,
-          name: PERMISSIONS.AUTH_RO,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
-        },
-        {
-          permissionId: 4,
-          name: PERMISSIONS.AUTH_RW,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },
     {
       roleId: 2,
-      name: ROLES.AUTH,
-      permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+      name: ROLES.ADMIN_WRITER,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
       permissions: [
         {
+          permissionId: 1,
+          name: PERMISSIONS.ADMIN_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+        {
+          permissionId: 2,
+          name: PERMISSIONS.ADMIN_WRITE,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+        {
           permissionId: 3,
-          name: PERMISSIONS.AUTH_RO,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 4,
-          name: PERMISSIONS.AUTH_RW,
-          permission: PERMISSIONS.ADMIN_RO + "|" + PERMISSIONS.ADMIN_RW,
+          name: PERMISSIONS.ACCOUNTS_WRITE,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+      ],
+    },
+    {
+      roleId: 3,
+      name: ROLES.ACCOUNTS_READER,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      permissions: [
+        {
+          permissionId: 3,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+      ],
+    },
+    {
+      roleId: 4,
+      name: ROLES.ACCOUNTS_WRITER,
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      permissions: [
+        {
+          permissionId: 3,
+          name: PERMISSIONS.ACCOUNTS_READ,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+        },
+        {
+          permissionId: 4,
+          name: PERMISSIONS.ACCOUNTS_WRITE,
+          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },

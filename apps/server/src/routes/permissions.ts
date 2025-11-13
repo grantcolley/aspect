@@ -14,7 +14,7 @@ const router = Router();
 
 router.get(
   "/",
-  requirePermission(PERMISSIONS.AUTH_RO),
+  requirePermission(PERMISSIONS.ACCOUNTS_READ),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Permission[] = await db.all(`
@@ -28,7 +28,7 @@ router.get(
 
 router.get(
   "/:id",
-  requirePermission(PERMISSIONS.AUTH_RO),
+  requirePermission(PERMISSIONS.ACCOUNTS_READ),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.get<Permission>(
@@ -48,7 +48,7 @@ router.get(
 
 router.post(
   "/",
-  requirePermission(PERMISSIONS.AUTH_RW),
+  requirePermission(PERMISSIONS.ACCOUNTS_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = permissionSchema.safeParse(_req.body);
 
@@ -72,7 +72,7 @@ router.post(
 
 router.put(
   "/:id",
-  requirePermission(PERMISSIONS.AUTH_RW),
+  requirePermission(PERMISSIONS.ACCOUNTS_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = permissionSchema.safeParse(_req.body);
 
@@ -100,7 +100,7 @@ router.put(
 
 router.delete(
   "/:id",
-  requirePermission(PERMISSIONS.AUTH_RW),
+  requirePermission(PERMISSIONS.ACCOUNTS_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.run(

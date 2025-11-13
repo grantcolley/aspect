@@ -14,7 +14,7 @@ const router = Router();
 
 router.get(
   "/",
-  requirePermission(PERMISSIONS.ADMIN_RO),
+  requirePermission(PERMISSIONS.ADMIN_READ),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Page[] = await db.all(`
@@ -28,7 +28,7 @@ router.get(
 
 router.get(
   "/:id",
-  requirePermission(PERMISSIONS.ADMIN_RO),
+  requirePermission(PERMISSIONS.ADMIN_READ),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.get<Page>(
@@ -48,7 +48,7 @@ router.get(
 
 router.post(
   "/",
-  requirePermission(PERMISSIONS.ADMIN_RW),
+  requirePermission(PERMISSIONS.ADMIN_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = pageSchema.safeParse(_req.body);
 
@@ -80,7 +80,7 @@ router.post(
 
 router.put(
   "/:id",
-  requirePermission(PERMISSIONS.ADMIN_RW),
+  requirePermission(PERMISSIONS.ADMIN_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = pageSchema.safeParse(_req.body);
 
@@ -116,7 +116,7 @@ router.put(
 
 router.delete(
   "/:id",
-  requirePermission(PERMISSIONS.ADMIN_RW),
+  requirePermission(PERMISSIONS.ADMIN_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.run(

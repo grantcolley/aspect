@@ -16,7 +16,7 @@ const router = Router();
 
 router.get(
   "/",
-  requirePermission(PERMISSIONS.ADMIN_RO),
+  requirePermission(PERMISSIONS.ADMIN_READ),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Category[] = await db.all(`
@@ -30,7 +30,7 @@ router.get(
 
 router.get(
   "/:id",
-  requirePermission(PERMISSIONS.ADMIN_RO),
+  requirePermission(PERMISSIONS.ADMIN_READ),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result = await db.get<Category>(
@@ -62,7 +62,7 @@ router.get(
 
 router.post(
   "/",
-  requirePermission(PERMISSIONS.ADMIN_RW),
+  requirePermission(PERMISSIONS.ADMIN_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = categorySchema.safeParse(_req.body);
 
@@ -110,7 +110,7 @@ router.post(
 
 router.put(
   "/:id",
-  requirePermission(PERMISSIONS.ADMIN_RW),
+  requirePermission(PERMISSIONS.ADMIN_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const parsed = categorySchema.safeParse(_req.body);
 
@@ -189,7 +189,7 @@ router.put(
 
 router.delete(
   "/:id",
-  requirePermission(PERMISSIONS.ADMIN_RW),
+  requirePermission(PERMISSIONS.ADMIN_WRITE),
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
 

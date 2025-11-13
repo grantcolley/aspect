@@ -8,15 +8,17 @@ export const MODELS = {
 };
 
 export const PERMISSIONS = {
-  ADMIN_RO: "admin_ro",
-  ADMIN_RW: "admin_rw",
-  AUTH_RO: "auth_ro",
-  AUTH_RW: "auth_rw",
+  ADMIN_READ: "admin_read",
+  ADMIN_WRITE: "admin_write",
+  ACCOUNTS_READ: "accounts-read",
+  ACCOUNTS_WRITE: "accounts-write",
 };
 
 export const ROLES = {
-  ADMIN: "admin",
-  AUTH: "auth",
+  ADMIN_READER: "admin-reader",
+  ADMIN_WRITER: "admin-writer",
+  ACCOUNTS_READER: "accounts-reader",
+  ACCOUNTS_WRITER: "accounts-writer",
 };
 
 export const COMPONENTS = {
