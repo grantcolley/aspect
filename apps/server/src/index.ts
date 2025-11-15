@@ -5,6 +5,7 @@ import { config } from "./config/config";
 import { errorHandler } from "./middleware/errorHandler";
 import { AttachUserPermissions } from "./middleware/attachUserPermissions";
 import navigationRouter from "./routes/navigation";
+import userPermissionsRouter from "./routes/userpermissions";
 import permissionsRouter from "./routes/permissions";
 import rolesRouter from "./routes/roles";
 import usersRouter from "./routes/users";
@@ -36,6 +37,7 @@ const start = async () => {
   app.use(AttachUserPermissions);
 
   app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
+  app.use(config.ENDPOINT_USER_PERMISSIONS, userPermissionsRouter);
   app.use(config.ENDPOINT_PERMISSIONS, permissionsRouter);
   app.use(config.ENDPOINT_ROLES, rolesRouter);
   app.use(config.ENDPOINT_USERS, usersRouter);

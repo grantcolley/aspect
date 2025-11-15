@@ -6826,3 +6826,62 @@ export default router;
 ```
 
 ### Add PBAC to the Client
+
+This will enable the client to fetch the logged in user's permissions from the server.
+
+Add the `userPermissions` route enpoint to `/aspect/apps/server/.env`.
+
+```
+// existing lines removed for brevity
+
+ENDPOINT_NAVIGATION=/api/navigation
+ENDPOINT_USER_PERMISSIONS=/api/userpermissions // 👈 add
+
+// existing lines removed for brevity
+```
+
+Update `/aspect/apps/server/src/config/config.ts`
+
+```TypeScript
+// existing code removed for brevity
+
+const envSchema = z.object({
+
+// existing code removed for brevity
+
+  ENDPOINT_NAVIGATION: z.string().min(1),
+  ENDPOINT_USER_PERMISSIONS: z.string().min(1), // 👈 add
+
+// existing code removed for brevity
+```
+
+Create the route `/aspect/apps/server/src/routes/usepermissions.ts`.
+
+```TypeScript
+import { Router, Request, Response } from "express";
+import { asyncHandler } from "../middleware/asyncHandler";
+
+const router = Router();
+
+router.get(
+  "/",
+  asyncHandler(async (_req: Request, res: Response) => {
+    res.json(_req.userPermissions);
+  })
+);
+
+export default router;
+```
+
+Update `/aspect/apps/server/src/index.ts`
+
+```TypeScript
+
+// existing code removed for brevity
+
+  app.use(config.ENDPOINT_NAVIGATION, navigationRouter);
+  app.use(config.ENDPOINT_USER_PERMISSIONS, userPermissionsRouter); // 👈 add
+
+// existing code removed for brevity
+
+```

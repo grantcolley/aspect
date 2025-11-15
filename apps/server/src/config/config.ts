@@ -13,6 +13,7 @@ const envSchema = z.object({
   AUTH_TOKEN_SIGNING_ALGORITHM: z.string().min(1),
   CORS_URL: z.string().min(1),
   ENDPOINT_NAVIGATION: z.string().min(1),
+  ENDPOINT_USER_PERMISSIONS: z.string().min(1),
   ENDPOINT_PERMISSIONS: z.string().min(1),
   ENDPOINT_ROLES: z.string().min(1),
   ENDPOINT_USERS: z.string().min(1),
