@@ -1997,17 +1997,17 @@ export const MODELS = {
 };
 
 export const PERMISSIONS = {
-  ADMIN_READ: "admin_read",
-  ADMIN_WRITE: "admin_write",
-  ACCOUNTS_READ: "accounts-read",
-  ACCOUNTS_WRITE: "accounts-write",
+  ADMIN_READ: "admin:read",
+  ADMIN_WRITE: "admin:write",
+  ACCOUNTS_READ: "accounts:read",
+  ACCOUNTS_WRITE: "accounts:write",
 };
 
 export const ROLES = {
-  ADMIN_READER: "admin-reader",
-  ADMIN_WRITER: "admin-writer",
-  ACCOUNTS_READER: "accounts-reader",
-  ACCOUNTS_WRITER: "accounts-writer",
+  ADMIN_READER: "admin:reader",
+  ADMIN_WRITER: "admin:writer",
+  ACCOUNTS_READER: "accounts:reader",
+  ACCOUNTS_WRITER: "accounts:writer",
 };
 
 export const COMPONENTS = {
