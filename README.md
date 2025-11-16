@@ -7043,7 +7043,7 @@ Update ``/aspect/apps/client/src/main.tsx` to insert the `<PermissionsProvider>`
 // existing code removed for brevity
 
 import { RoutesProvider } from "./context/routes-context";
-import { PermissionsProvider } from "./context/permissions-context";
+import { PermissionsProvider } from "./context/permissions-context"; // 👈 add
 
 // existing code removed for brevity
 
