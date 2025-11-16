@@ -86,7 +86,8 @@ aspect
 - [Add Permission-Based Access Control (PBAC)](#add-permission-based-access-control-pbac)
   - [Control Access to Server Endpoints](#control-access-to-server-endpoints)
   - [Add PBAC to the Client](#add-pbac-to-the-client)
-
+    - [Fetch User Permissions from the API](#fetch-user-permissions-from-the-api)
+      
 # Scaffolding the Monorepo
 
 ## Setup the Workspaces
@@ -4390,7 +4391,7 @@ router.delete(
 export default router;
 ```
 
-## Update the `index.ts`
+### Update the `index.ts`
 
 Update the `apps/server/src/index.ts`
 
@@ -6825,10 +6826,11 @@ router.get(
 export default router;
 ```
 
-### Add PBAC to the Client
+## Add PBAC to the Client
 
 This will enable the client to fetch the logged in user's permissions from the server.
 
+### Fetch User Permissions from the API
 Add the `userPermissions` route enpoint to `/aspect/apps/server/.env`.
 
 ```
