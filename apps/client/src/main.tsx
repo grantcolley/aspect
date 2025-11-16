@@ -6,6 +6,7 @@ import { Auth0Provider } from "@auth0/auth0-react";
 import { config } from "@/config/config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { RoutesProvider } from "./context/routes-context";
+import { PermissionsProvider } from "./context/permissions-context";
 import ErrorPage from "@/pages/error-page";
 import App from "./App";
 import "reflect-metadata";
@@ -38,9 +39,11 @@ createRoot(document.getElementById("root")!).render(
           router.navigate(appState?.returnTo || window.location.pathname);
         }}
       >
-        <RoutesProvider>
-          <RouterProvider router={router} />
-        </RoutesProvider>
+        <PermissionsProvider>
+          <RoutesProvider>
+            <RouterProvider router={router} />
+          </RoutesProvider>
+        </PermissionsProvider>
       </Auth0Provider>
     </ThemeProvider>
   </StrictMode>

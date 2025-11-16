@@ -86,8 +86,9 @@ aspect
 - [Add Permission-Based Access Control (PBAC)](#add-permission-based-access-control-pbac)
   - [Control Access to Server Endpoints](#control-access-to-server-endpoints)
   - [Add PBAC to the Client](#add-pbac-to-the-client)
+    - [Create the API Endpoint for fetching User Permissions](#create-the-api-endpoint-for-fetching-user-permissions)
     - [Fetch User Permissions from the API](#fetch-user-permissions-from-the-api)
-      
+
 # Scaffolding the Monorepo
 
 ## Setup the Workspaces
@@ -6830,7 +6831,8 @@ export default router;
 
 This will enable the client to fetch the logged in user's permissions from the server.
 
-### Fetch User Permissions from the API
+### Create the API Endpoint for fetching User Permissions
+
 Add the `userPermissions` route enpoint to `/aspect/apps/server/.env`.
 
 ```
@@ -6886,4 +6888,186 @@ Update `/aspect/apps/server/src/index.ts`
 
 // existing code removed for brevity
 
+```
+
+### Fetch User Permissions from the API
+
+Add the `userPermissions` route enpoint to `/aspect/apps/client/.env`.
+
+```
+VITE_REACT_APP_AUTH0_DOMAIN=
+VITE_REACT_APP_AUTH0_CLIENT_ID=
+VITE_REACT_APP_AUTH0_AUDIENCE=https://Aspect.API.com
+VITE_REACT_API_URL=http://localhost:3000
+VITE_REACT_API_NAVIGATION_URL=api/navigation
+VITE_REACT_API_USER_PERMISSIONS_URL=api/userpermissions // 👈 add
+```
+
+Update `/aspect/apps/client/src/config/config.ts`
+
+```TypeScript
+import { z } from "zod";
+
+const envSchema = z.object({
+  VITE_REACT_APP_AUTH0_DOMAIN: z.string().min(1),
+  VITE_REACT_APP_AUTH0_CLIENT_ID: z.string().min(1),
+  VITE_REACT_APP_AUTH0_AUDIENCE: z.string().min(1),
+  VITE_REACT_API_URL: z.string().min(1),
+  VITE_REACT_API_NAVIGATION_URL: z.string().min(1),
+  VITE_REACT_API_USER_PERMISSIONS_URL: z.string().min(1), // 👈 add
+});
+
+const env = envSchema.parse(import.meta.env);
+
+export const config = {
+  AUTH0_DOMAIN: env.VITE_REACT_APP_AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID: env.VITE_REACT_APP_AUTH0_CLIENT_ID,
+  AUTH0_AUDIENCE: env.VITE_REACT_APP_AUTH0_AUDIENCE,
+  API_URL: env.VITE_REACT_API_URL,
+  API_NAVIGATION_URL: env.VITE_REACT_API_NAVIGATION_URL,
+  API_USER_PERMISSIONS_URL: env.VITE_REACT_API_USER_PERMISSIONS_URL, // 👈 add
+};
+```
+
+Create the `/aspect/apps/client/src/requests/fetch-permissions.ts` request.
+
+```TypeScript
+import { config } from "@/config/config";
+
+export const fetchPermissions = async (token: string) => {
+  const navigationUrl = `${config.API_URL}/${config.API_USER_PERMISSIONS_URL}`;
+
+  const response = await fetch(navigationUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `HTTP error! status: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data: string[] = await response.json();
+
+  return data;
+};
+```
+
+Create the `/aspect/apps/client/src/context/permission-context.tsx` (PermissionsProvider).
+
+```TypeScript
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { fetchPermissions } from "@/requests/fetch-permissions";
+
+type Permission = string;
+
+type PermissionsContextType = {
+  permissions: Set<Permission> | null; // null while loading or unauthenticated
+  isLoading: boolean;
+  isError: boolean;
+  has: (p: Permission) => boolean;
+};
+
+const PermissionsContext = createContext<PermissionsContextType | undefined>(
+  undefined
+);
+
+export function PermissionsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
+  const [permissions, setPermissions] = useState<Set<Permission> | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user?.sub) {
+      setPermissions(null);
+      return;
+    }
+
+    let cancelled = false;
+    const load = async () => {
+      setIsLoading(true);
+      setIsError(false);
+      try {
+        const token = await getAccessTokenSilently();
+        const data = await fetchPermissions(token);
+        if (!cancelled) setPermissions(new Set(data));
+      } catch (err) {
+        if (!cancelled) setIsError(true);
+        console.error(err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, user?.sub, getAccessTokenSilently]);
+
+  const value = useMemo<PermissionsContextType>(
+    () => ({
+      permissions,
+      isLoading,
+      isError,
+      has: (p: Permission) => !!permissions?.has(p),
+    }),
+    [permissions, isLoading, isError]
+  );
+
+  return (
+    <PermissionsContext.Provider value={value}>
+      {children}
+    </PermissionsContext.Provider>
+  );
+}
+
+export function usePermissions() {
+  const ctx = useContext(PermissionsContext);
+  if (!ctx)
+    throw new Error("usePermissions must be used within a PermissionsProvider");
+  return ctx;
+}
+```
+
+Update ``/aspect/apps/client/src/main.tsx` to insert the `<PermissionsProvider>` bwteen `<Auth0Provider>` and `<RoutesProvider>`.
+
+```TypeScript
+// existing code removed for brevity
+
+import { RoutesProvider } from "./context/routes-context";
+import { PermissionsProvider } from "./context/permissions-context";
+
+// existing code removed for brevity
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="aspect-ui-theme">
+      <Auth0Provider
+        domain={config.AUTH0_DOMAIN}
+        clientId={config.AUTH0_CLIENT_ID}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+          audience: config.AUTH0_AUDIENCE || undefined,
+        }}
+        onRedirectCallback={(appState) => {
+          router.navigate(appState?.returnTo || window.location.pathname);
+        }}
+      >
+        <PermissionsProvider> // 👈 add
+          <RoutesProvider>
+            <RouterProvider router={router} />
+          </RoutesProvider>
+        </PermissionsProvider> // 👈 add
+      </Auth0Provider>
+    </ThemeProvider>
+  </StrictMode>
+);
 ```
