@@ -67,10 +67,10 @@ aspect
 - [Call the API from the Client](#call-the-api-from-the-client)
 - [Add Structured Error Handling to the Node.js Server](#add-structured-error-handling-to-the-nodejs-server)
 - [Add Logging to the Node.js Server](#add-logging-to-the-nodejs-server)
-- [Seed the Authorisation data](#seed-the-authorisation-data)
+- [Seed the Accounts data](#seed-the-accounts-data)
 - [Add API Endpoints](#add-api-Endpoints)
   - [Create Endpoint Variables in `.env` File](#create-endpoint-variables-in-env-file)
-  - [Add the Authorisation Endpoints](#add-the-authorisation-endpoints)
+  - [Add the Accounts Endpoints](#add-the-accounts-endpoints)
   - [Add the Applications Endpoints](#add-the-applications-endpoints)
     - [Update the index.ts](#update-the-indexts)
 - [Test the Endpoints using Postman](#test-the-endpoints-using-postman)
@@ -757,7 +757,7 @@ export class Module implements Permissionable, Editability {
 }
 ```
 
-Create the authorisation models `User`, `Role` and `Permission` classes.
+Create the accounts models `User`, `Role` and `Permission` classes.
 \
 \
 `apps/shared/src/models/permission.ts`
@@ -887,7 +887,7 @@ export const moduleSchema = z.object({
 export type ModuleInput = z.infer<typeof moduleSchema>;
 ```
 
-Create the authorisation validation schema `userSchema`, `roleSchema` and `pemissionSchema`.
+Create the accounts validation schema `userSchema`, `roleSchema` and `pemissionSchema`.
 \
 \
 `apps/shared/src/validation/pemission-schema.ts`
@@ -2927,7 +2927,7 @@ sqlite3.exe
 *.log.gz   // 👈 add
 ```
 
-# Seed the Authorisation data
+# Seed the Accounts data
 
 Create role data class `db/src/data/roleData.ts`.
 
@@ -3061,14 +3061,14 @@ export function getUsers(roles: Role[]) {
 }
 ```
 
-Create seed authorisation data class `db/src/seedAuthorisation.ts`.
+Create seed accounts data class `db/src/seedAccounts.ts`.
 
 ```TypeScript
 import { Database } from "sqlite";
 import { Role } from "../../apps/shared/src/models/role";
 import { Permission } from "../../apps/shared/src/models/permission";
 
-export async function seedAuthorisation(db: Database, roles: Role[]) {
+export async function seedAccounts(db: Database, roles: Role[]) {
   const permissionsMap = new Map<number, Permission>();
 
   await db.exec(`
@@ -3156,7 +3156,7 @@ export async function seedAuthorisation(db: Database, roles: Role[]) {
   permissionStatement.finalize();
   rolePermissionStatement.finalize();
 
-  console.log(`Insert Authorisation Complete.`);
+  console.log(`Insert Accounts Complete.`);
 }
 ```
 
@@ -3210,7 +3210,7 @@ import { getUsers } from "./data/userData";
 import { seedModules } from "./seedModules";
 import { getModules } from "./data/moduleData";
 import { getRoles } from "./data/roleData"; // 👈 add
-import { seedAuthorisation } from "./seedAuthorisation"; // 👈 add
+import { seedAccounts } from "./seedAccounts"; // 👈 add
 const fs = require("fs");
 
 sqlite3.verbose();
@@ -3239,7 +3239,7 @@ async function seed() {
   let users = getUsers(roles); // 👈 modify
 
   await seedModules(db, modules);
-  await seedAuthorisation(db, roles); // 👈 add
+  await seedAccounts(db, roles); // 👈 add
   await seedUsers(db, users);
 
   await db.close();
@@ -3279,7 +3279,7 @@ ENDPOINT_MODULES=/api/modules
 
 ```
 
-## Add the Authorisation Endpoints
+## Add the Accounts Endpoints
 
 Create the `permissions` route `apps/server/src/route/permissions.ts`.
 
