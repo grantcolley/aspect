@@ -8,7 +8,7 @@ import { getUsers } from "./data/userData";
 import { seedModules } from "./seedModules";
 import { getModules } from "./data/moduleData";
 import { getRoles } from "./data/roleData";
-import { seedAuthorisation } from "./seedAuthorisation";
+import { seedAuthorisation } from "./seedAccounts";
 
 sqlite3.verbose();
 
