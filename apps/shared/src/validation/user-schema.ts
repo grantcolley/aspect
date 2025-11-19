@@ -6,7 +6,6 @@ export const userSchema = z.object({
   userId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
 });
 
