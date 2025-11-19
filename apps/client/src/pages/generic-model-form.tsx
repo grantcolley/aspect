@@ -138,7 +138,7 @@ export default function GenericModelForm({ args }: GenericModelFormProps) {
         const token = await getAccessTokenSilently();
         await DeleteData(token, location.pathname);
 
-        // Strip the last segment of the path (e.g. /permissions/123 → /permissions)
+        // Strip the last segment of the path (e.g. /users/123 → /users)
         const parentPath =
           location.pathname.split("/").slice(0, -1).join("/") || "/";
 
