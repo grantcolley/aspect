@@ -6273,7 +6273,7 @@ export function getModules() {
                 COMPONENT_ARGS.MODEL_PERMISSIONS +
                 "=" +
                 PERMISSIONS.ACCOUNTS_READ +
-                ";" +
+                "," +
                 PERMISSIONS.ACCOUNTS_WRITE,
                 // 👆 add above
               permission: PERMISSIONS.ACCOUNTS_READ,
@@ -6301,7 +6301,7 @@ export function getModules() {
                 COMPONENT_ARGS.MODEL_PERMISSIONS +
                 "=" +
                 PERMISSIONS.ACCOUNTS_READ +
-                ";" +
+                "," +
                 PERMISSIONS.ACCOUNTS_WRITE,
               permission: PERMISSIONS.ACCOUNTS_READ,
             },
@@ -6328,7 +6328,7 @@ export function getModules() {
                 COMPONENT_ARGS.MODEL_PERMISSIONS +
                 "=" +
                 PERMISSIONS.ACCOUNTS_READ +
-                ";" +
+                "," +
                 PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ACCOUNTS_READ,
             },
@@ -6363,7 +6363,7 @@ export function getModules() {
                 COMPONENT_ARGS.MODEL_PERMISSIONS +
                 "=" +
                 PERMISSIONS.ADMIN_READ +
-                ";" +
+                "," +
                 PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ADMIN_READ,
             },
@@ -6390,7 +6390,7 @@ export function getModules() {
                 COMPONENT_ARGS.MODEL_PERMISSIONS +
                 "=" +
                 PERMISSIONS.ADMIN_READ +
-                ";" +
+                "," +
                 PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ADMIN_READ,
             },
@@ -6417,7 +6417,7 @@ export function getModules() {
                 COMPONENT_ARGS.MODEL_PERMISSIONS +
                 "=" +
                 PERMISSIONS.ADMIN_READ +
-                ";" +
+                "," +
                 PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ADMIN_READ,
             },
