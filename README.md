@@ -187,7 +187,6 @@ export class User {
   userId: number;
   name: string;
   email: string;
-  permission: string;
 }
 ```
 
@@ -217,13 +216,11 @@ export function getUsers() {
   alice.userId = 1;
   alice.name = "Alice";
   alice.email = "alice@email.com";
-  alice.permission = PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   let bob = new User();
   bob.userId = 2;
   bob.name = "Bob";
   bob.email = "bob@email.com";
-  bob.permission = PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   return [ alice, bob ];
 }
@@ -240,17 +237,15 @@ export async function seedUsers(db: Database, users: User[]) {
     CREATE TABLE IF NOT EXISTS users (
       userId INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      permission TEXT NOT NULL
+      email TEXT UNIQUE NOT NULL
     );
   `);
 
   for (const user of users) {
     await db.run(
-      "INSERT INTO users (name, email, permission) VALUES (?, ?, ?)",
+      "INSERT INTO users (name, email) VALUES (?, ?)",
       user.name,
-      user.email,
-      user,permission
+      user.email
     );
     console.log(`Inserted: ${user.name}`);
   }
@@ -764,12 +759,10 @@ Create the accounts models `User`, `Role` and `Permission` classes.
 
 ```TypeScript
 import { Editability } from "../interfaces/editability";
-import { Permissionable } from "../interfaces/permissionable";
 
-export class Permission implements Permissionable, Editability {
+export class Permission implements Editability {
   permissionId: number;
   name: string;
-  permission: string;
   isReadOnly: boolean;
 }
 ```
@@ -778,13 +771,11 @@ export class Permission implements Permissionable, Editability {
 
 ```TypeScript
 import { Editability } from "../interfaces/editability";
-import { Permissionable } from "../interfaces/permissionable";
 import { Permission } from "./permission";
 
-export class Role implements Permissionable, Editability {
+export class Role implements Editability {
   roleId: number;
   name: string;
-  permission: string;
   isReadOnly: boolean;
   permissions: Permission[];
 
@@ -808,14 +799,12 @@ Update the `User` at `apps/shared/src/models/user.ts`
 
 ```TypeScript
 import { Editability } from "../interfaces/editability";
-import { Permissionable } from "../interfaces/permissionable";
 import { Role } from "./role";
 
-export class User implements Permissionable, Editability {
+export class User implements Editability {
   userId: number;
   name: string;
   email: string;
-  permission: string;
   isReadOnly: boolean;
   roles: Role[];
 
@@ -898,7 +887,6 @@ import { z } from "zod";
 export const permissionSchema = z.object({
   permissionId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
-  permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
 });
 
@@ -913,7 +901,6 @@ import { z } from "zod";
 export const roleSchema = z.object({
   roleId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
-  permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
 });
 
@@ -929,7 +916,6 @@ export const userSchema = z.object({
   userId: z.coerce.number().optional(),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  permission: z.string().min(1, "Permission is required"),
   isReadOnly: z.boolean().optional(),
 });
 
@@ -2942,74 +2928,61 @@ export function getRoles() {
   return [
     {
       roleId: 1,
-      name: ROLES.ADMIN_READ,
-      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      name: ROLES.ADMIN_READER,
       permissions: [
         {
           permissionId: 1,
           name: PERMISSIONS.ADMIN_READ,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 3,
           name: PERMISSIONS.ACCOUNTS_READ,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },
     {
       roleId: 2,
-      name: ROLES.ADMIN_WRITE,
-      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      name: ROLES.ADMIN_WRITER,
       permissions: [
         {
           permissionId: 1,
           name: PERMISSIONS.ADMIN_READ,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 2,
           name: PERMISSIONS.ADMIN_WRITE,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 3,
           name: PERMISSIONS.ACCOUNTS_READ,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 4,
           name: PERMISSIONS.ACCOUNTS_WRITE,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },
     {
       roleId: 3,
-      name: ROLES.ACCOUNTS_READ,
-      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      name: ROLES.ACCOUNTS_READER,
       permissions: [
         {
           permissionId: 3,
           name: PERMISSIONS.ACCOUNTS_READ,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },
     {
       roleId: 4,
-      name: ROLES.ACCOUNTS_WRITE,
-      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
+      name: ROLES.ACCOUNTS_WRITER,
       permissions: [
         {
           permissionId: 3,
           name: PERMISSIONS.ACCOUNTS_READ,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
         {
           permissionId: 4,
           name: PERMISSIONS.ACCOUNTS_WRITE,
-          permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ADMIN_WRITE,
         },
       ],
     },
@@ -3029,28 +3002,21 @@ export function getUsers(roles: Role[]) {
   alice.userId = 1;
   alice.name = "Alice";
   alice.email = "alice@email.com";
-  alice.permission =
-    PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   let bob = new User();
   bob.userId = 2;
   bob.name = "Bob";
   bob.email = "bob@email.com";
-  bob.permission = PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   let jane = new User();
   jane.userId = 3;
   jane.name = "Jane";
   jane.email = "jane@email.com";
-  jane.permission =
-    PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   let will = new User();
   will.userId = 4;
   will.name = "Will";
   will.email = "jane@email.com";
-  will.permission =
-    PERMISSIONS.ACCOUNTS_READ + "|" + PERMISSIONS.ACCOUNTS_WRITE;
 
   alice.roles.push(roles[1]); // Assigning 'admin writer' role to Alice
   bob.roles.push(roles[3]); // Assigning 'accounts writer' role to Bob
@@ -3068,31 +3034,28 @@ import { Database } from "sqlite";
 import { Role } from "../../apps/shared/src/models/role";
 import { Permission } from "../../apps/shared/src/models/permission";
 
-export async function seedAccounts(db: Database, roles: Role[]) {
+export async function seedAuthorisation(db: Database, roles: Role[]) {
   const permissionsMap = new Map<number, Permission>();
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       userId INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      permission TEXT NOT NULL
+      email TEXT UNIQUE NOT NULL
     );
   `);
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS roles (
       roleId INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      permission TEXT NOT NULL
+      name TEXT NOT NULL
     );
   `);
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS permissions (
       permissionId INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      permission TEXT NOT NULL
+      name TEXT NOT NULL
     );
   `);
 
@@ -3117,11 +3080,11 @@ export async function seedAccounts(db: Database, roles: Role[]) {
   `);
 
   const roleStatement = await db.prepare(
-    "INSERT INTO roles (roleId, name, permission) VALUES (?, ?, ?)"
+    "INSERT INTO roles (roleId, name) VALUES (?, ?)"
   );
 
   const permissionStatement = await db.prepare(
-    "INSERT INTO permissions (permissionId, name, permission) VALUES (?, ?, ?)"
+    "INSERT INTO permissions (permissionId, name) VALUES (?, ?)"
   );
 
   const rolePermissionStatement = await db.prepare(
@@ -3129,17 +3092,13 @@ export async function seedAccounts(db: Database, roles: Role[]) {
   );
 
   for (const role of roles) {
-    await roleStatement.run(role.roleId, role.name, role.permission);
+    await roleStatement.run(role.roleId, role.name);
     console.log(`Inserted: ${role.name}`);
 
     for (const permission of role.permissions) {
       let p = permissionsMap.get(permission.permissionId);
       if (!p) {
-        await permissionStatement.run(
-          permission.permissionId,
-          permission.name,
-          permission.permission
-        );
+        await permissionStatement.run(permission.permissionId, permission.name);
         console.log(`Inserted: ${permission.name}`);
 
         permissionsMap.set(permission.permissionId, permission);
@@ -3156,7 +3115,7 @@ export async function seedAccounts(db: Database, roles: Role[]) {
   permissionStatement.finalize();
   rolePermissionStatement.finalize();
 
-  console.log(`Insert Accounts Complete.`);
+  console.log(`Insert Authorisation Complete.`);
 }
 ```
 
@@ -3168,7 +3127,7 @@ import { User } from "../../apps/shared/src/models/user";
 
 export async function seedUsers(db: Database, users: User[]) {
   const userStatement = await db.prepare(
-    "INSERT INTO users (userId, name, email, permission) VALUES (?, ?, ?, ?)"
+    "INSERT INTO users (userId, name, email) VALUES (?, ?, ?)"
   );
 
   const userRoleStatement = await db.prepare(
@@ -3179,8 +3138,7 @@ export async function seedUsers(db: Database, users: User[]) {
     await userStatement.run(
       user.userId,
       user.name,
-      user.email,
-      user.permission
+      user.email
     );
     console.log(`Inserted: ${user.name}`);
 
@@ -3302,7 +3260,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Permission[] = await db.all(`
-      SELECT    permissionId, name, permission
+      SELECT    permissionId, name
       FROM 	    permissions
     `);
 
@@ -3316,7 +3274,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Permission>(
       `
-      SELECT    permissionId, name, permission
+      SELECT    permissionId, name
       FROM 	    permissions
       WHERE     permissionId = ?
     `,
@@ -3340,15 +3298,15 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO permissions (name, permission) VALUES (?, ?)",
-      [name, permission]
+      "INSERT INTO permissions (name) VALUES (?)",
+      [name]
     );
 
-    res.status(201).json({ permissionId: result.lastID, name, permission });
+    res.status(201).json({ permissionId: result.lastID, name });
   })
 );
 
@@ -3363,19 +3321,19 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE permissions SET name = ?, permission = ? WHERE permissionId = ?",
-      [name, permission, _req.params.id]
+      "UPDATE permissions SET name = ? WHERE permissionId = ?",
+      [name, _req.params.id]
     );
 
     if (result.changes === 0) {
       return res.status(404).json({ error: "Permission not found" });
     }
 
-    res.json({ permissionId: _req.params.id, name, permission });
+    res.json({ permissionId: _req.params.id, name });
   })
 );
 
@@ -3422,7 +3380,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Role[] = await db.all(`
-      SELECT    roleId, name, permission
+      SELECT    roleId, name
       FROM 	    roles
     `);
 
@@ -3436,7 +3394,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Role>(
       `
-      SELECT    roleId, name, permission
+      SELECT    roleId, name
       FROM 	    roles
       WHERE     roleId = ?
     `,
@@ -3447,7 +3405,7 @@ router.get(
 
     const permissions: Permission[] = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission
+      SELECT        p.permissionId, p.name
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -3472,12 +3430,12 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO roles (name, permission) VALUES (?, ?)",
-      [name, permission]
+      "INSERT INTO roles (name) VALUES (?)",
+      [name]
     );
 
     const rolePermissionsStatement = await db.prepare(
@@ -3493,7 +3451,7 @@ router.post(
 
     const permissions: Permission[] = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission
+      SELECT        p.permissionId, p.name
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -3504,7 +3462,6 @@ router.post(
     res.status(201).json({
       roleId: result.lastID,
       name,
-      permission,
       permissions: permissions,
     });
   })
@@ -3523,13 +3480,13 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
 
     const result = await db.run(
-      "UPDATE roles SET name = ?, permission = ? WHERE roleId = ?",
-      [name, permission, _req.params.id]
+      "UPDATE roles SET name = ? WHERE roleId = ?",
+      [name, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -3577,7 +3534,7 @@ router.put(
 
     permissions = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission
+      SELECT        p.permissionId, p.name
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -3588,7 +3545,6 @@ router.put(
     res.json({
       roleId: _req.params.id,
       name: name,
-      permission: permission,
       permissions: permissions,
     });
   })
@@ -3643,7 +3599,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: User[] = await db.all(`
-      SELECT    userId, name, email, permission
+      SELECT    userId, name, email
       FROM 	    users
     `);
 
@@ -3657,7 +3613,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<User>(
       `
-      SELECT    userId, name, email, permission
+      SELECT    userId, name, email
       FROM 	    users
       WHERE     userId = ?
     `,
@@ -3668,7 +3624,7 @@ router.get(
 
     const roles: Role[] = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission
+      SELECT        r.roleId, r.name
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -3697,8 +3653,8 @@ router.post(
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO users (name, email, permission) VALUES (?, ?, ?)",
-      [name, email, permission]
+      "INSERT INTO users (name, email) VALUES (?, ?)",
+      [name, email]
     );
 
     const userRolesStatement = await db.prepare(
@@ -3711,7 +3667,7 @@ router.post(
 
     const roles: Role[] = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission
+      SELECT        r.roleId, r.name
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -3723,7 +3679,6 @@ router.post(
       roleId: result.lastID,
       name: name,
       email: email,
-      permission: permission,
       roles: roles,
     });
   })
@@ -3742,13 +3697,13 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, email, permission } = parsed.data;
+    const { name, email } = parsed.data;
 
     const db = await dbConnection(dbFile);
 
     const result = await db.run(
-      "UPDATE users SET name = ?, email = ?, permission = ? WHERE userId = ?",
-      [name, email, permission, _req.params.id]
+      "UPDATE users SET name = ?, email = ? WHERE userId = ?",
+      [name, email, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -3785,7 +3740,7 @@ router.put(
     }
     roles = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission
+      SELECT        r.roleId, r.name
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -3797,7 +3752,6 @@ router.put(
       roleId: _req.params.id,
       name: name,
       email: email,
-      permission: permission,
       roles: roles,
     });
   })
@@ -5712,6 +5666,7 @@ export const COMPONENT_ARGS = {
   MODEL_IDENTITY_FIELD: "IdentityField",
   MODEL_HIDDEN_FIELDS: "HiddenFields", // 👈 add
   MODEL_READONLY_FIELDS: "ReadOnlyFields", // 👈 add
+  MODEL_PERMISSIONS: "ModelPermissions", // 👈 add
 };
 ```
 
@@ -6182,7 +6137,7 @@ export default function GenericModelForm({ args }: GenericModelFormProps) {
         const token = await getAccessTokenSilently();
         await DeleteData(token, location.pathname);
 
-        // Strip the last segment of the path (e.g. /permissions/123 → /permissions)
+        // Strip the last segment of the path (e.g. /users/123 → /users)
         const parentPath =
           location.pathname.split("/").slice(0, -1).join("/") || "/";
 
@@ -6267,12 +6222,151 @@ export const fetchLazyComponents: () => LazyComponentMap =
   });
 ```
 
-Update `db/src/data/moduleData.ts` to add `COMPONENT_ARGS.MODEL_READONLY_FIELDS` and `COMPONENT_ARGS.MODEL_HIDDEN_FIELDS` to the `Page`'s `args` field.
+Update `db/src/data/moduleData.ts` to add `COMPONENT_ARGS.MODEL_READONLY_FIELDS`, `COMPONENT_ARGS.MODEL_HIDDEN_FIELDS` and `COMPONENT_ARGS.MODEL_PERMISSIONS` to the `Page`'s `args` field.
 
-The following example shows how to update the `args` field for the `Page` for `Category`. Do the same for `Page`'s for `Module`, `Page`, `User`, `Role`, and `Permission`.
+The following example shows how to update the `args` field for the `Page` for `User`. Do the same for `Page`'s for `Module`, `Category`, `Page`, `Role`, and `Permission`.
 
 ```TypeScript
-// code removed for brevity
+import { Module } from "../../../apps/shared/src/models/module";
+import {
+  MODELS,
+  PERMISSIONS,
+  COMPONENTS,
+  COMPONENT_ARGS,
+} from "../../../apps/shared/src/constants/constants";
+
+export function getModules() {
+  return [
+    {
+      moduleId: 1,
+      name: "Administration",
+      icon: "settings",
+      permission: PERMISSIONS.ADMIN_READ + "|" + PERMISSIONS.ACCOUNTS_READ,
+      categories: [
+        {
+          categoryId: 1,
+          name: "Accounts",
+          icon: "accounts",
+          permission: PERMISSIONS.ACCOUNTS_READ,
+          pages: [
+            {
+              pageId: 1,
+              name: "Users",
+              icon: "users",
+              path: "users",
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.USER +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=userId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_READONLY_FIELDS +
+                "=userId" +
+                // 👇add below
+                "|" +
+                COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ACCOUNTS_READ +
+                ";" +
+                PERMISSIONS.ACCOUNTS_WRITE,
+                // 👆 add above
+              permission: PERMISSIONS.ACCOUNTS_READ,
+            },
+            {
+              pageId: 2,
+              name: "Roles",
+              icon: "roles",
+              path: "roles",
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.ROLE +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=roleId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_READONLY_FIELDS +
+                "=roleId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ACCOUNTS_READ +
+                ";" +
+                PERMISSIONS.ACCOUNTS_WRITE,
+              permission: PERMISSIONS.ACCOUNTS_READ,
+            },
+            {
+              pageId: 3,
+              name: "Permissions",
+              icon: "permissions",
+              path: "permissions",
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.PERMISSION +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=permissionId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_READONLY_FIELDS +
+                "=permissionId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ACCOUNTS_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
+              permission: PERMISSIONS.ACCOUNTS_READ,
+            },
+          ],
+        },
+        {
+          categoryId: 2,
+          name: "Applications",
+          icon: "applications",
+          permission: PERMISSIONS.ADMIN_READ,
+          pages: [
+            {
+              pageId: 4,
+              name: "Modules",
+              icon: "modules",
+              path: "modules",
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.MODULE +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=moduleId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_READONLY_FIELDS +
+                "=moduleId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ADMIN_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
+              permission: PERMISSIONS.ADMIN_READ,
+            },
             {
               pageId: 5,
               name: "Categories",
@@ -6287,18 +6381,52 @@ The following example shows how to update the `args` field for the `Page` for `C
                 COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
                 "=categoryId" +
                 "|" +
-
-                // 👇add below
                 COMPONENT_ARGS.MODEL_READONLY_FIELDS +
                 "=categoryId" +
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
-                "=isReadOnly",
-                // 👆 add above
-
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ADMIN_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ADMIN_READ,
             },
-// code removed for brevity
+            {
+              pageId: 6,
+              name: "Pages",
+              icon: "pages",
+              path: "pages",
+              component: COMPONENTS.GENERIC_MODEL_TABLE,
+              args:
+                COMPONENT_ARGS.MODEL_NAME +
+                "=" +
+                MODELS.PAGE +
+                "|" +
+                COMPONENT_ARGS.MODEL_IDENTITY_FIELD +
+                "=pageId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_READONLY_FIELDS +
+                "=PageId" +
+                "|" +
+                COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ADMIN_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
+              permission: PERMISSIONS.ADMIN_READ,
+            },
+          ],
+        },
+      ],
+    },
+  ] as Module[];
+}
 ```
 
 ### Update the Model Table Component and Page
