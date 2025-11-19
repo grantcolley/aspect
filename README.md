@@ -7165,7 +7165,7 @@ export function usePermissions() {
 }
 ```
 
-Update `/aspect/apps/client/src/main.tsx` to insert the `<PermissionsProvider>` bwteen `<Auth0Provider>` and `<RoutesProvider>`.
+Update `/aspect/apps/client/src/main.tsx` to insert the `<PermissionsProvider>` between `<Auth0Provider>` and `<RoutesProvider>`.
 
 ```TypeScript
 // existing code removed for brevity
