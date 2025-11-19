@@ -20,7 +20,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Role[] = await db.all(`
-      SELECT    roleId, name, permission  
+      SELECT    roleId, name  
       FROM 	    roles
     `);
 
@@ -35,7 +35,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Role>(
       `
-      SELECT    roleId, name, permission  
+      SELECT    roleId, name  
       FROM 	    roles
       WHERE     roleId = ?
     `,
@@ -46,7 +46,7 @@ router.get(
 
     const permissions: Permission[] = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission  
+      SELECT        p.permissionId, p.name  
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -72,13 +72,10 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
-    const result = await db.run(
-      "INSERT INTO roles (name, permission) VALUES (?, ?)",
-      [name, permission]
-    );
+    const result = await db.run("INSERT INTO roles (name) VALUES (?)", [name]);
 
     const rolePermissionsStatement = await db.prepare(
       "INSERT INTO rolePermissions (roleId, permissionId) VALUES (?, ?)"
@@ -93,7 +90,7 @@ router.post(
 
     const permissions: Permission[] = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission  
+      SELECT        p.permissionId, p.name  
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -104,7 +101,6 @@ router.post(
     res.status(201).json({
       roleId: result.lastID,
       name,
-      permission,
       permissions: permissions,
     });
   })
@@ -124,14 +120,14 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
 
-    const result = await db.run(
-      "UPDATE roles SET name = ?, permission = ? WHERE roleId = ?",
-      [name, permission, _req.params.id]
-    );
+    const result = await db.run("UPDATE roles SET name = ? WHERE roleId = ?", [
+      name,
+      _req.params.id,
+    ]);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: "Role not found" });
@@ -178,7 +174,7 @@ router.put(
 
     permissions = await db.all(
       `
-      SELECT        p.permissionId, p.name, p.permission  
+      SELECT        p.permissionId, p.name  
       FROM 	        rolePermissions rp
       INNER JOIN    permissions p ON rp.permissionId = p.permissionId
       WHERE         rp.roleId = ?
@@ -189,7 +185,6 @@ router.put(
     res.json({
       roleId: _req.params.id,
       name: name,
-      permission: permission,
       permissions: permissions,
     });
   })

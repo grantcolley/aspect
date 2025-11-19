@@ -20,7 +20,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: User[] = await db.all(`
-      SELECT    userId, name, email, permission  
+      SELECT    userId, name, email  
       FROM 	    users
     `);
 
@@ -35,7 +35,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<User>(
       `
-      SELECT    userId, name, email, permission  
+      SELECT    userId, name, email  
       FROM 	    users
       WHERE     userId = ?
     `,
@@ -46,7 +46,7 @@ router.get(
 
     const roles: Role[] = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission  
+      SELECT        r.roleId, r.name  
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -72,12 +72,12 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, email, permission } = parsed.data;
+    const { name, email } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "INSERT INTO users (name, email, permission) VALUES (?, ?, ?)",
-      [name, email, permission]
+      "INSERT INTO users (name, email) VALUES (?, ?)",
+      [name, email]
     );
 
     const userRolesStatement = await db.prepare(
@@ -90,7 +90,7 @@ router.post(
 
     const roles: Role[] = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission  
+      SELECT        r.roleId, r.name  
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -99,10 +99,9 @@ router.post(
     );
 
     res.status(201).json({
-      roleId: result.lastID,
+      userId: result.lastID,
       name: name,
       email: email,
-      permission: permission,
       roles: roles,
     });
   })
@@ -122,13 +121,13 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, email, permission } = parsed.data;
+    const { name, email } = parsed.data;
 
     const db = await dbConnection(dbFile);
 
     const result = await db.run(
-      "UPDATE users SET name = ?, email = ?, permission = ? WHERE userId = ?",
-      [name, email, permission, _req.params.id]
+      "UPDATE users SET name = ?, email = ? WHERE userId = ?",
+      [name, email, _req.params.id]
     );
 
     if (result.changes === 0) {
@@ -165,7 +164,7 @@ router.put(
     }
     roles = await db.all(
       `
-      SELECT        r.roleId, r.name, r.permission  
+      SELECT        r.roleId, r.name  
       FROM 	        userRoles ur
       INNER JOIN    roles r ON ur.roleId = r.roleId
       WHERE         ur.userId = ?
@@ -174,10 +173,9 @@ router.put(
     );
 
     res.json({
-      roleId: _req.params.id,
+      userId: _req.params.id,
       name: name,
       email: email,
-      permission: permission,
       roles: roles,
     });
   })

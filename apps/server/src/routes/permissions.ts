@@ -18,7 +18,7 @@ router.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const db = await dbConnection(dbFile);
     const result: Permission[] = await db.all(`
-      SELECT    permissionId, name, permission  
+      SELECT    permissionId, name  
       FROM 	    permissions
     `);
 
@@ -33,7 +33,7 @@ router.get(
     const db = await dbConnection(dbFile);
     const result = await db.get<Permission>(
       `
-      SELECT    permissionId, name, permission  
+      SELECT    permissionId, name  
       FROM 	    permissions
       WHERE     permissionId = ?
     `,
@@ -58,15 +58,14 @@ router.post(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
-    const result = await db.run(
-      "INSERT INTO permissions (name, permission) VALUES (?, ?)",
-      [name, permission]
-    );
+    const result = await db.run("INSERT INTO permissions (name) VALUES (?)", [
+      name,
+    ]);
 
-    res.status(201).json({ permissionId: result.lastID, name, permission });
+    res.status(201).json({ permissionId: result.lastID, name });
   })
 );
 
@@ -82,19 +81,19 @@ router.put(
         .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { name, permission } = parsed.data;
+    const { name } = parsed.data;
 
     const db = await dbConnection(dbFile);
     const result = await db.run(
-      "UPDATE permissions SET name = ?, permission = ? WHERE permissionId = ?",
-      [name, permission, _req.params.id]
+      "UPDATE permissions SET name = ? WHERE permissionId = ?",
+      [name, _req.params.id]
     );
 
     if (result.changes === 0) {
       return res.status(404).json({ error: "Permission not found" });
     }
 
-    res.json({ permissionId: _req.params.id, name, permission });
+    res.json({ permissionId: _req.params.id, name });
   })
 );
 
