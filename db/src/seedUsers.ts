@@ -3,7 +3,7 @@ import { User } from "../../apps/shared/src/models/user";
 
 export async function seedUsers(db: Database, users: User[]) {
   const userStatement = await db.prepare(
-    "INSERT INTO users (userId, name, email, permission) VALUES (?, ?, ?, ?)"
+    "INSERT INTO users (userId, name, email) VALUES (?, ?, ?)"
   );
 
   const userRoleStatement = await db.prepare(
@@ -11,12 +11,7 @@ export async function seedUsers(db: Database, users: User[]) {
   );
 
   for (const user of users) {
-    await userStatement.run(
-      user.userId,
-      user.name,
-      user.email,
-      user.permission
-    );
+    await userStatement.run(user.userId, user.name, user.email);
     console.log(`Inserted: ${user.name}`);
 
     for (const role of user.roles) {
