@@ -31,4 +31,5 @@ export const COMPONENT_ARGS = {
   MODEL_IDENTITY_FIELD: "IdentityField",
   MODEL_HIDDEN_FIELDS: "HiddenFields",
   MODEL_READONLY_FIELDS: "ReadOnlyFields",
+  MODEL_PERMISSIONS: "ModelPermissions",
 };
