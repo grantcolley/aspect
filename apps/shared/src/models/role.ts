@@ -1,17 +1,13 @@
 import { Editability } from "../interfaces/editability";
-import { Permissionable } from "../interfaces/permissionable";
 import { FormField } from "../decorators/model-decorators";
 import { Permission } from "./permission";
 
-export class Role implements Permissionable, Editability {
+export class Role implements Editability {
   @FormField("number", { label: "Role ID" })
   roleId!: number;
 
   @FormField("text", { label: "Name" })
   name!: string;
-
-  @FormField("text", { label: "Permission" })
-  permission!: string;
 
   isReadOnly: boolean = false;
 

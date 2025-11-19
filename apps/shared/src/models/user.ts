@@ -1,9 +1,8 @@
 import { Editability } from "../interfaces/editability";
-import { Permissionable } from "../interfaces/permissionable";
 import { FormField } from "../decorators/model-decorators";
 import { Role } from "./role";
 
-export class User implements Permissionable, Editability {
+export class User implements Editability {
   @FormField("number", { label: "User ID" })
   userId!: number;
 
@@ -12,9 +11,6 @@ export class User implements Permissionable, Editability {
 
   @FormField("text", { label: "Email" })
   email!: string;
-
-  @FormField("text", { label: "Permission" })
-  permission!: string;
 
   isReadOnly: boolean = false;
 
