@@ -38,7 +38,13 @@ export function getModules() {
                 "=userId" +
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
-                "=isReadOnly",
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ACCOUNTS_READ +
+                ";" +
+                PERMISSIONS.ACCOUNTS_WRITE,
               permission: PERMISSIONS.ACCOUNTS_READ,
             },
             {
@@ -59,7 +65,13 @@ export function getModules() {
                 "=roleId" +
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
-                "=isReadOnly",
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ACCOUNTS_READ +
+                ";" +
+                PERMISSIONS.ACCOUNTS_WRITE,
               permission: PERMISSIONS.ACCOUNTS_READ,
             },
             {
@@ -80,7 +92,13 @@ export function getModules() {
                 "=permissionId" +
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
-                "=isReadOnly",
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ACCOUNTS_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ACCOUNTS_READ,
             },
           ],
@@ -109,7 +127,13 @@ export function getModules() {
                 "=moduleId" +
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
-                "=isReadOnly",
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ADMIN_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ADMIN_READ,
             },
             {
@@ -130,7 +154,13 @@ export function getModules() {
                 "=categoryId" +
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
-                "=isReadOnly",
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ADMIN_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ADMIN_READ,
             },
             {
@@ -151,7 +181,13 @@ export function getModules() {
                 "=PageId" +
                 "|" +
                 COMPONENT_ARGS.MODEL_HIDDEN_FIELDS +
-                "=isReadOnly",
+                "=isReadOnly" +
+                "|" +
+                COMPONENT_ARGS.MODEL_PERMISSIONS +
+                "=" +
+                PERMISSIONS.ADMIN_READ +
+                ";" +
+                PERMISSIONS.ADMIN_WRITE,
               permission: PERMISSIONS.ADMIN_READ,
             },
           ],
