@@ -9,24 +9,21 @@ export async function seedAuthorisation(db: Database, roles: Role[]) {
     CREATE TABLE IF NOT EXISTS users (
       userId INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      permission TEXT NOT NULL
+      email TEXT UNIQUE NOT NULL
     );
   `);
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS roles (
       roleId INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      permission TEXT NOT NULL
+      name TEXT NOT NULL
     );
   `);
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS permissions (
       permissionId INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      permission TEXT NOT NULL
+      name TEXT NOT NULL
     );
   `);
 
@@ -51,11 +48,11 @@ export async function seedAuthorisation(db: Database, roles: Role[]) {
   `);
 
   const roleStatement = await db.prepare(
-    "INSERT INTO roles (roleId, name, permission) VALUES (?, ?, ?)"
+    "INSERT INTO roles (roleId, name) VALUES (?, ?)"
   );
 
   const permissionStatement = await db.prepare(
-    "INSERT INTO permissions (permissionId, name, permission) VALUES (?, ?, ?)"
+    "INSERT INTO permissions (permissionId, name) VALUES (?, ?)"
   );
 
   const rolePermissionStatement = await db.prepare(
@@ -63,17 +60,13 @@ export async function seedAuthorisation(db: Database, roles: Role[]) {
   );
 
   for (const role of roles) {
-    await roleStatement.run(role.roleId, role.name, role.permission);
+    await roleStatement.run(role.roleId, role.name);
     console.log(`Inserted: ${role.name}`);
 
     for (const permission of role.permissions) {
       let p = permissionsMap.get(permission.permissionId);
       if (!p) {
-        await permissionStatement.run(
-          permission.permissionId,
-          permission.name,
-          permission.permission
-        );
+        await permissionStatement.run(permission.permissionId, permission.name);
         console.log(`Inserted: ${permission.name}`);
 
         permissionsMap.set(permission.permissionId, permission);
