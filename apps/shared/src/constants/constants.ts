@@ -7,11 +7,16 @@ export const MODELS = {
   PERMISSION: "Permission",
 };
 
+export const PERMISSION_TYPE = {
+  READ: ":read",
+  WRITE: ":write",
+};
+
 export const PERMISSIONS = {
-  ADMIN_READ: "admin:read",
-  ADMIN_WRITE: "admin:write",
-  ACCOUNTS_READ: "accounts:read",
-  ACCOUNTS_WRITE: "accounts:write",
+  ADMIN_READ: "admin" + PERMISSION_TYPE.READ,
+  ADMIN_WRITE: "admin" + PERMISSION_TYPE.WRITE,
+  ACCOUNTS_READ: "accounts" + PERMISSION_TYPE.READ,
+  ACCOUNTS_WRITE: "accounts" + PERMISSION_TYPE.WRITE,
 };
 
 export const ROLES = {
