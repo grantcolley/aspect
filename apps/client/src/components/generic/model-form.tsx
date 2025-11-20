@@ -30,6 +30,7 @@ type CrudFormProps<TSchema extends ZodType<any>> = {
   item?: z.infer<TSchema>;
   hiddenFields?: string[];
   readOnlyFields?: string[];
+  isReadOnly?: boolean;
   onCreate?: (data: z.infer<TSchema>) => Promise<void> | void;
   onUpdate?: (data: z.infer<TSchema>) => Promise<void> | void;
   onDelete?: (data: z.infer<TSchema>) => Promise<void> | void;
@@ -41,6 +42,7 @@ export function ModelForm<TSchema extends ZodObject<any>>({
   item,
   hiddenFields = [],
   readOnlyFields = [],
+  isReadOnly = false,
   onCreate,
   onUpdate,
   onDelete,
@@ -63,6 +65,8 @@ export function ModelForm<TSchema extends ZodObject<any>>({
   }, [item, form]);
 
   const handleSubmit = async (data: T) => {
+    if (isReadOnly) return;
+
     try {
       setIsSaveProcessing(true);
       if (item && onUpdate) {
@@ -77,6 +81,8 @@ export function ModelForm<TSchema extends ZodObject<any>>({
   };
 
   const handleDelete = async () => {
+    if (isReadOnly) return;
+
     try {
       setIsDeleteProcessing(true);
       if (item && onDelete) {
@@ -94,42 +100,46 @@ export function ModelForm<TSchema extends ZodObject<any>>({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="flex flex-col gap-6"
       >
-        <div className="flex justify-between items-center w-full">
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label="Submit"
-            type="submit"
-            disabled={isSaveProcessing}
-          >
-            {isSaveProcessing ? (
-              <Spinner />
-            ) : (
-              <IconDeviceFloppy className="!size-5" />
-            )}
-          </Button>
-          {item && onDelete && (
+        {!isReadOnly && (
+          <div className="flex justify-between items-center w-full">
             <Button
-              variant="destructive"
+              variant="outline"
               size="icon"
-              aria-label="Delete"
-              onClick={handleDelete}
-              disabled={isDeleteProcessing}
+              aria-label="Submit"
+              type="submit"
+              disabled={isSaveProcessing}
             >
-              {isDeleteProcessing ? (
+              {isSaveProcessing ? (
                 <Spinner />
               ) : (
-                <IconTrash className="!size-5" />
+                <IconDeviceFloppy className="!size-5" />
               )}
             </Button>
-          )}
-        </div>
+            {item && onDelete && (
+              <Button
+                variant="destructive"
+                size="icon"
+                aria-label="Delete"
+                onClick={handleDelete}
+                disabled={isDeleteProcessing}
+              >
+                {isDeleteProcessing ? (
+                  <Spinner />
+                ) : (
+                  <IconTrash className="!size-5" />
+                )}
+              </Button>
+            )}
+          </div>
+        )}
 
         {metadata
           .filter((field: any) => !hiddenFields.includes(field.propertyKey))
           .map((field: any) => {
-            const isReadOnly = readOnlyFields.includes(field.propertyKey);
-            const readOnlyClass = isReadOnly
+            // Field is read-only if the whole form is read-only OR it's in readOnlyFields
+            const isFieldReadOnly =
+              isReadOnly || readOnlyFields.includes(field.propertyKey);
+            const readOnlyClass = isFieldReadOnly
               ? "opacity-50 cursor-not-allowed"
               : "";
 
@@ -142,7 +152,7 @@ export function ModelForm<TSchema extends ZodObject<any>>({
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
                       {field.options.label}
-                      {isReadOnly && (
+                      {isFieldReadOnly && (
                         <IconLock
                           size={14}
                           stroke={1.5}
@@ -158,8 +168,8 @@ export function ModelForm<TSchema extends ZodObject<any>>({
                               <Input
                                 {...rhfField}
                                 value={rhfField.value ?? ""}
-                                readOnly={isReadOnly}
-                                disabled={isReadOnly}
+                                readOnly={isFieldReadOnly}
+                                disabled={isFieldReadOnly}
                                 className={readOnlyClass}
                               />
                             );
@@ -176,8 +186,8 @@ export function ModelForm<TSchema extends ZodObject<any>>({
                                       : Number(e.target.value)
                                   )
                                 }
-                                readOnly={isReadOnly}
-                                disabled={isReadOnly}
+                                readOnly={isFieldReadOnly}
+                                disabled={isFieldReadOnly}
                                 className={readOnlyClass}
                               />
                             );
@@ -190,7 +200,7 @@ export function ModelForm<TSchema extends ZodObject<any>>({
                                 <Checkbox
                                   checked={rhfField.value}
                                   onCheckedChange={rhfField.onChange}
-                                  disabled={isReadOnly}
+                                  disabled={isFieldReadOnly}
                                 />
                               </div>
                             );
@@ -208,8 +218,8 @@ export function ModelForm<TSchema extends ZodObject<any>>({
                                 onChange={(e) =>
                                   rhfField.onChange(new Date(e.target.value))
                                 }
-                                readOnly={isReadOnly}
-                                disabled={isReadOnly}
+                                readOnly={isFieldReadOnly}
+                                disabled={isFieldReadOnly}
                                 className={readOnlyClass}
                               />
                             );
@@ -221,7 +231,7 @@ export function ModelForm<TSchema extends ZodObject<any>>({
                                 <Select
                                   onValueChange={rhfField.onChange}
                                   value={rhfField.value}
-                                  disabled={isReadOnly}
+                                  disabled={isFieldReadOnly}
                                 >
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select..." />
@@ -243,8 +253,8 @@ export function ModelForm<TSchema extends ZodObject<any>>({
                             return (
                               <Input
                                 {...rhfField}
-                                readOnly={isReadOnly}
-                                disabled={isReadOnly}
+                                readOnly={isFieldReadOnly}
+                                disabled={isFieldReadOnly}
                                 className={readOnlyClass}
                               />
                             );

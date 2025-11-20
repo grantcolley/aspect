@@ -21,11 +21,16 @@ import {
 import { getClass, getSchema } from "shared/src/decorators/model-registry";
 import {
   ParseKeyValueString,
+  ParseStringByCommaFiltered,
   RemoveLastPathSegment,
   GetLastPathSegment,
   IsNewModel,
 } from "shared/src/utils/string-util";
-import { COMPONENT_ARGS } from "shared/src/constants/constants";
+import {
+  COMPONENT_ARGS,
+  PERMISSION_TYPE,
+} from "shared/src/constants/constants";
+import { usePermissions } from "@/context/permissions-context";
 
 export type GenericModelFormProps = { args: string };
 
@@ -42,6 +47,11 @@ export default function GenericModelForm({ args }: GenericModelFormProps) {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const { hasAny, isLoading } = usePermissions();
+
+  if (isLoading) {
+    throw new Error("User permissions are still loading.");
+  }
 
   const parsedArgs = ParseKeyValueString(args);
   const model = parsedArgs[COMPONENT_ARGS.MODEL_NAME];
@@ -49,6 +59,24 @@ export default function GenericModelForm({ args }: GenericModelFormProps) {
   const schema = cls ? getSchema(cls) : null;
 
   if (!cls) return <div>No {model} model registered!</div>;
+
+  if (
+    !hasAny(
+      ParseStringByCommaFiltered(
+        parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+        PERMISSION_TYPE.READ
+      )
+    )
+  ) {
+    throw new Error("You do not have permission to view this item.");
+  }
+
+  let canEdit = hasAny(
+    ParseStringByCommaFiltered(
+      parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+      PERMISSION_TYPE.WRITE
+    )
+  );
 
   const idValue = GetLastPathSegment(location.pathname);
   const isNew = !idValue || IsNewModel(idValue);
@@ -173,6 +201,7 @@ export default function GenericModelForm({ args }: GenericModelFormProps) {
               item={data}
               hiddenFields={hiddenFields}
               readOnlyFields={readOnlyFields}
+              isReadOnly={!canEdit}
               onCreate={handleCreate}
               onUpdate={handleUpdate}
               onDelete={handleDelete}

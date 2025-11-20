@@ -88,6 +88,7 @@ aspect
   - [Add PBAC to the Client](#add-pbac-to-the-client)
     - [Create the API Endpoint for fetching User Permissions](#create-the-api-endpoint-for-fetching-user-permissions)
     - [Fetch User Permissions from the API](#fetch-user-permissions-from-the-api)
+    - [Permission Driven Model Form](#permission-driven-model-form)
 
 # Scaffolding the Monorepo
 
@@ -7217,4 +7218,353 @@ createRoot(document.getElementById("root")!).render(
     </ThemeProvider>
   </StrictMode>
 );
+```
+
+### Permission Driven Model Form
+
+Update `/aspect/apps/client/src/components/generic/model-form.tsx` to accept a `isReadonly` flag.
+
+```TypeScript
+
+// existing code removed for brevity
+
+type CrudFormProps<TSchema extends ZodType<any>> = {
+  schema: TSchema;
+  cls: new (...args: any[]) => z.infer<TSchema>;
+  item?: z.infer<TSchema>;
+  hiddenFields?: string[];
+  readOnlyFields?: string[];
+  isReadOnly?: boolean;                                         // 👈 add isReadOnly
+  onCreate?: (data: z.infer<TSchema>) => Promise<void> | void;
+  onUpdate?: (data: z.infer<TSchema>) => Promise<void> | void;
+  onDelete?: (data: z.infer<TSchema>) => Promise<void> | void;
+};
+
+export function ModelForm<TSchema extends ZodObject<any>>({
+  schema,
+  cls,
+  item,
+  hiddenFields = [],
+  readOnlyFields = [],
+  isReadOnly = false,  // 👈 add isReadOnly
+  onCreate,
+  onUpdate,
+  onDelete,
+}: CrudFormProps<TSchema>) {
+  type T = z.infer<TSchema>;
+  const metadata = getFormMetadata(cls);
+  const [isSaveProcessing, setIsSaveProcessing] = useState(false);
+  const [isDeleteProcessing, setIsDeleteProcessing] = useState(false);
+
+  // existing code removed for brevity
+
+  const handleSubmit = async (data: T) => {
+    if (isReadOnly) return; // 👈 add isReadOnly check
+
+    try {
+      setIsSaveProcessing(true);
+      if (item && onUpdate) {
+        await onUpdate(data);
+      } else if (!item && onCreate) {
+        await onCreate(data);
+        form.reset(new cls() as any);
+      }
+    } finally {
+      setIsSaveProcessing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isReadOnly) return; // 👈 add isReadOnly check
+
+    try {
+      setIsDeleteProcessing(true);
+      if (item && onDelete) {
+        await onDelete(item);
+        form.reset(new cls() as any);
+      }
+    } finally {
+      setIsDeleteProcessing(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex flex-col gap-6"
+      >
+   		  // 👇add isReadOnly check to hide buttons
+
+        {!isReadOnly && (
+          <div className="flex justify-between items-center w-full">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Submit"
+              type="submit"
+              disabled={isSaveProcessing}
+            >
+              {isSaveProcessing ? (
+                <Spinner />
+              ) : (
+                <IconDeviceFloppy className="!size-5" />
+              )}
+            </Button>
+            {item && onDelete && (
+              <Button
+                variant="destructive"
+                size="icon"
+                aria-label="Delete"
+                onClick={handleDelete}
+                disabled={isDeleteProcessing}
+              >
+                {isDeleteProcessing ? (
+                  <Spinner />
+                ) : (
+                  <IconTrash className="!size-5" />
+                )}
+              </Button>
+            )}
+          </div>
+        )}
+
+  		  // 👆 add isReadOnly check to hide buttons
+
+        {metadata
+          .filter((field: any) => !hiddenFields.includes(field.propertyKey))
+          .map((field: any) => {
+
+            // 👇 Field is read-only if the whole form is read-only OR it's in readOnlyFields
+
+            const isFieldReadOnly =
+              isReadOnly || readOnlyFields.includes(field.propertyKey);
+            const readOnlyClass = isFieldReadOnly
+              ? "opacity-50 cursor-not-allowed"
+              : "";
+
+            // 👆
+
+            return (
+              <FormField
+                key={field.propertyKey}
+                control={form.control}
+                name={field.propertyKey as any}
+                render={({ field: rhfField }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      {field.options.label}
+                      {isFieldReadOnly && ( // 👈 change to isFieldReadOnly
+                        <IconLock
+                          size={14}
+                          stroke={1.5}
+                          className="text-muted-foreground"
+                        />
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      {(() => {
+                        switch (field.type) {
+                          case "text":
+                            return (
+                              <Input
+                                {...rhfField}
+                                value={rhfField.value ?? ""}
+                                readOnly={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                disabled={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                className={readOnlyClass}
+                              />
+                            );
+
+                          case "number":
+                            return (
+                              <Input
+                                type="number"
+                                value={rhfField.value ?? ""}
+                                onChange={(e) =>
+                                  rhfField.onChange(
+                                    e.target.value === ""
+                                      ? undefined
+                                      : Number(e.target.value)
+                                  )
+                                }
+                                readOnly={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                disabled={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                className={readOnlyClass}
+                              />
+                            );
+
+                          case "checkbox":
+                            return (
+                              <div
+                                className={`flex items-center gap-2 ${readOnlyClass}`}
+                              >
+                                <Checkbox
+                                  checked={rhfField.value}
+                                  onCheckedChange={rhfField.onChange}
+                                  disabled={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                />
+                              </div>
+                            );
+
+                          case "datetime": {
+                            const val = rhfField.value as any;
+                            const formatted =
+                              val instanceof Date
+                                ? val.toISOString().slice(0, 16)
+                                : val || "";
+                            return (
+                              <Input
+                                type="datetime-local"
+                                value={formatted}
+                                onChange={(e) =>
+                                  rhfField.onChange(new Date(e.target.value))
+                                }
+                                readOnly={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                disabled={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                className={readOnlyClass}
+                              />
+                            );
+                          }
+
+                          case "select":
+                            return (
+                              <div className={readOnlyClass}>
+                                <Select
+                                  onValueChange={rhfField.onChange}
+                                  value={rhfField.value}
+                                  disabled={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options.options?.map(
+                                      (opt: string) => (
+                                        <SelectItem key={opt} value={opt}>
+                                          {opt}
+                                        </SelectItem>
+                                      )
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            );
+
+                          default:
+                            return (
+                              <Input
+                                {...rhfField}
+                                readOnly={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                disabled={isFieldReadOnly} // 👈 change to isFieldReadOnly
+                                className={readOnlyClass}
+                              />
+                            );
+                        }
+                      })()}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            );
+          })}
+      </form>
+    </Form>
+  );
+}
+```
+
+Update `/aspect/apps/client/src/components/pages/generic-model-form.tsx` to check users permissions and padd `isReadOnly` flag to `<ModelForm>`.
+
+```TypeScript
+
+// existing code removed for brevity
+
+import { usePermissions } from "@/context/permissions-context"; // 👈 import usePermissions
+
+export type GenericModelFormProps = { args: string };
+
+type RawRow = Record<string, any>; // We don't know the shape yet
+
+export default function GenericModelForm({ args }: GenericModelFormProps) {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<RawRow | any>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<RawRow | null>(
+    null
+  );
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // 👇 add
+  const { hasAny, isLoading } = usePermissions();
+
+  if (isLoading) {
+    throw new Error("User permissions are still loading.");
+  }
+  // 👆
+
+  const parsedArgs = ParseKeyValueString(args);
+  const model = parsedArgs[COMPONENT_ARGS.MODEL_NAME];
+  const cls = model ? getClass(model) : null;
+  const schema = cls ? getSchema(cls) : null;
+
+  if (!cls) return <div>No {model} model registered!</div>;
+
+  // 👇 check user's permissions for read and/or write permission
+
+  if (
+    !hasAny(
+      ParseStringByCommaFiltered(
+        parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+        PERMISSION_TYPE.READ
+      )
+    )
+  ) {
+    throw new Error("You do not have permission to view this item.");
+  }
+
+  let canEdit = hasAny(
+    ParseStringByCommaFiltered(
+      parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+      PERMISSION_TYPE.WRITE
+    )
+  );
+
+  // 👆
+
+  const idValue = GetLastPathSegment(location.pathname);
+  const isNew = !idValue || IsNewModel(idValue);
+
+  // existing code removed for brevity
+
+  return (
+    <>
+      <div className="flex flex-1 flex-col gap-4">
+        <div className="container mx-auto py-4 px-4">
+          {cls && schema && (
+            <ModelForm
+              key={data?.[identityField]}
+              schema={schema}
+              cls={cls}
+              item={data}
+              hiddenFields={hiddenFields}
+              readOnlyFields={readOnlyFields}
+              isReadOnly={!canEdit} { /* 👈 add */ }
+              onCreate={handleCreate}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+            />
+          )}
+        </div>
+      </div>
+
+      { /* existing code removed for brevity */ }
+
+    </>
+  );
+}
 ```
