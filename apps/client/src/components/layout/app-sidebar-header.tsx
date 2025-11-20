@@ -23,7 +23,6 @@ export function AppSidebarHeader() {
         ) : (
           <></>
         )}
-        <h1 className="text-base font-medium">Home</h1>
         <div className="ml-auto flex items-center gap-2">
           <Authentication />
           <ThemeToggle />
