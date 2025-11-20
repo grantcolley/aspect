@@ -9,6 +9,7 @@ type PermissionsContextType = {
   isLoading: boolean;
   isError: boolean;
   has: (p: Permission) => boolean;
+  hasAny: (ps: Permission[]) => boolean;
 };
 
 const PermissionsContext = createContext<PermissionsContextType | undefined>(
@@ -58,6 +59,7 @@ export function PermissionsProvider({
       isLoading,
       isError,
       has: (p: Permission) => !!permissions?.has(p),
+      hasAny: (ps: Permission[]) => ps.some((p) => permissions?.has(p)),
     }),
     [permissions, isLoading, isError]
   );
