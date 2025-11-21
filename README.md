@@ -7567,3 +7567,125 @@ export default function GenericModelForm({ args }: GenericModelFormProps) {
   );
 }
 ```
+
+Update `/aspect/apps/client/src/components/generic/model-table.tsx` to accept a `isReadonly` flag.
+
+```TypeScript
+
+// existing code removed for brevity
+
+interface ModelTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  isReadOnly?: boolean; // 👈 add
+}
+
+export function ModelTable<TData, TValue>({
+  columns,
+  data,
+  isReadOnly = false,  // 👈 add
+}: ModelTableProps<TData, TValue>) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+// existing code removed for brevity
+
+  const location = useLocation();
+
+  return (
+    <div className="flex flex-col overflow-hidden rounded-md border">
+      {!isReadOnly && ( { /* 👈 Wrap the button in isReadonly */ }
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Create new item"
+                className="self-start m-2"
+              >
+                <Link to={`${location.pathname}/0`}>
+                  <IconFilePlus className="!size-5" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Create new</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+      { /* existing code removed for brevity */ }
+
+    </div>
+  );
+}
+```
+
+Update `/aspect/apps/client/src/components/pages/generic-model-table.tsx` to check users permissions and padd `isReadOnly` flag to `<ModelTable>`.
+
+```TypeScript
+
+// existing code removed for brevity
+
+import {
+  ParseKeyValueString,
+  ParseStringByCommaFiltered, // 👈 add
+} from "shared/src/utils/string-util";
+import { usePermissions } from "@/context/permissions-context"; // 👈 import usePermissions
+
+export type GenericModelTableProps = { args: string };
+
+type RawRow = Record<string, unknown>;
+
+export default function GenericModelTable({ args }: GenericModelTableProps) {
+
+  // existing code removed for brevity
+
+  // 👇 add
+  const { hasAny, isLoading } = usePermissions();
+
+  if (isLoading) {
+    throw new Error("User permissions are still loading.");
+  }
+  // 👆
+
+  const parsedArgs = ParseKeyValueString(args);
+  const identityFieldName = parsedArgs[COMPONENT_ARGS.MODEL_IDENTITY_FIELD];
+
+  // 👇 check user's permissions for read and/or write permission
+
+  if (
+    !hasAny(
+      ParseStringByCommaFiltered(
+        parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+        PERMISSION_TYPE.READ
+      )
+    )
+  ) {
+    throw new Error("You do not have permission to view this item.");
+  }
+
+  let canEdit = hasAny(
+    ParseStringByCommaFiltered(
+      parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+      PERMISSION_TYPE.WRITE
+    )
+  );
+
+  // 👆
+
+  // existing code removed for brevity
+
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="container mx-auto py-4 px-4">
+        <ModelTable columns={columns} data={data} isReadOnly={!canEdit} />
+      </div>
+    </div>
+  );
+}
+
+```

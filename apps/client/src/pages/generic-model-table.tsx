@@ -6,8 +6,16 @@ import { ModelTable } from "@/components/generic/model-table";
 import { GetRecords } from "@/requests/fetch-generic-data";
 import { useRoutesContext, type ApiPage } from "@/context/routes-context";
 import { Button } from "@/components/ui/button";
-import { COMPONENTS, COMPONENT_ARGS } from "shared/src/constants/constants";
-import { ParseKeyValueString } from "shared/src/utils/string-util";
+import {
+  COMPONENTS,
+  COMPONENT_ARGS,
+  PERMISSION_TYPE,
+} from "shared/src/constants/constants";
+import {
+  ParseKeyValueString,
+  ParseStringByCommaFiltered,
+} from "shared/src/utils/string-util";
+import { usePermissions } from "@/context/permissions-context";
 
 export type GenericModelTableProps = { args: string };
 
@@ -20,8 +28,32 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
   const [data, setData] = useState<RawRow[]>([]);
   const { addApiPage } = useRoutesContext();
   const location = useLocation();
+  const { hasAny, isLoading } = usePermissions();
+
+  if (isLoading) {
+    throw new Error("User permissions are still loading.");
+  }
+
   const parsedArgs = ParseKeyValueString(args);
   const identityFieldName = parsedArgs[COMPONENT_ARGS.MODEL_IDENTITY_FIELD];
+
+  if (
+    !hasAny(
+      ParseStringByCommaFiltered(
+        parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+        PERMISSION_TYPE.READ
+      )
+    )
+  ) {
+    throw new Error("You do not have permission to view this item.");
+  }
+
+  let canEdit = hasAny(
+    ParseStringByCommaFiltered(
+      parsedArgs[COMPONENT_ARGS.MODEL_PERMISSIONS],
+      PERMISSION_TYPE.WRITE
+    )
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,7 +113,7 @@ export default function GenericModelTable({ args }: GenericModelTableProps) {
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="container mx-auto py-4 px-4">
-        <ModelTable columns={columns} data={data} />
+        <ModelTable columns={columns} data={data} isReadOnly={!canEdit} />
       </div>
     </div>
   );
