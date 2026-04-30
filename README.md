@@ -1451,7 +1451,7 @@ const hostUrl = config.HOST_URL;
 > [React Authentication By Example: Using React Router 6](https://developer.auth0.com/resources/guides/spa/react/basic-authentication)
 > \
 > [Complete Guide to React User Authentication](https://auth0.com/blog/complete-guide-to-react-user-authentication/)
-> \ 
+> \
 > [Auth0 React QuickStart](https://auth0.com/docs/quickstart/spa/react)
 
 Create the Auth0 application for `Aspect.Client` following the Auth0 instructions above.
